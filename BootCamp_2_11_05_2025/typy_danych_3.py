@@ -33,4 +33,33 @@ print(tupla_liczby)
 
 del temp
 # print(temp)
+print(10 * "-")
 
+print(tupla_liczby)
+
+print(tupla_liczby[1:4])
+print(tupla_liczby[-4:-2])
+print(tupla_liczby[::-1])
+
+print(10 * "-")
+
+print(tupla_liczby[-1])
+print(tupla_liczby[::-1])
+print(tupla_liczby[-1::-1])
+print(tupla_liczby[1:4:2])
+print(tupla_liczby[:])
+
+print(10 * "-")
+
+print(tupla_names)
+print("Radek" in tupla_names)
+
+print(tupla_names.count("Tomek"))
+print(tupla_names.index("Tomek"))
+
+print(10 * "-")
+
+print(sorted(tupla_names)) # tworzy liste z tupli
+print(tupla_names)
+
+print(sorted(tupla_names, reverse=True))

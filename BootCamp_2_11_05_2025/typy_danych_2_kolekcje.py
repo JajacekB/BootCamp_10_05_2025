@@ -265,3 +265,5 @@ lista_str_pusta = []
 
 
 
+
+
