@@ -231,9 +231,27 @@ print(liczby[::-1])
 
 print(10 * "-")
 
+liczby_5 = [1, 2, 3, 4, 5]
+liczby_6 = [6, 7, 8, 9]
+liczby_5.extend(liczby_6)
 
+print(liczby_5)
 
+# rozpakowanie sekwencji
+text = "Python"
+# lista_str = lista(tekst)
+print(lista)
 
+print(10 * "-")
+# lista_str2 = [tekst]
+# print(lista_str2)
+
+lista_str_pusta = []
+# lista_str_pusta.extend(tekst)
+print(lista_str_pusta)
+
+lista_str_pusta = []
+# lista_str_pusta.append(tekst)
 
 
 
