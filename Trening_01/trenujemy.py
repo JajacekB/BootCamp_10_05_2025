@@ -57,3 +57,19 @@ tekst_old = "Witaj %s!"
 print(tekst_old % name)
 
 print("To teraz witaj", name)
+
+print("""tekst
+      wielo
+      linijkoy""")
+
+"""Komentarz
+wielolinijkowy"""
+
+print(76 * "+")
+
+encoded_tekst = tekst.encode("utf-8")
+print(tekst)
+print(encoded_tekst)
+print(type(encoded_tekst))
+print(encoded_tekst.decode("utf-8"))
+print(type(encoded_tekst.decode("utf-8")))
