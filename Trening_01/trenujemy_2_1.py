@@ -225,3 +225,43 @@ print(liczby)
 print(liczby [::-1])
 
 print(10 * '-')
+
+print(liczby + liczby_3)
+liczby_4 = liczby + liczby_3
+print(liczby_4)
+
+liczby_5 = [1, 2, 3, 4, 5]
+liczby_6 = [6, 7, 8, 9]
+liczby_5.extend(liczby_6)
+print(liczby_5)
+
+print(' ')
+
+tekst = "Pyth on"
+print(tekst)
+lista_str = list(tekst)
+print(lista_str)
+
+print(' ')
+
+lista_str_pusta = []
+print(lista_str_pusta)
+lista_str_pusta.extend(tekst)
+print(lista_str_pusta)
+
+print(' ')
+
+lista_str2 = [tekst]
+print(lista_str2)
+
+print(' ')
+
+lista_str_pusta = []
+lista_str_pusta.append(tekst)
+print(lista_str_pusta)
+
+print(' ')
+
+krotka = tuple(liczby)
+print(krotka)
+print(type(krotka))
