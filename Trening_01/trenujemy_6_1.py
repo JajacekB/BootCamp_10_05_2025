@@ -214,3 +214,5 @@ print(txt)
 txt = "We are the so-called \"Vikings\" from the North!"
 print(txt)
 print(type(txt))
+
+print(txt.swapcase())
