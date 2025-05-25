@@ -64,4 +64,4 @@ while True:
     except ZeroDivisionError:
         print("Błąd: Nie można dzielić przez zero.")
     except Exception as e:
-        print("Nieznany bład.")
+        print("Nieznany bład:", e)
