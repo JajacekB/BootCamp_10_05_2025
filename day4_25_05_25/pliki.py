@@ -1,7 +1,4 @@
 # praca z plikami
-from os import write
-
-from day1_10_5_25.teksty import tekst
 
 fh = open("tekst_fh.txt", "w")
 fh.write("Radek\n")
@@ -10,10 +7,14 @@ fh.close()
 # context manager - pozwala na bezpieczną pracę z plikiem
 # with
 
-with open("test_log", "w", encoding="utf-8") as file:
+with open("test.log", "w", encoding="utf-8") as file:
     file.write("Radek\n")
     file.write("Kolejna\n")
     file.write("Jeszcze jedna\n")
+    file.write("Jeszcze jedna\n")
+    file.write("Jeszcze jedna\n")
+    file.write("Jeszcze jedna\n")
+    file.write("Jeśće jedna\n")
 #file.write("")
 
 with open("../test.log", "w") as fh:
@@ -46,10 +47,10 @@ with open("linie.txt", "w") as f:
     f.write("Druga linia\n")
     f.write("Trzecia linia\n")
 
-with open("linie.txt", "r") as f:
-    tekst = fh.read()
-print(tekst)
-print(repr(tekst))
+# with open("linie.txt", "r") as f:
+#     tekst = fh.read()
+# print(tekst)
+# print(repr(tekst))
 
 with open("linie.txt", "r") as fh:
     linie = fh.readlines()
