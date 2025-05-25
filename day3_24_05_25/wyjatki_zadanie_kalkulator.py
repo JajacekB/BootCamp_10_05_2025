@@ -63,5 +63,5 @@ while True:
             print(f"{a} / {b} = {wynik}")
     except ZeroDivisionError:
         print("Błąd: Nie można dzielić przez zero.")
-    except Exception as:
+    except Exception as e:
         print("Nieznany bład.")
