@@ -21,7 +21,7 @@ while licznik < 15:
 # password = input("Podaj hasło")
 # while password != "Secret":
 #     password = input("Błędne hasło, podaj poprawne")
-#     print('Hasło poprawne')
+# print('Hasło poprawne')
 
 # lista = []
 # lista_int = []
