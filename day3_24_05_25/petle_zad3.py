@@ -11,6 +11,8 @@ while True:
     if licznik  > 15:
         break
 
+print()
+
 licznik = 0
 while licznik < 15:
     licznik += 1
@@ -38,6 +40,13 @@ element_to_remove = 5
 while element_to_remove in my_list:
     my_list.remove(element_to_remove)
 
+print(my_list)
+
+print(10 * '/')
+
+my_list = [1, 7, 2, 3, 7, 4, 7, 5, 6, 7]
+print(my_list)
+my_list = [usunac for usunac in my_list if usunac !=7]
 print(my_list)
 
 
