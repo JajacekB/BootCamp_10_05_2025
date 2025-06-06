@@ -1,12 +1,3 @@
-# napisać program kalkulator z wykorzystaniem pętli while True
-# przechwycić wyjątki i obsłuzyć
-# ładnie wypisać wyniki np.: Dodawanie 2 + 4 = 6
-# wyświetlić menu z działaniami
-# pobrać liczby
-# wyświtlić wynik wybranego działania
-
-
-
 print("\nProgram służy do prostych obliczeń matematycznych na dwóch liczbach")
 
 while True:
@@ -25,7 +16,7 @@ while True:
         print("Koniec programu.")
         break
 
-    if dzialanie not in ('1', '2', '3', '4'):
+    if dzialanie not in ('1', '2', '3', '4', '5'):
         print("Błędny wybór. Spróbuj ponownie.")
         continue
 
@@ -48,20 +39,21 @@ while True:
             print("To nie jest poprawna liczba. Spróbuj jeszcze raz.")
 
     # obliczenia
-    try:
-        if dzialanie == '1':
+try:
+    match dzialanie:
+        case '1':
             wynik = a + b
             print(f"{a} + {b} = {wynik}")
-        elif dzialanie == '2':
+        case '2':
             wynik = a - b
             print(f"{a} - {b} = {wynik}")
-        elif dzialanie == '3':
+        case '3':
             wynik = a * b
             print(f"{a} * {b} = {wynik}")
-        elif dzialanie == '4':
+        case '4':
             wynik = a / b
             print(f"{a} / {b} = {wynik}")
-    except ZeroDivisionError:
-        print("Błąd: Nie można dzielić przez zero.")
-    except Exception as e:
-        print("Nieznany bład:", e)
+except ZeroDivisionError:
+    print("Błąd: Nie można dzielić przez zero.")
+except Exception as e:
+    print("Nieznany błąd:", e)

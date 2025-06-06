@@ -112,21 +112,21 @@ else:
 #
 punkty = 0
 odp = input("Podaj datę Chrztu Polski: ")
-if odp == "966":
+if odp.strip() == "966":
     punkty += 1
     print("Odpowiedź poprawna, zdobywasz punkt")
 else:
     print("Źle")
 
-odp = input("Na jakim kontynęcie leży Nepal: ")
-if odp == "Azja":
+odp = input("Na jakim kontynęcie leży Nepal: ").lower()
+if odp == "azja":
     punkty += 1
     print("Odpowiedź poprawna, zdobywasz punkt")
 else:
     print("Źle")
 
 odp = input("Co to za ryba z wąsami: ")
-if odp == "Sum":
+if odp.casefold() == "sum".casefold():
     punkty += 1
     print("Odpowiedź poprawna, zdobywasz punkt")
 else:

@@ -14,7 +14,7 @@ try:
 except ZeroDivisionError:
     print("Nie dziel przez zero")
 except TypeError:
-    print("Błą typu")
+    print("Błąd typu")
 except ValueError:
     print("Błąd wartości")
 except Exception as e:
