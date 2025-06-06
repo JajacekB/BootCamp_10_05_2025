@@ -6,7 +6,7 @@
 
 odp = True
 print((bool(odp))) # True
-# odp = False
+odp = False
 if odp:
     print("Brawo")
     print("Brawo")
@@ -18,6 +18,10 @@ if odp:
     print("Brawo")
 
 print("Dalsza część programu")
+
+odp = "Radek"
+if odp:
+    print("ok")
 
 odp = "Tomek"
 if odp == "Radek":
@@ -39,16 +43,16 @@ else:
 #
 # print(f"Płacisz {zarobki * podatek} podatek")
 
-#suma_zam = 250
-#if suma_zam > 150:
-#    rabacik = 25
-#else:
-#    rabacik = 0
-#
-#print(f"Rabat wynosi {rabacik}")
-#
-#rabat = 250 if suma_zam > 150 else 0
-#print(f"Rabat wynosi {rabat}")
+suma_zam = 250
+if suma_zam > 150:
+    rabacik = 25
+else:
+    rabacik = 0
+
+print(f"Rabat wynosi {rabacik}")
+
+rabat = 25 if suma_zam > 150 else 0
+print(f"Rabat wynosi {rabat}")
 
 
 # zasymuluj system zbierania logów
@@ -69,7 +73,6 @@ if system == "console":
     print("Stało się coś strasznego")
 elif system == "email":
     print("System email")
-
     if blad == "error":
         lista_bladow.append("Krytyczny")
         print("error")
@@ -85,34 +88,49 @@ else:
 
 print(lista_bladow)
 
-# print("")
+print("")
+
+alert_dict = {"console": "Coś poszło nie tak",
+            "email": {"error": "Krytyczny", "medium": "Ostrzeżenie"}}
+
+if system in alert_dict:
+    if system == "console":
+        print(alert_dict.get(system))
+    elif system == "email":
+        print("System email")
+        print(alert_dict.get(system))
+        if blad in alert_dict[system]:
+            bledy = alert_dict[system]
+            print(bledy[blad])
+else:
+    print("Inny System")
+
+
+# # zrobić prpgram test z
+# # dodać punktację  (3 pytania)
 #
-# alert_dict = {"console"; "Coś strasznego",
-#             "email": {"error": "Krytyczny"},
-#             "medium": "Ostrzeżenie"}
 #
-# if alert_system in alert_dict:
-#     if alert_sytem == "conso;e":
-#         print(alert_dict.get(alert_system))
-
-
-# zrobić prpgram test z
-# dodać punktację  (3 pytania)
-
-
-biologia = {"ssak": "kot", "płaz": "żaba", "ptak": "bocian"}
 punkty = 0
-
-print(f" Podaj przykład ssaka")
-ssak = "kot"
-if ssak == biologia[ssak]:
+odp = input("Podaj datę Chrztu Polski: ")
+if odp == "966":
     punkty += 1
+    print("Odpowiedź poprawna, zdobywasz punkt")
 else:
-    punkty = punkty
-płaz = "żaba"
-if płaz == biologia[płaz]:
-    punkty += 1
-else:
-    punkty = punkty
+    print("Źle")
 
+odp = input("Na jakim kontynęcie leży Nepal: ")
+if odp == "Azja":
+    punkty += 1
+    print("Odpowiedź poprawna, zdobywasz punkt")
+else:
+    print("Źle")
+
+odp = input("Co to za ryba z wąsami: ")
+if odp == "Sum":
+    punkty += 1
+    print("Odpowiedź poprawna, zdobywasz punkt")
+else:
+    print("Źle")
+
+print(f"Zdobyłeś {punkty} punkty")
 
