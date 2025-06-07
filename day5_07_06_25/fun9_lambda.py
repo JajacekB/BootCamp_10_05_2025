@@ -97,13 +97,13 @@ for i in lista:
 print(lista_parzysta)
 
 # filter()
-print(f"Zastosowanie lilter(): {list(filter(lambda x: x < 3, lista))}")
+print(f"Zastosowanie filter(): {list(filter(lambda x: x < 3, lista))}")
 print(f"Zastosowanie lilter(): {list(filter(lambda x: x > 15, lista))}")
 
 
-print(f"Zastosowanie lilter(): {list(filter(lambda x: x > 15 and x < 200, lista))}")
-print(f"Zastosowanie lilter(): {list(filter(lambda x: 15 < x < 200, lista))}")
-print(f"Zastosowanie lilter(): {list(filter(lambda x: x % 2 ==0, lista))}")
+print(f"Zastosowanie filter(): {list(filter(lambda x: x > 15 and x < 200, lista))}")
+print(f"Zastosowanie filter(): {list(filter(lambda x: 15 < x < 200, lista))}")
+print(f"Zastosowanie filter(): {list(filter(lambda x: x % 2 ==0, lista))}")
 
 list3 = ['one', 'TWO', 'three', 'FOUR']
 print(f"Filtrujemy: {list(filter(lambda x: x.isupper(), list3))}")
