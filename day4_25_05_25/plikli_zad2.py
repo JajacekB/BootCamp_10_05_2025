@@ -1,6 +1,8 @@
 import chardet
 
-
+# pip install chardet
+# !pip install chardet - w notebook jupyter
+# pip - menadżer pakietów python
 with open("test.log", "r") as file:
     lines = file.read()
 print(lines)

@@ -20,6 +20,7 @@ print("Aktualna godzina: ", formated_time.removeprefix("0"))
 
 formated_time_USA = datetime.now().strftime("%I:%M:%S %p")
 print("Godzina w formacie USA: ", formated_time_USA)
+print(type(formated_time_USA))
 
 time_from_str = datetime.now().strptime("25/05/2025", "%d/%m/%Y")
 print("data ze stringu: ", time_from_str)
@@ -50,6 +51,8 @@ for product in products:
 #         print(product['price'])
     if product['exp_date'] != today:
         continue
+        # końćzy bieżące wykonanie pętli, nakazuje pobrać kolejny eleemnt, wraca na początek
+
     product["price"] *= 0.8
     print(f"""Price for sku: {product['sku']}, date: {product["exp_date"]}
 is now: {product['price']}""")
