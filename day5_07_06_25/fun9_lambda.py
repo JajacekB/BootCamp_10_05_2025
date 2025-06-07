@@ -58,6 +58,8 @@ print(wiek(17))
 print(wiek(18))
 print(wiek(25))
 
+
+# mapowanie
 lista = [1, 2, 3, 45, 67, 78, 100, 200, 300]
 
 lista_wyn = []
@@ -83,3 +85,40 @@ print(f"Zastosowanie map(); {list(map(zmien, lista))}")
 print(f"Zastosowanie map(); {list(map(lambda x: x * 2, lista))}")
 print(f"Zastosowanie map(); {list(map(lambda x: x * 4, lista))}")
 print(f"Zastosowanie map(); {list(map(lambda x: x * 3.67, lista))}")
+
+
+# filtrowanie
+
+lista_parzysta = []
+for i in lista:
+    if i % 2 == 0:
+        lista_parzysta.append(i)
+
+print(lista_parzysta)
+
+# filter()
+print(f"Zastosowanie lilter(): {list(filter(lambda x: x < 3, lista))}")
+print(f"Zastosowanie lilter(): {list(filter(lambda x: x > 15, lista))}")
+
+
+print(f"Zastosowanie lilter(): {list(filter(lambda x: x > 15 and x < 200, lista))}")
+print(f"Zastosowanie lilter(): {list(filter(lambda x: 15 < x < 200, lista))}")
+print(f"Zastosowanie lilter(): {list(filter(lambda x: x % 2 ==0, lista))}")
+
+list3 = ['one', 'TWO', 'three', 'FOUR']
+print(f"Filtrujemy: {list(filter(lambda x: x.isupper(), list3))}")
+print(f"Filtrujemy: {list(filter(lambda x: x.islower(), list3))}")
+
+list4 = ['one', 'two2', 'three3', '88', '99', '102', '1.23']
+numeric = list(filter(lambda x: x.isnumeric(), list4))
+print(f"Numeric: {numeric}")
+
+alpha = list(filter(lambda x: x.isalpha(), list4))
+print(f"Alpha: {alpha}")
+
+alphanum = list(filter(lambda x: x.isalnum(), list4))
+print(f"Alphanum: {alphanum}")
+
+mix = list(filter(lambda x: x.isnumeric() and not x.isalpha(), list4))
+print(f"Mix: {mix}")
+
