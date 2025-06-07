@@ -1,6 +1,6 @@
 import operator
 
-from functools import reduce
+from functools import reduce, lru_cache
 
 
 def add(a, b):
@@ -47,3 +47,21 @@ print(reduce(lambda a, b: bool(a and b), [0, 0, 1, 0, 0]))
 print(reduce(lambda a, b: bool(a and b), [0, 0, 0, 0, 0]))
 print(reduce(lambda a, b: bool(a or b), [0, 0, 1, 0, 0]))
 print(reduce(lambda a, b: bool(a or b), [0, 0, 0, 0, 0]))
+
+
+@lru_cache(maxsize=1000)
+def fibonacci(n):
+    if n < 2:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+fib = fibonacci(5)
+print(fib)
+print(fibonacci.cache_info())
+fib = fibonacci(10)
+print(fibonacci.cache_info())
+print(fib)
+
+fibonacci.cache_clear()
+print(fibonacci.cache_info())
+
