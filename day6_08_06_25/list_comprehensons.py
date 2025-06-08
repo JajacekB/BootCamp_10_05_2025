@@ -29,4 +29,3 @@ print([i for i in range(10)])
 print([i for i in range(47)])
 print([i for i in range(200) if i % 3 == 0 if i % 9 == 0 if i % 12 == 0])
 
-
