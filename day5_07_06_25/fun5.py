@@ -8,16 +8,18 @@ print("Cześć")
 
 
 def pizzeria(zamowienie):
-    def pizza():
-        print("Wybrałeś Pizza Capricoza")
+    print("Witamy w Pizzerii 'Capone'")
+
+    def pizza(skladniki = "margeritta"):
+        print("Wybrałeś Pizza: ", skladniki)
 
     def napoj():
-        print("wybrałeś Coca-Cola")
+        print("wybrałeś Coca-Cola", )
 
     def brak():
         print("Nie mamy tego w menu")
 
-    match zamowienie:
+    match zamowienie.casefold().strip():
         case "pizza":
             return pizza
         case "cola":
@@ -26,15 +28,18 @@ def pizzeria(zamowienie):
             return brak
 
 
-wydaj = pizzeria(zamowienie="pizza")
+wydaj = pizzeria("pizza")
 print(wydaj())
 
-wydaj = pizzeria(zamowienie="cola")
+wydaj("pieczarki, szynka")
+
+
+
+wydaj = pizzeria("cola")
 print(wydaj())
 
 wydaj = pizzeria(zamowienie="schabowy")
 print(wydaj())
-
-order = input("Co mamy podać ").lower()
+order = input("Co mamy podać ")
 wydaj = pizzeria(order)
-print(wydaj())
+

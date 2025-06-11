@@ -17,11 +17,15 @@ print(odejmij(6, 90))
 wynik = odejmij(6, 90)
 print("Wynik ", wynik)
 
+print()
+
 print(odejmij2())
 print(odejmij2(5, 6))
 print(odejmij2(5, 6, 4))
 print(odejmij2(a= 6, b=7))
 print(odejmij2(1, c = 8, b=5))
+
+print()
 
 print(odejmij2(6, 9) + odejmij2(100, 23, 6))
 
@@ -30,9 +34,12 @@ print(oblicz_vat(1000))
 print(oblicz_vat(1000, 8))
 print(oblicz_vat(vat=15, cena=1000))
 
+print()
+
 vat1 = oblicz_vat(1000)
 print(type(vat1))
 print(vat1)
 
 if vat1 == 1230:
     print("Działa")
+
