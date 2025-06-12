@@ -23,6 +23,6 @@ def srednia(name = None, *cyfry):
 srednia()
 srednia(5, 5, 5, 5, 5, 5, 5)
 
-srednia("Radek", 5, 5, 5, 5, 5, 5)
+srednia("Radek", 3, 6, 1, 4, 3, 2, 1, 5, 5, 2, 4, 3, 2, 4)
 
 

@@ -1,5 +1,4 @@
 import operator
-
 from functools import reduce, lru_cache
 
 
@@ -55,7 +54,7 @@ def fibonacci(n):
         return n
     return fibonacci(n - 1) + fibonacci(n - 2)
 
-fib = fibonacci(5)
+fib = fibonacci(6)
 print(fib)
 print(fibonacci.cache_info())
 fib = fibonacci(10)
@@ -64,4 +63,3 @@ print(fib)
 
 fibonacci.cache_clear()
 print(fibonacci.cache_info())
-
