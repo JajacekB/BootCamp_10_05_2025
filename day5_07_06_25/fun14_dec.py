@@ -1,9 +1,7 @@
+import numpy as np
 import operator
 import time
 from functools import partial
-
-import numpy as np
-
 
 
 def measure_time(func):
@@ -28,19 +26,19 @@ def my_for_sum():
     suma = 0
     for i in range(15_000_000):
         suma += i
-    print("Sum is: ", sum)
+    print("Suma is: ", suma)
 
 
 @measure_time
 def my_sum_withauo_for():
     total = sum(range(15_000_000))
-    print("Suma jest", total)
+    print("Sum jest", total)
 
 
 @measure_time
 def my_sum_np():
     total = np.sum(np.arange(15_000_000), dtype=np.int64)
-    print('Sum jest sobie: ', total)
+    print('Sum np jest: ', total)
 
 
 lista = list(range(1_000_000))

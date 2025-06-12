@@ -29,3 +29,6 @@ def nwd(a, b):
 
 
 print(nwd(48, 18))
+print(48 % 18)
+print(18 % 12)
+print(12 % 6)
