@@ -18,17 +18,18 @@ class Person:
     id: int
 
     def greet(self):
-        print()
+        print(self.last_name)
 
-p2 = Person("Jan", "Kowalski", 1)
-print(p2)
+if __name__ == '__main__':
+    p2 = Person("Jan", "Kowalski", 1)
+    print(p2)
 
-p3 = Person("Maciej", "Nowak", 2)
-print(p3)
+    p3 = Person("Maciej", "Nowak", 2)
+    print(p3)
 
-people = [p2, p3]
-print(people)
+    people = [p2, p3]
+    print(people)
 
-with open("dane.pickle", "wb") as stream:
-    pickle.dump(people, stream)
+    with open("dane.pickle", "wb") as stream:
+        pickle.dump(people, stream)
 
