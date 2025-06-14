@@ -26,3 +26,4 @@ car1 = SamochodSluzbowyOsobowy()
 car1.serwis()
 car1.rejestracja_sluzbowy()
 
+print(SamochodSluzbowyOsobowy.__mro__)
