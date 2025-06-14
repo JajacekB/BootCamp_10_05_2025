@@ -49,4 +49,3 @@ cz1.ruszaj()
 cz2.powitanie()
 cz2.stary()
 cz2.ruszaj()
-

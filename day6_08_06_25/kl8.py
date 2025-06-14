@@ -17,26 +17,11 @@ class Ptak(ABC):
         self.szybkosc = szybkosc
 
     def latam(self):
-        print("tu", self.gatunek, "Lecę", self.szybkosc )
+        print("Tu", self.gatunek, "Lecę z szybkością", self.szybkosc )
 
     @abstractmethod
     def wydaje_odglos(self):
-
-        """
-        :return
-        """
-
-
-class Orzel(Ptak):
-    """
-    Klasa orzel
-    """
-
-    def wydaje_odglos(self):
-        print("Kier kir kier")
-
-    def polowanie(self):
-        print("Tu", self.gatunek, "ja poluję")
+        pass
 
 
 class Kura(Ptak):
@@ -53,23 +38,44 @@ class Kura(Ptak):
     def wydaje_odglos(self):
         print("Ko ko ko ko ")
 
+    def dziobanie(self):
+        print(("Tu ", self.gatunek, "Idę sobie podziobać"))
+
+
+class Orzel(Ptak):
+    """
+    Klasa orzel
+    """
+
+    def wydaje_odglos(self):
+        print("Kier kir kier")
+
+    def polowanie(self):
+        print("Tu", self.gatunek, "Ja poluję")
+
 
 class Sowa(Ptak):
     """
-    Klasa Sowa
+    Klasa Sowa dziedziczy tylko po klasie patak
     """
 
-or1 = Ptak("Orzeł", 45)
-or1.latam()
+# or1 = Ptak("Orzeł", 45)
+# or1.latam()
 
-kur1 = Ptak("Kura", 15)
-kur1.latam()
-
+# kur1 = Ptak("Kura", 15)
+# kur1.latam()
+#
 kur2 = Kura("Kura")
 kur2.latam()
+kur2.wydaje_odglos()
+kur2.dziobanie()
 
-# or2 = Ptak("Bielik", 45)
-# or2.wydaje_odglos()
+or2 = Orzel("Bielik", 45)
+or2.wydaje_odglos()
+or2.latam()
+or2.polowanie()
+
+
 
 
 

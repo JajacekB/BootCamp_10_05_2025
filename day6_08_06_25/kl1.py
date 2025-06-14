@@ -57,4 +57,3 @@ cz1.powitanie()
 cz1.stary()
 cz2.powitanie()
 cz2.stary()
-

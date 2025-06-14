@@ -17,6 +17,7 @@ class MyFirstClass:
 
     def move(self, x:float, y:float) -> None:
         """
+        Metoda przesuwania punktów
 
         :param x:
         :param y:
@@ -38,7 +39,7 @@ class MyFirstClass:
         return math.hypot(self.x - other.x, self.y - other.y)
 
 
-    def __str__(self):
+    def __repr__(self):
         return f"({self.x, self.y})"
 
     def __repr__(self):

@@ -22,7 +22,7 @@ class LongestKeyDictMax(dict):
 
 
 art = LongestKeyDictMax()
-art['abomasz'] = 12
+art['tomasz'] = 12
 art['abraham'] = 7
 art['zen'] = 17
 print(art.longest_key())

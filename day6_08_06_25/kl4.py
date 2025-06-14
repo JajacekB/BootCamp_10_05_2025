@@ -3,40 +3,49 @@
 # metody do odczytu i zapisu tych pól
 # dodać metodę prywatną __farba() - > "zabrakło farby"
 
-class Home:
+class Dom:
     """
-    Klasa opisująca dom
+    Klasa opisująca Dom
     """
 
-    def __init__(self, kolor, liczba_okien, metraz):
-        """
-        Metoda inicjacji
-        :param kolor:
-        :param liczba_okien:
-        :param metraz:
-        """
+    def __init__(self, metraz, kolor, liczba_okien):
+        self.__metraz = metraz
         self.__kolor = kolor
         self.__liczba_okien = liczba_okien
-        self.__metraz = metraz
 
+    def wyswietl_okna(self):
+        print(f"Mam {self.__liczba_okien} okna/okien")
 
-    def sprawdz_color(self):
-        print(f" Mama taki {self.__koor}")
+    def wyswietl_kolor(self):
+        print(f"Mam {self.__kolor} kolor")
 
-    def policz_okna(self):
-        print(f" Mam tyle {self.__liczba_okien}")
+    def wyswietl_metraz(self):
+        print(f"Mam {self.__metraz} m2 powierzchni")
 
-    def podaj_metraz(self):
-            print(f" Mam {self.__metraz} powierzchn")
+    def zmien_okna(self):
+        odp = int(input("Podaj liczbę okien "))
+        self.__liczba_okien = odp
+        self.wyswietl_okna()
 
-    def pomaluj(self, nowy_kolor):
+    def zmien_kolor(self):
         odp = input("Podaj kolor ")
         self.__kolor = odp
-        self.sprawdz_kolor
+        self.wyswietl_kolor()
+        self.__farba()
 
-    def dorob_okien(self):
-        odp = input("Podaj ilość okien ")
-        self.__liczba_okien = odp
+    def zmien_metraz(self):
+        odp = int(input("Podaj metraz "))
+        self.__metraz = odp
+        self.wyswietl_metraz()
 
+    def __farba(self):
+        print("Zabrakło farby")
 
-policz_okna()
+dom = Dom(168, "Beżowy", 17)
+dom.wyswietl_metraz()
+dom.wyswietl_kolor()
+dom.wyswietl_okna()
+
+dom.zmien_metraz()
+dom.zmien_okna()
+dom.zmien_kolor()

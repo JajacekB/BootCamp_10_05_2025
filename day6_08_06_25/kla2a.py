@@ -21,6 +21,9 @@ class Suplier(Contact):
 c1 = Contact("Adam", "adam@wp.pl")
 c2 = Contact("Radek", "radek@wp.pl")
 c3 = Contact("Tomek", "tomek@wp.pl")
+print(c1.all_contacts)
+print(c2.all_contacts)
+print(c3.all_contacts)
 
 print(Contact.all_contacts)
 

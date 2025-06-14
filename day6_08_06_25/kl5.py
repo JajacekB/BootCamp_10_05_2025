@@ -24,13 +24,19 @@ class Samochod(Pojazd):
         super().info()
         print(f"Marka: {self.marka}")
 
+
+class Rower(Pojazd):
+    """
+    Klasa Rower dziedziczy po klasie Pojazd
+    """
+
 poj = Pojazd("czerwone")
 poj.info()
 
 sam = Samochod("Biały")
 sam.info()
 
-sam2 = Samochod("zielony", "Jaguar")
+sam2 = Samochod("Zielony", "Jaguar")
 sam2.info()
 
 rower = Rower("Zółty")

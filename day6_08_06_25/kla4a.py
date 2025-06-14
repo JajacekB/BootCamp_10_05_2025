@@ -37,4 +37,4 @@ d3['name'] = "Radek"
 print(d3['NAme'])
 d3[1] = "Radek"
 print(d3)
-print(d3)
+print(d3[2])

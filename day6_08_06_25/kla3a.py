@@ -41,7 +41,7 @@ class Suplier(Contact):
 
 class Friend(Suplier):
     """
-
+    Klasa dziedziczy po Suplier
     """
 
     def __init__(self, name, email, phone="00000000000"):
@@ -49,17 +49,23 @@ class Friend(Suplier):
         self.phone = phone
 
     def __repr__(self):
-        return f"{self.__clas__.name}{self.name}{self.email}+49{self.phone}"
+        return f"{self.__class__.__name__} {self.name} {self.email} +49{self.phone}"
 
 
+lista = ContactList
+print(type(lista))
+print(lista)
 
 c1 = Contact("Adam", "adam@wp.pl")
 c2 = Contact("Radek", "radek@wp.pl")
 c3 = Contact("Tomek", "tomek@wp.pl")
 
+print(c1.all_contacts)
+print(c2.all_contacts)
+print(c3.all_contacts)
 print(Contact.all_contacts)
 
-s1 = Suplier("Marek", "marek@wp.pl")
+s1 = Suplier("Marek", "marek@02.pl")
 print(Contact.all_contacts)
 print(s1.all_contacts)
 
