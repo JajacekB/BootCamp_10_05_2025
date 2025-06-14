@@ -17,6 +17,8 @@ class Person:
     last_name: str
     id: int
 
+    def greet(self):
+        print()
 
 p2 = Person("Jan", "Kowalski", 1)
 print(p2)
