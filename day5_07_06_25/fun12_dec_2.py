@@ -1,3 +1,7 @@
+from colorama import init, Fore
+from pywin.scintilla.formatter import Style
+
+
 def dekorator(func):
     def wrapper():
         result = func()
@@ -8,7 +12,9 @@ def dekorator(func):
 def bold_decorator(func):
     def wrapper():
         result = func()
-        return f"\033[1m" + result + "\033[0m"
+        # return f"\033[1m" + result + "\033[0m"
+        return Fore.RED + result
+        # return Style.BRIGHT + result
 
     return wrapper
 
