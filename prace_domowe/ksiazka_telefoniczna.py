@@ -123,7 +123,7 @@ def find_contact():
     finded = False
     for contact in contacts:
         if contact.get(find_category, "").lower() == find_person.lower():
-            print(f"{contact['name']} {contact['last_name']} - {contact['phone']}")
+            print(f"\n{contact['name']} {contact['last_name']} - {contact['phone']}")
             finded = True
 
 # Wyświetlanie listy kontaktów
