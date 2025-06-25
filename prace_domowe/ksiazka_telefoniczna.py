@@ -113,12 +113,12 @@ def find_contact():
         print("\nNieprawidłowy wybór.")
         return
 
-    find_category = categories[choice]
+    find_category, display_category = categories[choice]
 
     if find_category == "phone":
-        find_person = input(f"\nPodaj {find_category}: ").strip()
+        find_person = input(f"\nPodaj {display_category}: ").strip()
     else:
-        find_person = input(f"\nPodaj {find_category}: ").strip().capitalize()
+        find_person = input(f"\nPodaj {display_category}: ").strip().capitalize()
 
     finded = False
     for contact in contacts:
