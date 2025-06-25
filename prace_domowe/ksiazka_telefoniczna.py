@@ -7,11 +7,19 @@ import os
 
 print("\nKontakty - ksiązka telefoniczna")
 
-# deklaracja zmiennych: lista kontaktów.
+
+# Deklaracja zmiennych: lista kontaktów.
 contacts = []
 
-# deklaracja STAŁYCH: nazwa pliku .csv
+# Deklaracja STAŁYCH: nazwa pliku .csv
 FILENAME = "contacts.scv"
+
+# Tworzenie pliku .csv jeśli nie istnieje
+if not os.path.exists(FILENAME):
+    with open(FILENAME, "w", newline='', encoding="utf-8") as file:
+        fieldnames = ["name", "last_name", "phone"]
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
 
 # definiowanie funkcji:
 
@@ -89,10 +97,7 @@ def remove_contact():
 
 # Szukanie kontaktów
 def find_contact():
-    find_category = input("""\nWybierz jak chcesz szukać 
-    name
-    last_name
-    phone)? """).strip().lower()
+    find_category = input("\nWybierz jak chcesz szukać (name/last_name/phone)? ").strip().lower()
     find_person = input(f"\nPodaj {find_category}: ").strip().capitalize() if find_category != "phone" else input(f"Podaj {find_category}: ").strip()
 
     finded = False
