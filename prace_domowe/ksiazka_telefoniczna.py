@@ -77,7 +77,7 @@ def remove_contact():
                         print("\nOperacja zakończona sukcesem")
                         return
 
-                print("\nNie matej osoby")
+                print("\nNie ma tej osoby")
 
             case "2":
                 del_phone = input("\nPodaj numer telefonu do usunięcia: ").strip()
