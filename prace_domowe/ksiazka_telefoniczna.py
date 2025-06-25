@@ -110,7 +110,7 @@ def find_contact():
     }
 
     if choice not in categories:
-        print("\nNieprawidłowy wybór.")
+        print("\nBłedny wybór!!! Wybierz mądrze.")
         return
 
     find_category, display_category = categories[choice]
@@ -138,7 +138,7 @@ def show_contacts():
 
 load_contacts()
 
-# Menu wyboru działania w Kotaktach
+# Menu wyboru działania w Kontaktach
 while True:
     print("""\nCo chcesz zrobić?
     1. Dodaj kontakt
