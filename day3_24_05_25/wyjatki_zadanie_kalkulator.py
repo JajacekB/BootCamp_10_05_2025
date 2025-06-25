@@ -9,6 +9,8 @@
 
 print("\nProgram służy do prostych obliczeń matematycznych na dwóch liczbach")
 
+kontakty = []
+
 while True:
 
     # wybor dzialania
