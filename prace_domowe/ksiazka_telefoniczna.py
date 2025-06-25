@@ -97,8 +97,28 @@ def remove_contact():
 
 # Szukanie kontaktów
 def find_contact():
-    find_category = input("\nWybierz jak chcesz szukać (name/last_name/phone)? ").strip().lower()
-    find_person = input(f"\nPodaj {find_category}: ").strip().capitalize() if find_category != "phone" else input(f"Podaj {find_category}: ").strip()
+    print("""\nWybierz jak chcesz szukać:
+    1. Imię"
+    2. Nazwisko
+    3. telefon""")
+
+    choice = input("Wpisz cyfrę (1-3): ").strip()
+    categories = {
+        "1": ("name", "Imię"),
+        "2": ("last_name", "Nazwisko"),
+        "3": ("phone", "Telefon")
+    }
+
+    if choice not in categories:
+        print("\nNieprawidłowy wybór.")
+        return
+
+    find_category = categories[choice]
+
+    if find_category == "phone":
+        find_person = input(f"\nPodaj {find_category}: ").strip()
+    else:
+        find_person = input(f"\nPodaj {find_category}: ").strip().capitalize()
 
     finded = False
     for contact in contacts:
@@ -106,15 +126,13 @@ def find_contact():
             print(contact)
             finded = True
 
-    if not finded:
-        print("\nNie ma takiego kontaktu")
-
 # Wyświetlanie listy kontaktów
 def show_contacts():
     if not contacts:
         print("\nKontakty sa puste!!!")
     else:
-        for contact in contacts:
+        sorted_contacts = sorted(contacts, key=lambda c: c['name'].lower())
+        for contact in sorted_contacts:
             print(f"{contact['name']} {contact['last_name']} - {contact['phone']}")
     print()
 
