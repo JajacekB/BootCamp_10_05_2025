@@ -59,11 +59,11 @@ def remove_note():
 
     del_number = int(input("\nPodaj numer notatki do usunięcia: ").strip())
     for note in notes:
-    if notes[id(note)] == del_number:
-        notes.remove(note)
-        save_notes()
-        print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
-        return
+        if notes[id(note)] == del_number:
+            notes.remove(note)
+            save_notes()
+            print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
+            return
 
 # Edycji notatki
 def edit_note():
@@ -83,8 +83,19 @@ def edit_note():
     save_notes()
     print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
 
+# Wyświetlanie wszystkich notatek
+def show_notes():
+    print()
+    if not notes:
+        print("\nBrak notatek do wyświetlenia")
 
+    else:
 
+        for idx, note in enumerate(notes, start=1):
+            print(f"{note['title']} {note['content']} ")
+    print()
+
+load_notes()
 
 # Menu wyboru i głowny program
 while True:
@@ -92,7 +103,8 @@ while True:
     1. Dodaj notatkę
     2. Usuń notatkę
     3. Edytuj notatkę
-    4. Wyświetl wszystkie notatki""")
+    4. Wyświetl wszystkie notatki
+    5. KONIEC""")
 
     activiti = input("\nWybierz opcję (1-4): ")
 
@@ -107,7 +119,11 @@ while True:
             edit_note()
 
         case "4":
-            show_note()
+            show_notes()
+
+        case "5":
+            print("\nKoniec programu")
+            break
 
         case _:
             print("\nZły wybór!!! Zastanów się lepiej.")
