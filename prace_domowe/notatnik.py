@@ -37,7 +37,7 @@ def add_note():
 
     notes.append(note)
     save_notes()
-    print("\nUdało się Wspaniele, Cudownie i Majestatycznie")
+    print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
 
 # Usuwanie notatek
 def remove_note():
@@ -57,7 +57,7 @@ def remove_note():
                     if notes[id(note)] == del_number:
                         notes.remove(note)
                         save_notes()
-                        print("\nUdało się Wspaniele, Cudownie i Majestatycznie")
+                        print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
                         return
 
             case 2:
@@ -66,7 +66,7 @@ def remove_note():
                     if notes["title"] == del_title:
                         notes.remove(note)
                         save_notes()
-                        print("\nUdało się Wspaniele, Cudownie i Majestatycznie")
+                        print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
                         return
             case 3:
                 return
@@ -74,7 +74,7 @@ def remove_note():
             case _:
                 print("\nZły wybór!!! Zastanów się lepiej.")
 
-# Definowanie funkcji edycji notatki
+# Edycji notatki
 def edit_note():
 
 
