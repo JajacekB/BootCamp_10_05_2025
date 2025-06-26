@@ -11,6 +11,7 @@
 import os
 import csv
 
+
 # Deklaracja zmiennych: notatki lista
 notes = []
 
@@ -57,29 +58,46 @@ def add_note():
 # Usuwanie notatek
 def remove_note():
 
-    del_number = int(input("\nPodaj numer notatki do usunięcia: ").strip())
-    for note in notes:
-        if notes[id(note)] == del_number:
-            notes.remove(note)
-            save_notes()
-            print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
+    try:
+        del_number = int(input("\nPodaj numer notatki do usunięcia: ").strip())
+        index = del_number -1
+        if not 0 <= index < len(notes):
+            print("\nZły wybór!!! Zastanów się lepiej.")
             return
+    except ValueError:
+        print("\nTo nie jest prawidłowa liczba!!! Postaraj się lepiej")
+        return
+
+    del notes[index]
+    save_notes()
+    print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
+
+
 
 # Edycji notatki
 def edit_note():
 
-    number_note = int(input("\nPodaj numer notatki do poprawy ").strip())
+    try:
+        number_note = int(input("\nPodaj numer notatki do poprawy ").strip())
+        index = number_note - 1
+        if not 0 <= index < len(notes):
+            print("Nieprawidłowy numer notatki. Postaraj się lepiej")
+            return
+    except ValueError:
+        print("\nTo nie jest prawidłowa liczba!!! Postaraj się lepiej")
+        return
 
-    note = notes[number_note]
-    print(f"F\nEdytujesz; Nazwa: {note['title']} Treść: {note['content']}")
-    edit_title = input("\nNowa nazwa? ").strip().capitalize()
-    edit_content = input("\nNowa notatka? ").strip()
+    note = notes[index]
+    print(f"\nEdytujesz:\nTytuł: {note['title']}\nTreść: {note['content']}")
+
+    edit_title = input("\nNowa nazwa? (Enter, by nie zmieniać): ").strip().capitalize()
+    edit_content = input("Nowa treść? (Enter, by nie zmieniać): ").strip()
+
 
     if edit_title:
         note["title"] = edit_title
     if edit_content:
         note["content"] = edit_content
-
     save_notes()
     print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
 
@@ -92,8 +110,7 @@ def show_notes():
     else:
 
         for idx, note in enumerate(notes, start=1):
-            print(f"{note['title']} {note['content']} ")
-    print()
+            print(f"{idx}.   {note['title']}:  {note['content']} ")
 
 load_notes()
 
@@ -106,16 +123,18 @@ while True:
     4. Wyświetl wszystkie notatki
     5. KONIEC""")
 
-    activiti = input("\nWybierz opcję (1-4): ")
+    activiti = input("\nWybierz opcję (1-5): ")
 
     match activiti:
         case "1":
             add_note()
 
         case "2":
+            show_notes()
             remove_note()
 
         case "3":
+            show_notes()
             edit_note()
 
         case "4":
