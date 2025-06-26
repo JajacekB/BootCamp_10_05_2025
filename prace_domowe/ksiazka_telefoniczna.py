@@ -84,6 +84,7 @@ def remove_contact():
                 for contact in contacts:
                     if contact["phone"] == del_phone:
                         contacts.remove(contact)
+                        save_contacts()
                         print("\nOperacja zakończona sukcesem")
                         return
 
