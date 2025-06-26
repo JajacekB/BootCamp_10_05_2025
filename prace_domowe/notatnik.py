@@ -19,12 +19,27 @@ FILENAME = "notes.csv"
 
 # Tworzenie pliku jesli nie istnieje
 if not os.path.exists(FILENAME):
-    with open(FILENAME, "w", newline='', encoding="utf-0") as file:
+    with open(FILENAME, "w", newline='', encoding="utf-8") as file:
         fieldnames = ["title", "content"]
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
 
 # Definiowanie funkcji
+
+# Wczytywanie pliku notes.csv
+def load_notes():
+    with open(FILENAME, "r", newline='', encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            notes.append(row)
+
+# Zapisywanie pliku notes.csv
+def save_notes():
+    with open(FILENAME, "w", newline='', encoding="utf-8") as file:
+        fieldnames = ["title", "content"]
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(notes)
 
 # Dodawanie notatek
 def add_note():
@@ -41,41 +56,33 @@ def add_note():
 
 # Usuwanie notatek
 def remove_note():
-    while True:
-        print("""Jak chcesz usunąć notatkę
-        1. Po numerze
-        2. Po nazwie
-        3. Rezygnuję
-        """)
 
-        del_activity = input("\nWybierz ocje (1-3) ").strip()
-
-        match del_activity:
-            case 1:
-                del_number = input("\nPodaj numer notatki do usunięcia:")
-                for note in notes:
-                    if notes[id(note)] == del_number:
-                        notes.remove(note)
-                        save_notes()
-                        print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
-                        return
-
-            case 2:
-                del_title = input("\nPodaj nazwę notatki do usunięcia: ").strip().capitalize()
-                for note in notes:
-                    if notes["title"] == del_title:
-                        notes.remove(note)
-                        save_notes()
-                        print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
-                        return
-            case 3:
-                return
-
-            case _:
-                print("\nZły wybór!!! Zastanów się lepiej.")
+    del_number = int(input("\nPodaj numer notatki do usunięcia: ").strip())
+    for note in notes:
+    if notes[id(note)] == del_number:
+        notes.remove(note)
+        save_notes()
+        print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
+        return
 
 # Edycji notatki
 def edit_note():
+
+    number_note = int(input("\nPodaj numer notatki do poprawy ").strip())
+
+    note = notes[number_note]
+    print(f"F\nEdytujesz; Nazwa: {note['title']} Treść: {note['content']}")
+    edit_title = input("\nNowa nazwa? ").strip().capitalize()
+    edit_content = input("\nNowa notatka? ").strip()
+
+    if edit_title:
+        note["title"] = edit_title
+    if edit_content:
+        note["content"] = edit_content
+
+    save_notes()
+    print("\nUdało się Cudownie, Wspaniele i Majestatycznie")
+
 
 
 
