@@ -98,7 +98,7 @@ def remove_contact():
 # Szukanie kontaktów
 def find_contact():
     print("""\nWybierz jak chcesz szukać:
-    1. Imię"
+    1. Imię
     2. Nazwisko
     3. telefon""")
 
@@ -128,6 +128,7 @@ def find_contact():
 
 # Wyświetlanie listy kontaktów
 def show_contacts():
+    print()
     if not contacts:
         print("\nKontakty sa puste!!!")
     else:
