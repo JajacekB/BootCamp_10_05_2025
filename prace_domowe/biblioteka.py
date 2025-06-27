@@ -65,19 +65,46 @@ class Library:
         self.borrow_books =[]
 
     def add_book(self):
-        title = input("\nPodaj tytuł książki: ").strip()
-        author = input("Podaj autora ksiązki: ").strip()
-        lib_num = input("Podaj numer katalogowy: ").strip().lower()
+        prefix = "k"
+        while True:
+            title = input("\nPodaj tytuł książki: ").strip()
+            author = input("Podaj autora książki: ").strip()
 
-        for book in self.books:
-            if book.lib_num == lib_num:
-                print(f"\nKsiążka z numerem {lib_num} już istnieje.")
-                return
+            max_num = 0
+            for book in self.books:
+                lib_num = book.lib_num.lower()
+                if lib_num.startswith(prefix):
+                    try:
+                        number_part = int(lib_num[1:])
+                        if number_part > max_num:
+                            max_num = number_part
+                    except ValueError:
+                        pass
 
-        book = Book(title, author, lib_num)
-        self.books.append(book)
+            next_num = max_num + 1
+            suggested_lib_num = f"{prefix}{next_num:04d}"
 
-        print("\nOperacja dodawania książki zakończona sukcesem")
+            lib_num_input = input(f"Podaj numer katalogowy (domyślnie {suggested_lib_num}): ").strip().lower()
+            lib_num = lib_num_input if lib_num_input else suggested_lib_num
+
+
+            if any(book.lib_num == lib_num for book in self.books):
+                print(f"\nKsiążka z numerem {lib_num} już istnieje. Spróbuj ponownie.")
+                continue
+
+            # Pokazanie podsumowania i pytanie o potwierdzenie
+            print(f"\nCzy chcesz wprowadzić książkę: {title} - {author} [{lib_num}]? (Tak/Nie)")
+            choice = input().strip().lower()
+            if choice in ("tak", "t", "yes", "y"):
+                book = Book(title, author, lib_num)
+                self.books.append(book)
+                print("\nOperacja dodawania książki zakończona sukcesem")
+                break
+            elif choice in ("nie", "n", "no"):
+                print("\nWprowadzanie książki anulowane. Spróbuj jeszcze raz.")
+                # pętla while True zacznie wprowadzanie od nowa
+            else:
+                print("\nNiepoprawna odpowiedź. Spróbuj ponownie.")
 
     def add_user(self):
         user_id = input("\nNadaj numer biblioteczny użytkownika (Numer karty): ")
@@ -118,6 +145,7 @@ class Library:
         # Czy użytkownik nie przekroczył limitu ksiązek
         if len(user.borrowed) >= 4:
             print(f"\n{user.name} nie może wypozyczyć więcej niż cztery ksiązki.")
+            return
 
         # automat do ustawiania daty zwrotu.
         today = datetime.now()
@@ -252,7 +280,7 @@ while True:
     9. Sprawdź czy użytkownik ma wypożyczone książki.
     """)
 
-    activiti = input("\nWybierz opcję (0-9)")
+    activiti = input("\nWybierz opcję (0-9): ").strip()
 
     match activiti:
 
