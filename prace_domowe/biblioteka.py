@@ -140,6 +140,7 @@ class Library:
         book.borrower = user.name
         book.return_date = return_date_str
 
+        # ustawienie flag dla user
         user.borrowed.append(book)
 
         print(f"\nKsiążka '{book.title}' została wypożyczona przez {user.name}. Termin zwrotu: {return_date_str}.")
