@@ -107,17 +107,47 @@ class Library:
                 print("\nNiepoprawna odpowiedź. Spróbuj ponownie.")
 
     def add_user(self):
-        user_id = input("\nNadaj numer biblioteczny użytkownika (Numer karty): ")
+        prefix = "u"
 
-        for user in self.users:
-            if user.user_id == user_id:
-                print(f"\nUżytkownik z numerem {user_id} już istnieje.")
-                return
+        while True:
+            name = input("\nPodaj imię i nazwisko użytkownika: ").strip()
 
-        name = input("\nPodaj imię i nazwisko użytkownika: ")
+            # Znajdź najwyższy numer użytkownika z prefixem 'u'
+            max_num = 0
+            for user in self.users:
+                user_id = user.user_id.lower()
+                if user_id.startswith(prefix):
+                    try:
+                        number_part = int(user_id[1:])
+                        if number_part > max_num:
+                            max_num = number_part
+                    except ValueError:
+                        pass
 
-        user = User(user_id, name)
-        self.users.append(user)
+            next_num = max_num + 1
+            suggested_user_id = f"{prefix}{next_num:04d}"
+
+            user_id_input = input(f"Podaj numer karty (domyślnie {suggested_user_id}): ").strip().lower()
+            user_id = user_id_input if user_id_input else suggested_user_id
+
+            # Sprawdzenie czy taki numer już istnieje
+            if any(u.user_id == user_id for u in self.users):
+                print(f"\nUżytkownik z numerem {user_id} już istnieje. Spróbuj ponownie.")
+                continue
+
+            # Pytanie o potwierdzenie
+            print(f"\nCzy chcesz dodać użytkownika: {name} [{user_id}]? (Tak/Nie)")
+            confirm = input().strip().lower()
+            if confirm in ("tak", "t", "yes", "y"):
+                user = User(user_id, name)
+                self.users.append(user)
+                print("\nUżytkownik został pomyślnie dodany.")
+                break
+            elif confirm in ("nie", "n", "no"):
+                print("\nDodawanie użytkownika anulowane. Spróbuj jeszcze raz.")
+                # wróci do początku pętli
+            else:
+                print("\nNiepoprawna odpowiedź. Spróbuj ponownie.")
 
         print("\nOperacja dodawania użytkownika zakończona sukcesem")
 
