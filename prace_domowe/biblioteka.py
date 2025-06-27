@@ -94,7 +94,7 @@ class Library:
 
         print("\nOperacja dodawania użytkownika zakończona sukcesem")
 
-    def borrow_book(self, user_id, lib_num, return_date):
+    def borrow_book(self):
         user_id = input("\nPodaj numer karty uzytkownika: ").strip()
         lib_num = input("Podaj numer katalogowy książki: ").strip().lower()
 
@@ -112,7 +112,7 @@ class Library:
 
         # Czy książka jest dostepna
         if not book.available:
-            print(f"\nKsiążka '{book.title}' jest wypozyczona do {return_date}.")
+            print(f"\nKsiążka '{book.title}' jest wypozyczona do {book.return_date}.")
             return
 
         # Czy użytkownik nie przekroczył limitu ksiązek
@@ -134,7 +134,7 @@ class Library:
 
         print(f"\nKsiążka '{book.title}' została wypożyczona przez {user.name}. Termin zwrotu: {return_date_str}.")
 
-    def return_book(self, user_id, lib_num, return_date):
+    def return_book(self):
         lib_num = input("\nPodaj numer katalogowy książki: ").strip().lower()
 
         # Wyszukiwanie książki
@@ -240,12 +240,58 @@ library = lib.load_from_file()
 
 while True:
     print("""\nCo chcesz zrobić?
+    0. Zapisz i zakończ program.
     1. Dodać książkę.
     2. Dodać użytkownika.
-    3. Wypozyczyć książkę.
+    3. Wypożyczyć książkę.
     4. Zwrócić książkę.
     5. Wyświetlić wszystkie książki.
     6. Wyświetlić dostępne książki.
     7. Wyświetlić wypozyczone książki.
-    8. 
+    8. Sprawdź czy biblioteka posiada tę książkę.
+    9. Sprawdź czy użytkownik ma wypożyczone książki.
     """)
+
+    activiti = input("\nWybierz opcję (0-9)")
+
+    match activiti:
+
+        case "1":
+            library.add_book()
+            library.save_to_file()
+
+        case "2":
+            library.add_user()
+            library.save_to_file()
+
+        case "3":
+            library.borrow_book()
+            library.save_to_file()
+
+        case "4":
+            library.return_book()
+            library.save_to_file()
+
+        case "5":
+            library.get_all_books()
+
+        case "6":
+            library.get_available_books()
+
+        case "7":
+            library.get_borrowed_books()
+
+        case "8":
+            library.find_book()
+
+        case "9":
+            library.find_user()
+
+        case "0":
+            library.save_to_file()
+            print("\nKoniec programu.")
+            break
+
+        case _:
+            print("\nZły wybór!!!")
+
