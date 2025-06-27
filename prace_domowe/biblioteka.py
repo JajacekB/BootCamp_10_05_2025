@@ -4,7 +4,6 @@
 # Dodac Library i usera
 
 
-
 class Book:
     def __init__(self, title, author, lib_num, available=True, borrower=None):
         """
@@ -62,34 +61,71 @@ class User:
 
 
 class Library:
-    def __init__(self, books, users):
+    def __init__(self):
         """
-        Inicjacja Biblioteki
-        :param books: ksiązki ma stanie biblioteki (dostępne i wypozyczone)
-        :param users: uzytkownicy biblioteki
+        Inicjacja pustej Biblioteki
         """
 
-        self.books = books
-        self.users = users
+        self.books = []
+        self.users = []
 
 
-    def add_book(self, book):
+    def add_book(self):
+        title = input("\nPodaj tytuł książki: ").strip()
+        author = input("Podaj autora ksiązki: ").strip()
+        lib_num = input("Podaj numer katalogowy: ").strip().lower()
 
-    def add_user(self, user):
+        for book in self.books:
+            if book.lib_num == lib_num:
+                print(f"\nKsiążka z numerem {lib_num} już istnieje.")
+                return
+
+        book = Book(title, author, lib_num)
+        self.books.append(book)
+
+        print("\nOperacja dodawania książki zakończona sukcesem")
+
+    def add_user(self):
+        user_id = input("\nNadaj numer biblioteczny użytkownika (Numer karty): ")
+
+        for user in self.users:
+            if user.user_id == user_id:
+                print(f"\nUżytkownik z numerem {user_id} już istnieje.")
+                return
+
+        name = input("\nPodaj imię i nazwisko użytkownika: ")
+
+        user = User(user_id, name)
+        self.users.append(user)
+
+        print("\nOperacja dodawania użytkownika zakończona sukcesem")
 
     def borrow_book(self, user_id, lib_num, return_date):
+        user_id = input("\nPodaj numer karty uzytkownika: ")
+        lib_num = input("Podaj numer katalogowy książki: ")
+        return_date = input("Podaj datę zwrotu: ")
 
-    def return_book(self, user_id, lib_num, return_date):
+        borrow_books =
 
-    def get_all_books(self):
+#    def return_book(self, user_id, lib_num, return_date):
 
-    def get_available_books(self):
+#    def get_all_books(self):
 
-    def get_user_book(self, user_id):
+#    def get_available_books(self):
 
-    def find_book(self, title):
+#    def get_user_book(self, user_id):
 
-    def find_user(self, user_id):
+#    def find_book(self, title):
+
+    def find_user(self, user_id=None):
+        find_id = input("\nPodaj identyfikator użytkownika (nr karty bibliotecznej")
+        for user_id in users:
+            if user_id == find_id:
+                print(user_1001)
+            else:
+                print("\nNie ma takiego użytkownika")
+        return
+
 
 
 
@@ -100,3 +136,5 @@ print(book_1001)
 user_1001 = User("1001", "Jan Kowalski")
 
 print(user_1001)
+
+
