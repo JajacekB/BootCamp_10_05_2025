@@ -133,7 +133,7 @@ class Library:
         # automat do ustawiania daty zwrotu.
         today = datetime.now()
         return_date = today + timedelta(weeks=4)
-        return_date_str = return_date.strftime(%y-%m-%d)
+        return_date_str = return_date.strftime("%y-%m-%d")
 
         # ustwaienie flag dla ksiązki
         book.available = False
