@@ -211,19 +211,20 @@ class Library:
         else:
             print(f"\nZnaleziono użytkownika :\n{user}")
 
-        def load_from_file(cls, filename="library.pkl"):
-            if not os.path.exists(filename):
-                print(f"\nPlik '{filename}' nie istnieje. Tworzę pustą bibliotekę i zapisuję do pliku.")
-                self.save_to_file(filename)
-                return self
-            try:
-                with open(filename, "rb") as f:
-                    library = pickle.load(f)
-                print(f"\n📂 Wczytano dane z pliku '{filename}'.")
-                return library
-            except Exception as e:
-                print(f"\n❌ Błąd podczas wczytywania pliku: {e}")
-                return self
+    def load_from_file(self, filename="library.pkl"):
+        if not os.path.exists(filename):
+            print(f"\nPlik '{filename}' nie istnieje. Tworzę pustą bibliotekę i zapisuję do pliku.")
+            self.save_to_file(filename)
+            return self
+
+        try:
+            with open(filename, "rb") as f:
+                library = pickle.load(f)
+            print(f"\nWczytano dane z pliku '{filename}'.")
+            return library
+        except Exception as e:
+            print(f"\nBłąd podczas wczytywania pliku: {e}")
+            return self
 
     def save_to_file(self, filename="library.pkl"):
         try:
@@ -234,15 +235,17 @@ class Library:
             print(f"\nBłąd podczas zapisu: {e}")
 
 
+lib = Library()
+library = lib.load_from_file()
 
-book_aa1001 = Book("Pan Tadeusz", "Adam Mickiewicz", "aa1001")
-
-print(book_aa1001)
-
-user_1001 = User("1001", "Jan Kowalski")
-
-print(user_1001)
-
-book_aa1002 = Book("Dziady", "Adam Mickiewicz", "book_aa1002", False, "0001", "2025-07-15")
-
-print(book_aa1002)
+while True:
+    print("""\nCo chcesz zrobić?
+    1. Dodać książkę.
+    2. Dodać użytkownika.
+    3. Wypozyczyć książkę.
+    4. Zwrócić książkę.
+    5. Wyświetlić wszystkie książki.
+    6. Wyświetlić dostępne książki.
+    7. Wyświetlić wypozyczone książki.
+    8. 
+    """)
