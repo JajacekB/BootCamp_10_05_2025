@@ -116,7 +116,7 @@ class Library:
             return
 
         # Wyszukiwanie książki
-        book = next((w for w in self.books if w.lib_num == lib_num), None)
+        book = next((b for b in self.books if b.lib_num == lib_num), None)
         if book is None:
             print(f"\nKsiążka z numerem {lib_num} nie istnieje")
             return
@@ -135,17 +135,50 @@ class Library:
         return_date = today + timedelta(weeks=4)
         return_date_str = return_date.strftime("%y-%m-%d")
 
-        # ustwaienie flag dla ksiązki
+        # ustwaienie flag dla wypożyczonej ksiązki
         book.available = False
         book.borrower = user.name
         book.return_date = return_date_str
 
-        # ustawienie flag dla user
+        # dodawanie książki użytkownikowi
         user.borrowed.append(book)
 
         print(f"\nKsiążka '{book.title}' została wypożyczona przez {user.name}. Termin zwrotu: {return_date_str}.")
 
-#    def return_book(self, user_id, lib_num, return_date):
+    def return_book(self, user_id, lib_num, return_date):
+        lib_num = input("\nPodaj numer katalogowy książki: ").strip().lower()
+
+        # Wyszukiwanie książki
+        book = next((b for b in self.books() if b.lib_num == lib_num), None)
+        if book is None:
+            print(f"\nnNie znaleziono książki o numerze {lib_num}.")
+            return
+
+        # Sprawdzanie czy książka jest wypozyczona
+        if book.available:
+            print(f"\nKsiążka '{book.title}' nie jest wypozyczona")
+            return
+
+        # Wyszukiwanie użytkownika
+        user = next((u for u in self.users if u.name == book.borrower), None)
+        if user is None:
+            print(f"f\nNie znaleziono uzytkownika {book.borrower}.")
+            return
+
+        # Ustawienie flag dla zwróconej książki
+        book.available = True
+        book.borrower = None
+        book.return_date = None
+
+        # Usuwanie ksiązki użytkownikowi
+        if book in user.borrowed:
+            user.borrowed.remove(book)
+        else:
+            print(f"\nUwaga: użytkownik {user.name} nie ma tej książki na liście wypożyczeń.")
+
+        print(f"\nKsiążka '{book.title}' o numerze katalogowym {lib_num} została zwrócona przez {user.name}.")
+
+
 
 #    def get_all_books(self):
 
