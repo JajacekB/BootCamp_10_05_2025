@@ -4,6 +4,8 @@
 # Dodac Library i usera
 
 from datetime import datetime, timedelta
+import pickle
+import os
 
 
 class Book:
@@ -61,7 +63,6 @@ class Library:
         self.books = []
         self.users = []
         self.borrow_books =[]
-
 
     def add_book(self):
         title = input("\nPodaj tytuł książki: ").strip()
@@ -209,6 +210,28 @@ class Library:
             return
         else:
             print(f"\nZnaleziono użytkownika :\n{user}")
+
+        def load_from_file(cls, filename="library.pkl"):
+            if not os.path.exists(filename):
+                print(f"\nPlik '{filename}' nie istnieje. Tworzę pustą bibliotekę i zapisuję do pliku.")
+                self.save_to_file(filename)
+                return self
+            try:
+                with open(filename, "rb") as f:
+                    library = pickle.load(f)
+                print(f"\n📂 Wczytano dane z pliku '{filename}'.")
+                return library
+            except Exception as e:
+                print(f"\n❌ Błąd podczas wczytywania pliku: {e}")
+                return self
+
+    def save_to_file(self, filename="library.pkl"):
+        try:
+            with open(filename, "wb") as f:
+                pickle.dump(self, f)
+            print(f"\nDane zapisano do pliku '{filename}'.")
+        except Exception as e:
+            print(f"\nBłąd podczas zapisu: {e}")
 
 
 
