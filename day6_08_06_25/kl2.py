@@ -1,3 +1,5 @@
+
+
 class Human:
     """
     Klasa Human opisująca człowieka w Pythonie

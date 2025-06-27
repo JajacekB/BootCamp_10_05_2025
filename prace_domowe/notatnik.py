@@ -11,6 +11,7 @@
 import os
 import csv
 
+print("\nProgram Notatnik służy do tworzenia i przechowywania prostych notatek.")
 
 # Deklaracja zmiennych: notatki lista
 notes = []
