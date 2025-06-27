@@ -44,18 +44,6 @@ class User:
         self.name = name
         self.borrowed = borrowed if borrowed is not None else []
 
-    def borrow_book(self, book):
-        if len(self.borrowed) >= 4:
-            print(f"\n{self.name} Nie może wypożyczyć więcej niż 4 książki.")
-            return
-        self.borrowed.append(book)
-
-    def return_book(self, book):
-        if book in self.borrowed:
-            self.borrowed.remove(book)
-        else:
-            print(f"\n{self.name} nie wypożyczył tej książki")
-
     def __str__(self):
         if self.borrowed:
             books = ', '.join(book.title for book in self.borrowed)
@@ -149,7 +137,7 @@ class Library:
         lib_num = input("\nPodaj numer katalogowy książki: ").strip().lower()
 
         # Wyszukiwanie książki
-        book = next((b for b in self.books() if b.lib_num == lib_num), None)
+        book = next((b for b in self.books if b.lib_num == lib_num), None)
         if book is None:
             print(f"\nnNie znaleziono książki o numerze {lib_num}.")
             return
@@ -178,17 +166,49 @@ class Library:
 
         print(f"\nKsiążka '{book.title}' o numerze katalogowym {lib_num} została zwrócona przez {user.name}.")
 
+    def get_all_books(self):
+        if not self.books:
+            print("\nW bibliotece nie ma jeszcze książek.")
+        else:
+            print("\nLista książek:\n")
+            for book in self.books:
+                print(book)
 
+    def get_available_books(self):
+        for book in self.books:
+            if book.available:
+                print(book)
 
-#    def get_all_books(self):
+    def get_borrowed_books(self):
+        print()
+        borrowed_books = [book for book in self.books if not book.available]
 
-#    def get_available_books(self):
+        if not borrowed_books:
+            print("\nŻadna książka nie jest aktualnie wypożyczona.")
+        else:
+            print("\nLista wypożyczonych książek:\n")
+            for book in borrowed_books:
+                print(book)
 
-#    def get_user_book(self, user_id):
+    def find_book(self):
+        title = input("\nPodaj poszukiwaną książkę: ").strip().casefold()
+        book = next((b for b in self.books if b.title.casefold() == title), None)
 
-#    def find_book(self, title):
+        if book is None:
+            print(f"\nnNie znaleziono książki: '{title}'.")
+            return
+        else:
+            print(f"\nZnaleziono książkę:\n{book}")
 
-#    def find_user(self, user_id=None):
+    def find_user(self):
+        name = input("\nPodaj imię i nazwisko osoby: ").strip().casefold()
+        user = next((u for u in self.users if u.name.casefold() == name), None)
+
+        if user is None:
+            print(f"\nNie znaleziono użytkownika: '{name}'.")
+            return
+        else:
+            print(f"\nZnaleziono użytkownika :\n{user}")
 
 
 
