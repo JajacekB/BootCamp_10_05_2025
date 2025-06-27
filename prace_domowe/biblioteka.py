@@ -3,9 +3,11 @@
 # obsłużyc błedy
 # Dodac Library i usera
 
+from datetime import datetime, timedelta
+
 
 class Book:
-    def __init__(self, title, author, lib_num, available=True, borrower=None):
+    def __init__(self, title, author, lib_num, available=True, borrower=None, return_date=None):
         """
         Inicjacja obiektu Book
         :param title: Tytuł książki
@@ -13,6 +15,7 @@ class Book:
         :param lib_num: Numer katalogowy
         :param available: Czy książka jest dostępna (domyslnie True)
         :param borrower: Kto wypożyczył książkę (domyslnie None)
+        :param return_date: Do kiedy trzeba zwrócić książkę (może kiedyś automatycznie)
         :return:
         """
 
@@ -21,9 +24,10 @@ class Book:
         self.lib_num = lib_num
         self.available = available
         self.borrower = borrower
+        self.return_date = return_date
 
     def __str__(self):
-        status = "Dostępna" if self.available else f"Wypożyczona przez: {self.borrower}"
+        status = "Dostępna" if self.available else f"Wypożyczona przez: {self.borrower}, do {self.return_date}"
         return f"{self.title} - {self.author} (Nr: {self.lib_num}) [{status}]"
 
 
@@ -68,6 +72,7 @@ class Library:
 
         self.books = []
         self.users = []
+        self.borrow_books =[]
 
 
     def add_book(self):
@@ -101,11 +106,43 @@ class Library:
         print("\nOperacja dodawania użytkownika zakończona sukcesem")
 
     def borrow_book(self, user_id, lib_num, return_date):
-        user_id = input("\nPodaj numer karty uzytkownika: ")
-        lib_num = input("Podaj numer katalogowy książki: ")
-        return_date = input("Podaj datę zwrotu: ")
+        user_id = input("\nPodaj numer karty uzytkownika: ").strip()
+        lib_num = input("Podaj numer katalogowy książki: ").strip().lower()
 
-        borrow_books =
+        # wyszukiwanie użytkownika
+        user = next((u for u in self.users if u.user_id == user_id), None)
+        if user is None:
+            print(f"\nUżutkownik {user_id} nie istnieje.")
+            return
+
+        # Wyszukiwanie książki
+        book = next((w for w in self.books if w.lib_num == lib_num), None)
+        if book is None:
+            print(f"\nKsiążka z numerem {lib_num} nie istnieje")
+            return
+
+        # Czy książka jest dostepna
+        if not book.available:
+            print(f"\nKsiążka '{book.title}' jest wypozyczona do {return_date}.")
+            return
+
+        # Czy użytkownik nie przekroczył limitu ksiązek
+        if len(user.borrowed) >= 4:
+            print(f"\n{user.name} nie może wypozyczyć więcej niż cztery ksiązki.")
+
+        # automat do ustawiania daty zwrotu.
+        today = datetime.now()
+        return_date = today + timedelta(weeks=4)
+        return_date_str = return_date.strftime(%y-%m-%d)
+
+        # ustwaienie flag dla ksiązki
+        book.available = False
+        book.borrower = user.name
+        book.return_date = return_date_str
+
+        user.borrowed.append(book)
+
+        print(f"\nKsiążka '{book.title}' została wypożyczona przez {user.name}. Termin zwrotu: {return_date_str}.")
 
 #    def return_book(self, user_id, lib_num, return_date):
 
@@ -117,15 +154,7 @@ class Library:
 
 #    def find_book(self, title):
 
-    def find_user(self, user_id=None):
-        find_id = input("\nPodaj identyfikator użytkownika (nr karty bibliotecznej")
-        for user_id in users:
-            if user_id == find_id:
-                print(user_1001)
-            else:
-                print("\nNie ma takiego użytkownika")
-        return
-
+#    def find_user(self, user_id=None):
 
 
 
