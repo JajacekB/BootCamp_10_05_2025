@@ -159,12 +159,14 @@ class Library:
 
 
 
-book_1001 = Book("Pan Tadeusz", "Adam Mickiewicz", "1001")
+book_aa1001 = Book("Pan Tadeusz", "Adam Mickiewicz", "aa1001")
 
-print(book_1001)
+print(book_aa1001)
 
 user_1001 = User("1001", "Jan Kowalski")
 
 print(user_1001)
 
+book_aa1002 = Book("Dziady", "Adam Mickiewicz", "book_aa1002", False, "0001", "2025-07-15")
 
+print(book_aa1002)
