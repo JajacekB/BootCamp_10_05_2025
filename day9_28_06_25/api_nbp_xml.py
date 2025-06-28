@@ -66,3 +66,9 @@ exchange_rate = ExchangeRatesTable(
     number=no,
     rates=currency_rates
 )
+
+print(exchange_rate)
+
+rates_pydantic = exchange_rate.rates
+for rate in rates_pydantic:
+    print(rate)
