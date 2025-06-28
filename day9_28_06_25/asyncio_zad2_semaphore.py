@@ -4,9 +4,12 @@ import httpx
 
 url = "https://naukajava.online"
 
+sema = asyncio.Semaphore(100)
+
 async def fetch(client, i):
-    resp = await client.get(url)
-    print(f"{i + 1}: status code: {resp.status_code}")
+    async with sema:
+        resp = await client.get(url)
+        print(f"{i + 1}: status code: {resp.status_code}")
 
 
 async def main():
