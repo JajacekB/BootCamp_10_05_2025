@@ -352,4 +352,3 @@ while True:
 
         case _:
             print("\nZły wybór!!!")
-
