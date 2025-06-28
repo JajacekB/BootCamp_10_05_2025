@@ -18,3 +18,6 @@ if user_answer == str(data["number"]):
     print("Brawo!!!")
 else:
     print("Słabo, zła odpowiedź!!!")
+
+insects = 10000000000000000000
+print(f"{insects:,}")
