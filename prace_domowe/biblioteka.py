@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import pickle
 import os
 
-print("Program Biblioteka do obsługi małej biblioteki miejskiej")
+print("\nProgram Biblioteka do obsługi małej biblioteki miejskiej")
 
 
 class Book:
@@ -182,7 +182,7 @@ class Library:
         # automat do ustawiania daty zwrotu.
         today = datetime.now()
         return_date = today + timedelta(weeks=4)
-        return_date_str = return_date.strftime("%y-%m-%d")
+        return_date_str = return_date.strftime("%Y-%m-%d")
 
         # ustwaienie flag dla wypożyczonej ksiązki
         book.available = False
