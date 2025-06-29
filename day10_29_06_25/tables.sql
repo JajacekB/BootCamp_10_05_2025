@@ -1,0 +1,12 @@
+CREATE TABLE hardware (
+id INTEGER PRIMARY KEY,
+name TEXT NOT NULL,
+price REAL NOT NULL
+);
+
+create TABLE software (
+id INTEGER PRIMARY KEY,
+name TEXT NOT NULL,
+price REAL NOT NULL
+);
+
