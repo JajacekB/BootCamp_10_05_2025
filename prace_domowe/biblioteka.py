@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 import pickle
 import os
 
+print("Program Biblioteka do obsługi małej biblioteki miejskiej")
+
 
 class Book:
     def __init__(self, title, author, lib_num, available=True, borrower=None, return_date=None):
