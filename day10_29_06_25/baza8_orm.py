@@ -22,7 +22,7 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-new_user = User(name="Wojtek Kulka", age=37)
+new_user = User(name="Iwonka Konopalska", age=23)
 session.add(new_user)
 
 session.commit()
