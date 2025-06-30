@@ -53,7 +53,7 @@ class User:
             books = ', '.join(book.title for book in self.borrowed)
         else:
             books = "Brak wypożyczonych książek"
-        return f"\n(Nr: {self.user_id}). {self.name} [Wypożyczone: {books}]"
+        return f"(Nr: {self.user_id}). {self.name} [Wypożyczone: {books}]"
 
 
 class Library:
@@ -236,6 +236,7 @@ class Library:
                 print(book)
 
     def get_available_books(self):
+        print("\nLista dostępnych książek\n6")
         for book in self.books:
             if book.available:
                 print(book)
@@ -271,6 +272,14 @@ class Library:
         else:
             print(f"\nZnaleziono użytkownika :\n{user}")
 
+    def get_all_users(self):
+        if not self.users:
+            print("\nNie ma jeszcze zarejstrowanych uzytkowników.")
+        else:
+            print("\nUrzytkownicy:")
+            for user in self.users:
+                print(user)
+
     def load_from_file(self, filename="library.pkl"):
         if not os.path.exists(filename):
             print(f"\nPlik '{filename}' nie istnieje. Tworzę pustą bibliotekę i zapisuję do pliku.")
@@ -299,7 +308,7 @@ lib = Library()
 library = lib.load_from_file()
 
 while True:
-    print("""\nCo chcesz zrobić?
+    print("""\nCo chcesz zrobić?\n
     0. Zapisz i zakończ program.
     1. Dodać książkę.
     2. Dodać użytkownika.
@@ -310,6 +319,7 @@ while True:
     7. Wyświetlić wypozyczone książki.
     8. Sprawdź czy biblioteka posiada tę książkę.
     9. Sprawdź czy użytkownik ma wypożyczone książki.
+    10. Wyświetl wszystkich urzytkowników
     """)
 
     activiti = input("\nWybierz opcję (0-9): ").strip()
@@ -325,10 +335,12 @@ while True:
             library.save_to_file()
 
         case "3":
+            library.get_available_books()
             library.borrow_book()
             library.save_to_file()
 
         case "4":
+            library.get_borrowed_books()
             library.return_book()
             library.save_to_file()
 
@@ -346,6 +358,9 @@ while True:
 
         case "9":
             library.find_user()
+
+        case "10":
+            library.get_all_users()
 
         case "0":
             library.save_to_file()
