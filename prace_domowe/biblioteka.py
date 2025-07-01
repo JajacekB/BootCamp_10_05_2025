@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import pickle
 import os
 
-print("\nProgram Biblioteka do obsługi małej biblioteki miejskiej")
+print("\nProgram Biblioteka do obsługi małej biblioteki miejskiej.")
 
 
 class Book:
@@ -19,7 +19,7 @@ class Book:
         :param lib_num: Numer katalogowy
         :param available: Czy książka jest dostępna (domyslnie True)
         :param borrower: Kto wypożyczył książkę (domyslnie None)
-        :param return_date: Do kiedy trzeba zwrócić książkę (może kiedyś automatycznie)
+        :param return_date: Do kiedy trzeba zwrócić książkę (domyślnie None może kiedyś automatycznie)
         :return:
         """
 
@@ -32,7 +32,7 @@ class Book:
 
     def __str__(self):
         status = "Dostępna" if self.available else f"Wypożyczona przez: {self.borrower}, do {self.return_date}"
-        return f"{self.title} - {self.author} (Nr: {self.lib_num}) [{status}]"
+        return f"(Nr: {self.lib_num}) {self.title} - {self.author} [{status}]"
 
 
 class User:
@@ -52,7 +52,7 @@ class User:
         if self.borrowed:
             books = ', '.join(book.title for book in self.borrowed)
         else:
-            books = "Brak wypożyczonych książek"
+            books = "Brak wypożyczonych książek."
         return f"(Nr: {self.user_id}). {self.name} [Wypożyczone: {books}]"
 
 
@@ -151,7 +151,7 @@ class Library:
             else:
                 print("\nNiepoprawna odpowiedź. Spróbuj ponownie.")
 
-        print("\nOperacja dodawania użytkownika zakończona sukcesem")
+        print("\nOperacja dodawania użytkownika zakończona sukcesem.")
 
     def borrow_book(self):
         user_id = input("\nPodaj numer karty uzytkownika: ").strip()
@@ -166,7 +166,7 @@ class Library:
         # Wyszukiwanie książki
         book = next((b for b in self.books if b.lib_num == lib_num), None)
         if book is None:
-            print(f"\nKsiążka z numerem {lib_num} nie istnieje")
+            print(f"\nKsiążka z numerem {lib_num} nie istnieje.")
             return
 
         # Czy książka jest dostepna
@@ -236,7 +236,7 @@ class Library:
                 print(book)
 
     def get_available_books(self):
-        print("\nLista dostępnych książek\n6")
+        print("\nLista dostępnych książek:\n")
         for book in self.books:
             if book.available:
                 print(book)
@@ -257,7 +257,7 @@ class Library:
         book = next((b for b in self.books if b.title.casefold() == title), None)
 
         if book is None:
-            print(f"\nnNie znaleziono książki: '{title}'.")
+            print(f"\nNie znaleziono książki: '{title}'.")
             return
         else:
             print(f"\nZnaleziono książkę:\n{book}")
