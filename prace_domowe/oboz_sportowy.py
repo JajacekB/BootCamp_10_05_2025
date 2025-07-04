@@ -166,7 +166,10 @@ class Camp:
         return False
 
     def total_student(self):
-        for student in self.students:
+
+        sorted_students = sorted(group.students, key=lambda s: (s.last_name.lower(), s.first_name.lower()))
+
+        for student in sorted_students:
             print(student)
 
     def grup_student(self):
