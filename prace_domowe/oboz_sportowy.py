@@ -115,29 +115,54 @@ class Camp:
         print(f"\n Nie znaloeziono grupy wiekowej albo brak wolnych miejsc.")
         return False
 
-    def remove_student(self):
+    def remove_student(self, student):
+        if student in self.students:
+            self.students.remove(student)
+
+            for group in self.groups:
+                if student in group.students:
+                    group.students.remove(student)
+
+            print(f"\nUczestnik {student.first_name} {student.last_name} usunięty z obozu.")
+            return True
+        else:
+            print(f"\nNie znaleziono uczestnika {student.first_name} {student.last_name}.")
+            return False
+
+
+
+    def find_student(self):
         search_first_name = input("Podaj imię szukanego uczestnika").strip()
         search_last_name = input("Podaj nazwisko szukanego uczestnika").strip()
 
         for student in self.students:
             if student.first_name == search_first_name and student.last_name == search_last_name:
-                self.students.remove(student)
+                print(f"\nZnaleziono uczestnika obozu:\n{student}")
 
-                for group in self.groups:
-                    if student in group.students:
-                        group.students.remove(student)
+                confirm = input("Czy chcesz usunąć uczestnika? (Tak/Nie): ").strip().lower()
+                if confirm in ["tak", "t", "yes", "y"]:
+                    self.remove_student(student)
+                elif confirm in ["nie", "n", "no"]:
+                    print("Anulowano usuwanie.")
+                else:
+                    print("Nie rozpoznano odpowiedzi. Nic nie zostało zrobione.")
 
-            print(f"\nUczestnik {student.first_name} {student.last_name} osunięty z obozu")
-            return True
+                return True
 
         print(f"\nNie znaleziono uczestnika {search_first_name} {search_last_name}.")
         return False
 
-    def find_student(self, last_name):
-
-
-    def list_student(self):
-
-
-
     def total_student(self):
+        for student in self.students:
+            print(student)
+
+    def grup_student(self):
+        for group in self.groups:
+            print("-" * 40)
+            print(group)
+
+            sorted_students = sorted(group.students, key=lambda s: (s.last_name.lower(), s.first_name.lower()))
+
+            for student in sorted_students:
+                print("  _", student)
+
