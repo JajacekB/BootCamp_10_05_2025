@@ -322,9 +322,9 @@ while True:
     10. Wyświetl wszystkich urzytkowników.
     """)
 
-    activiti = input("\nWybierz opcję (0-9): ").strip()
+    activity = input("\nWybierz opcję (0-9): ").strip()
 
-    match activiti:
+    match activit:
 
         case "1":
             library.add_book()

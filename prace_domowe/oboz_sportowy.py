@@ -27,7 +27,7 @@ class Student:
         self.group_name = self.determine_group()
 
     def __str__(self):
-        return f"{self.first_name}, {self.last_name}, {self.age} lat, {self.email}, [{self.group_name}]"
+        return f"{self.last_name}, {self.first_name}, {self.age} lat, {self.email}, [{self.group_name}]"
 
     def calculate_age(self):
         today = datetime.now().date()
@@ -43,7 +43,7 @@ class Student:
         return re.match(pattern, self.email) is not None
 
 
-    def determine_grup(self):
+    def determine_group(self):
         age = self.age
         if 6 <= age <=10:
             return "Kadeci"
@@ -96,14 +96,20 @@ class Camp:
         self.groups = [
             Group("Kadeci", (6, 10)),
             Group("Juniorzy młodsi", (11, 14)),
-            Group("Juniorzy", (15, 16))
+            Group("Juniorzy", (15, 18))
         ]
 
-    def add_student(self, first_name, last_name, birthdate_str, email):
+    def add_student(self):
         first_name = input("\nPodaj imię uczestnika: ").strip()
         last_name = input("\nPodaj nazwisko uczestnika: ").strip()
         birthdate_str = input("\nPodaj datę urodenia w formacie YYYY-MM-DD: ").strip()
         email = input("\nPodaj email uczestnika: ").strip()
+
+        try:
+            birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d").date()
+        except ValueError:
+            print("\nNiepoprawny format daty. Użyj YYYY-MM-DD.")
+            return False
 
         student = Student(first_name, last_name, birthdate_str, email)
 
@@ -134,8 +140,8 @@ class Camp:
 
 
     def find_student(self):
-        search_first_name = input("Podaj imię szukanego uczestnika").strip()
-        search_last_name = input("Podaj nazwisko szukanego uczestnika").strip()
+        search_first_name = input("Podaj imię szukanego uczestnika: ").strip()
+        search_last_name = input("Podaj nazwisko szukanego uczestnika: ").strip()
 
         for student in self.students:
             if student.first_name == search_first_name and student.last_name == search_last_name:
@@ -205,14 +211,39 @@ while True:
 
     print("""\nCo chcesz zrobić?
     0. Zapisz i zamknij program
-    1. Dodać uczestnika.
-    2. Usunąć użytkownika.
-    3. Wyszukać użytkownika.
-    4. Przejrzeć wszystkich użytkowników
-    5. Prjrzeć grupy wiekowe z uczestnikami.
+    1. Dodaj uczestnika.
+    2. Usuń użytkownika.
+    3. Wyszukaj użytkownika.
+    4. Przejrzyj wszystkich użytkowników
+    5. Przejrzyj grupy wiekowe z uczestnikami.
     """)
 
-    match avtiviti:
+    activity = input("\nWybierz opcję (0-5): ").strip()
 
+    match activity:
+        case "1":
+            manager.add_student()
+            manager.save_to_file()
 
-manager.save_to_file()
+        case "2":
+            manager.find_student()
+            manager.save_to_file()
+
+        case "3":
+            manager.find_student()
+            manager.save_to_file()
+
+        case "4":
+            manager.total_student()
+
+        case "5":
+            manager.grup_student()
+
+        case "0":
+            manager.save_to_file()
+            print("\nKoniec programu.")
+            break
+
+        case _:
+            print("\nZły wybór!!!")
+
