@@ -13,7 +13,7 @@ try:
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     joining_date DATETIME,
-    salary REAL NOT NULL
+    salary REAL NOT NULL,
     );
     """
 
