@@ -319,7 +319,7 @@ while True:
     7. Wyświetlić wypozyczone książki.
     8. Sprawdź czy biblioteka posiada tę książkę.
     9. Sprawdź czy użytkownik ma wypożyczone książki.
-    10. Wyświetl wszystkich urzytkowników
+    10. Wyświetl wszystkich urzytkowników.
     """)
 
     activiti = input("\nWybierz opcję (0-9): ").strip()

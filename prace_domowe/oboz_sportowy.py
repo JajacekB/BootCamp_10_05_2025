@@ -4,6 +4,8 @@
 
 from datetime import datetime
 import re
+import pickle
+import os
 
 
 class Student:
@@ -166,3 +168,51 @@ class Camp:
             for student in sorted_students:
                 print("  _", student)
 
+    def save_to_file(self, filename="sport_camp.pkl"):
+        try:
+            with open(filename, "wb") as f:
+                pickle.dump(self, f)
+            print(f"\nDane zapisano do pliku '{filename}'.")
+        except Exception as e:
+            print(f"\nBłąd podczas zapisu: {e}")
+
+    def load_from_file(self, filename="sport_camp.pkl"):
+        if not os.path.exists(filename):
+            print(f"\nPlik '{filename}' nie istnieje. Rozpoczynam z pustą bazą.")
+
+            return self
+
+        try:
+            with open(filename, "rb") as f:
+                loaded = pickle.load(f)
+
+            if not isinstance(loaded, Camp):
+                print("\nBłąd: Nieprawidłowy typ danych w pliku.")
+                return self
+
+            print(f"\nWczytano dane z pliku '{filename}'.")
+            return loaded
+
+        except Exception as e:
+            print(f"\nBłąd podczas wczytywania pliku: {e}.")
+            return self
+
+manager = Camp().load_from_file()
+
+print("\nProgram '--CAMP--' służy do rejestracji uczestników na obóz sportowy.")
+
+while True:
+
+    print("""\nCo chcesz zrobić?
+    0. Zapisz i zamknij program
+    1. Dodać uczestnika.
+    2. Usunąć użytkownika.
+    3. Wyszukać użytkownika.
+    4. Przejrzeć wszystkich użytkowników
+    5. Prjrzeć grupy wiekowe z uczestnikami.
+    """)
+
+    match avtiviti:
+
+
+manager.save_to_file()
