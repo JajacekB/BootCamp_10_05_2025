@@ -111,7 +111,12 @@ class Camp:
             print("\nNiepoprawny format daty. Użyj YYYY-MM-DD.")
             return False
 
-        student = Student(first_name, last_name, birthdate_str, email)
+        temp_student = Student(first_name, last_name, birthdate_str, email)
+        if not temp_student.validate_email():
+            print("\nNiepoprawny adres email.")
+            return False
+
+        student = temp_student
 
         for group in self.groups:
             if group.is_age_in_range(student) and group.free_space() > 0:
