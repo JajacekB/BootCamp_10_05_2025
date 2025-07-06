@@ -26,9 +26,11 @@ class Student:
         self.email = email
         self.group_name = self.determine_group()
 
+    # Tworzenie f-string obiektu student
     def __str__(self):
         return f"{self.last_name}, {self.first_name}, {self.age} lat, {self.email}, [{self.group_name}]"
 
+    # Obliczanie wieku uczestnika
     def calculate_age(self):
         today = datetime.now().date()
         birthdate_date = datetime.strptime(self.birthdate_str, "%Y-%m-%d").date()
@@ -38,11 +40,12 @@ class Student:
             years -= 1
         return years
 
+    # Sprawdzanie formatu email, nie sprawdza domeny
     def validate_email(self):
         pattern = r"^[\w\.-]+@[\w\.-]+\.\w{2,}$"
         return re.match(pattern, self.email) is not None
 
-
+    # Przypisanie do grupy wiekowej
     def determine_group(self):
         age = self.age
         if 6 <= age <=10:
@@ -70,15 +73,18 @@ class Group:
         self.capacity = capacity
         self.students = students if students is not None else []
 
+    # Tworzenie f-string obiektu grupa
     def __str__(self):
         return f"""{self.name}, 
         wiek: {self.age_range}, 
         zapisanych: {len(self.students)}, 
         wolnych miejsc: {self.capacity - len(self.students)}"""
 
+    # Sprawdzanie wolnego miejsca w grupie wiekowej
     def free_space(self):
         return self.capacity - len(self.students)
 
+    # Dodawanie uczestnika do grupy wiekowej
     def add_student(self, student):
         if self.free_space() > 0 and self.is_age_in_range(student):
             self.students.append(student)
@@ -86,10 +92,12 @@ class Group:
         else:
             return False
 
+    # przypisanie do grupy wiekowej
     def is_age_in_range(self, student):
         return self.age_range[0] <= student.age <= self.age_range[1]
 
 
+# klasa sterująca
 class Camp:
     def __init__(self):
         self.students = []
@@ -99,18 +107,21 @@ class Camp:
             Group("Juniorzy", (15, 18))
         ]
 
+    # Dodawanie studenta do uczestników obozu
     def add_student(self):
         first_name = input("\nPodaj imię uczestnika: ").strip().capitalize()
         last_name = input("\nPodaj nazwisko uczestnika: ").strip().capitalize()
         birthdate_str = input("\nPodaj datę urodenia w formacie YYYY-MM-DD: ").strip()
-        email = input("\nPodaj email uczestnika: ").strip()
+        email = input("\nPodaj email uczestnika lub opiekuna prawnego: ").strip()
 
+        # sprawdzanie poprawności formatu daty
         try:
             birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d").date()
         except ValueError:
             print("\nNiepoprawny format daty. Użyj YYYY-MM-DD.")
             return False
 
+        # validacja email
         temp_student = Student(first_name, last_name, birthdate_str, email)
         if not temp_student.validate_email():
             print("\nNiepoprawny adres email.")
@@ -118,6 +129,7 @@ class Camp:
 
         student = temp_student
 
+        # Dodawanie uczestnika do grupy wiekowej
         for group in self.groups:
             if group.is_age_in_range(student) and group.free_space() > 0:
                 group.add_student(student)
@@ -128,6 +140,7 @@ class Camp:
         print(f"\n Nie znaloeziono grupy wiekowej albo brak wolnych miejsc.")
         return False
 
+    # metoda: wyszukiwanie uczestnika po imieniu, nazwisku lub po obu.
     def find_student(self):
         search_first_name = input("\nPodaj imię uczestnika (Enter, jeśli nie znasz):  ").strip().casefold()
         search_last_name = input("\nPodaj nazwisko uczestnika (Enter, jeśli nie znasz): ").strip().casefold()
@@ -162,6 +175,8 @@ class Camp:
 
         return matches
 
+    # Interaktywne menu usuwania uczestnika z wielokrotnym potwierdzeniem
+    # aby ograniczyć przypadkowe usunięcie uczestnika.
     def remove_student_interactive(self, matches):
 
         confirm = input("Czy chcesz usunąć któregoś uczestnika? (Tak/Nie): ").strip().lower()
@@ -189,6 +204,7 @@ class Camp:
             print("\nNie rozpoznano odpowiedzi. Spróbuj ponownie.")
         return True
 
+    # Usuwanie studenta z ogólnej listy uczestników i zwalnianie miejsca w grupie wiekowej
     def remove_student(self, student):
         if student in self.students:
             self.students.remove(student)
@@ -203,13 +219,20 @@ class Camp:
             print(f"\nNie znaleziono uczestnika {student.first_name} {student.last_name}.")
             return False
 
+    # Wyświetlanie wszystkich uczestników obozu
     def total_student(self):
 
         sorted_students = sorted(self.students, key=lambda s: (s.last_name.lower(), s.first_name.lower()))
 
-        for student in sorted_students:
-            print(student)
+        if not sorted_students:
+            print("\nBrak uczestników w obozie.")
+            return
 
+        print(f"\nZnaleziono następujących uczestników obozu:")
+        for idx, student in enumerate(sorted_students, 1):
+            print(f"{idx}. {student}")
+
+    # Wyświetlanie grup wiekowych z przypisanymi do nich uczestnikami
     def grup_student(self):
         for group in self.groups:
             print("-" * 40)
@@ -220,6 +243,7 @@ class Camp:
             for student in sorted_students:
                 print("  -", student)
 
+    # Zapisywanie do pliku
     def save_to_file(self, filename="sport_camp.pkl"):
         try:
             with open(filename, "wb") as f:
@@ -228,6 +252,7 @@ class Camp:
         except Exception as e:
             print(f"\nBłąd podczas zapisu: {e}")
 
+    # Wczytywanie z pliku
     def load_from_file(self, filename="sport_camp.pkl"):
         if not os.path.exists(filename):
             print(f"\nPlik '{filename}' nie istnieje. Rozpoczynam z pustą bazą.")
@@ -249,10 +274,12 @@ class Camp:
             print(f"\nBłąd podczas wczytywania pliku: {e}.")
             return self
 
+
 manager = Camp().load_from_file()
 
 print("\nProgram '--CAMP--' służy do rejestracji uczestników na obóz sportowy.")
 
+# Główna pentla logiczna programu
 while True:
 
     print("""\nCo chcesz zrobić?
