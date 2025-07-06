@@ -143,15 +143,28 @@ class Camp:
             return False
 
     def find_student(self):
-        search_first_name = input("Podaj imię szukanego uczestnika: ").strip().casefold()
-        search_last_name = input("Podaj nazwisko szukanego uczestnika: ").strip().casefold()
+        search_first_name = input("\nPodaj imię szukanego uczestnika: ").strip().casefold()
+        search_last_name = input("\nPodaj nazwisko szukanego uczestnika: ").strip().casefold()
+
+        if not search_first_name and not search_last_name:
+            print("\nMusisz podać przynajmniej imię lub nazwisko.")
+            return False
 
         matches = []
 
         for student in self.students:
-            if (student.first_name.casefold() == search_first_name or
-                    student.last_name.casefold() == search_last_name):
-                matches.append(student)
+            first_match = student.first_name.casefold()
+            last_match = student.last_name.casefold()
+
+            if search_last_name and search_last_name:
+                if first_match == search_first_name and last_match == search_last_name:
+                    matches.append(student)
+            elif search_first_name:
+                if first_match == search_first_name:
+                    matches.append(student)
+            elif search_last_name:
+                if last_match == search_last_name:
+                    matches.append(student)
 
         if not matches:
             print(f"\nNie znaleziono uczestnika {search_first_name} {search_last_name}.")
