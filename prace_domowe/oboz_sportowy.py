@@ -142,41 +142,58 @@ class Camp:
             print(f"\nNie znaleziono uczestnika {student.first_name} {student.last_name}.")
             return False
 
-    def find_student(self):
+    def search_students(self):
         search_first_name = input("Podaj imię szukanego uczestnika: ").strip().casefold()
         search_last_name = input("Podaj nazwisko szukanego uczestnika: ").strip().casefold()
 
-        matches = []
+        if not search_first_name and not search_last_name:
+            print("Musisz podać przynajmniej imię lub nazwisko.")
+            return []
 
+        matches = []
         for student in self.students:
-            if (student.first_name.casefold() == search_first_name or
-                    student.last_name.casefold() == search_last_name):
+            first = student.first_name.casefold()
+            last = student.last_name.casefold()
+
+            if (search_first_name and search_last_name and first == search_first_name and last == search_last_name) or \
+                    (search_first_name and not search_last_name and first == search_first_name) or \
+                    (search_last_name and not search_first_name and last == search_last_name):
                 matches.append(student)
 
-        if not matches:
-            print(f"\nNie znaleziono uczestnika {search_first_name} {search_last_name}.")
-            return False
+        return matches
 
-        print(f"\nZnaleziono następujących uczestników obozu:")
+    def remove_student_by_selection(self, matches):
+        print("\nZnaleziono następujących uczestników:")
         for idx, student in enumerate(matches, 1):
             print(f"{idx}. {student}")
 
+        try:
+            index = int(input("Podaj numer uczestnika do usunięcia: ").strip())
+            if 1 <= index <= len(matches):
+                student = matches[index - 1]
+
+                confirm = input(f"Czy na pewno chcesz usunąć: {student}? (Tak/Nie): ").strip().lower()
+                if confirm in ["tak", "t", "yes", "y"]:
+                    self.remove_student(student)
+                else:
+                    print("Anulowano usuwanie.")
+            else:
+                print("Nieprawidłowy numer.")
+        except ValueError:
+            print("To nie jest poprawny numer.")
+
+    def find_student(self):
+        matches = self.search_students()
+
+        if not matches:
+            print("Brak pasujących uczestników.")
+            return False
+
         confirm = input("Czy chcesz usunąć któregoś uczestnika? (Tak/Nie): ").strip().lower()
         if confirm in ["tak", "t", "yes", "y"]:
-            try:
-                index = int(input("\nPodaj numer uczestnika do usunięcia: ").strip())
-                if 1 <= index <= len(matches):
-                    self.remove_student(matches[index - 1])
-
-                else:
-                    print("Nieprawidłowy numer.")
-            except ValueError:
-                print("To nie jest poprawny numer")
-
-        elif confirm in ["nie", "n", "no"]:
-            print("Anulowano usuwanie.")
+            self.remove_student_by_selection(matches)
         else:
-            print("Nie rozpoznano odpowiedzi. Spróbój ponownie.")
+            print("Nie wykonano żadnych zmian.")
         return True
 
     def total_student(self):
@@ -233,35 +250,38 @@ while True:
 
     print("""\nCo chcesz zrobić?
     1. Dodaj uczestnika.
-    2. Usuń użytkownika.
+    2. Usuń uuczestnika.
     3. Wyszukaj użytkownika.
     4. Przejrzyj wszystkich użytkowników
-    5. Przejrzyj grupy wiekowe z uczestnikami.
+    5. Grupy wiekowe wraz z uczestnikami.
     0. Zapisz i zamknij program
     """)
 
-    activity = input("\nWybierz opcję (0-5): ").strip()
+    activity = input("\nWybierz opcję (0-5): ").strip().lower()
 
     match activity:
-        case "1":
+        case "1" | "d":
             manager.add_student()
             manager.save_to_file()
 
-        case "2":
+        case "2" | "u":
             manager.find_student()
             manager.save_to_file()
 
-        case "3":
-            manager.find_student()
-            manager.save_to_file()
+        case "3" | "w":
+            matches = manager.search_students()
+            if matches:
+                print("\nZnaleziono następujących uczestników:")
+                for s in matches:
+                    print(s)
 
-        case "4":
+        case "4" | "p":
             manager.total_student()
 
-        case "5":
+        case "5" | "g":
             manager.grup_student()
 
-        case "0":
+        case "0" | "z":
             manager.save_to_file()
             print("\nKoniec programu.")
             break
