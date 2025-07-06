@@ -128,23 +128,9 @@ class Camp:
         print(f"\n Nie znaloeziono grupy wiekowej albo brak wolnych miejsc.")
         return False
 
-    def remove_student(self, student):
-        if student in self.students:
-            self.students.remove(student)
-
-            for group in self.groups:
-                if student in group.students:
-                    group.students.remove(student)
-
-            print(f"\nUczestnik {student.first_name} {student.last_name} usunięty z obozu.")
-            return True
-        else:
-            print(f"\nNie znaleziono uczestnika {student.first_name} {student.last_name}.")
-            return False
-
     def find_student(self):
-        search_first_name = input("\nPodaj imię szukanego uczestnika: ").strip().casefold()
-        search_last_name = input("\nPodaj nazwisko szukanego uczestnika: ").strip().casefold()
+        search_first_name = input("\nPodaj imię uczestnika (Enter, jeśli nie znasz):  ").strip().casefold()
+        search_last_name = input("\nPodaj nazwisko uczestnika (Enter, jeśli nie znasz): ").strip().casefold()
 
         if not search_first_name and not search_last_name:
             print("\nMusisz podać przynajmniej imię lub nazwisko.")
@@ -174,6 +160,10 @@ class Camp:
         for idx, student in enumerate(matches, 1):
             print(f"{idx}. {student}")
 
+        return matches
+
+    def remove_student_interactive(self, matches):
+
         confirm = input("Czy chcesz usunąć któregoś uczestnika? (Tak/Nie): ").strip().lower()
         if confirm in ["tak", "t", "yes", "y"]:
             try:
@@ -198,6 +188,20 @@ class Camp:
         else:
             print("\nNie rozpoznano odpowiedzi. Spróbuj ponownie.")
         return True
+
+    def remove_student(self, student):
+        if student in self.students:
+            self.students.remove(student)
+
+            for group in self.groups:
+                if student in group.students:
+                    group.students.remove(student)
+
+            print(f"\nUczestnik {student.first_name} {student.last_name} usunięty z obozu.")
+            return True
+        else:
+            print(f"\nNie znaleziono uczestnika {student.first_name} {student.last_name}.")
+            return False
 
     def total_student(self):
 
@@ -268,12 +272,13 @@ while True:
             manager.save_to_file()
 
         case "2" | "u":
-            manager.find_student()
-            manager.save_to_file()
+            matches = manager.find_student()
+            if matches:
+                manager.remove_student_interactive(matches)
+                manager.save_to_file()
 
         case "3" | "w":
             manager.find_student()
-            manager.save_to_file()
 
         case "4" | "p":
             manager.total_student()
