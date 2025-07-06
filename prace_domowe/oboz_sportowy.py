@@ -153,17 +153,17 @@ class Camp:
         matches = []
 
         for student in self.students:
-            first_match = student.first_name.casefold()
-            last_match = student.last_name.casefold()
+            first = student.first_name.casefold()
+            last = student.last_name.casefold()
 
-            if search_last_name and search_last_name:
-                if first_match == search_first_name and last_match == search_last_name:
+            if search_first_name and search_last_name:
+                if first == search_first_name and last == search_last_name:
                     matches.append(student)
             elif search_first_name:
-                if first_match == search_first_name:
+                if first == search_first_name:
                     matches.append(student)
             elif search_last_name:
-                if last_match == search_last_name:
+                if last == search_last_name:
                     matches.append(student)
 
         if not matches:
@@ -252,12 +252,12 @@ print("\nProgram '--CAMP--' służy do rejestracji uczestników na obóz sportow
 while True:
 
     print("""\nCo chcesz zrobić?
-    1. Dodaj uczestnika.
-    2. Usuń uuczestnika.
-    3. Wyszukaj użytkownika.
-    4. Przejrzyj wszystkich użytkowników
-    5. Grupy wiekowe wraz z uczestnikami.
-    0. Zapisz i zamknij program
+    1. Dodaj uczestnika obozu.
+    2. Usuń uczestnika.
+    3. Wyszukaj uczestnika obozu.
+    4. Przejrzyj wszystkich uczestników obozu
+    5. Grupy wiekowe wraz z uczestnikami obozu.
+    0. Zapisz i zamknij program.
     """)
 
     activity = input("\nWybierz opcję (0-5): ").strip().lower()
