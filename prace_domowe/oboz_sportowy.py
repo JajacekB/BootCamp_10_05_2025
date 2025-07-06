@@ -100,8 +100,8 @@ class Camp:
         ]
 
     def add_student(self):
-        first_name = input("\nPodaj imię uczestnika: ").strip()
-        last_name = input("\nPodaj nazwisko uczestnika: ").strip()
+        first_name = input("\nPodaj imię uczestnika: ").strip().capitalize()
+        last_name = input("\nPodaj nazwisko uczestnika: ").strip().capitalize()
         birthdate_str = input("\nPodaj datę urodenia w formacie YYYY-MM-DD: ").strip()
         email = input("\nPodaj email uczestnika: ").strip()
 
@@ -142,28 +142,42 @@ class Camp:
             print(f"\nNie znaleziono uczestnika {student.first_name} {student.last_name}.")
             return False
 
-
-
     def find_student(self):
         search_first_name = input("Podaj imię szukanego uczestnika: ").strip().casefold()
         search_last_name = input("Podaj nazwisko szukanego uczestnika: ").strip().casefold()
 
+        matches = []
+
         for student in self.students:
-            if student.first_name.casefold() == search_first_name and student.last_name.casefold() == search_last_name:
-                print(f"\nZnaleziono uczestnika obozu:\n{student}")
+            if (student.first_name.casefold() == search_first_name or
+                    student.last_name.casefold() == search_last_name):
+                matches.append(student)
 
-                confirm = input("Czy chcesz usunąć uczestnika? (Tak/Nie): ").strip().lower()
-                if confirm in ["tak", "t", "yes", "y"]:
-                    self.remove_student(student)
-                elif confirm in ["nie", "n", "no"]:
-                    print("Anulowano usuwanie.")
+        if not matches:
+            print(f"\nNie znaleziono uczestnika {search_first_name} {search_last_name}.")
+            return False
+
+        print(f"\nZnaleziono następujących uczestników obozu:")
+        for idx, student in enumerate(matches, 1):
+            print(f"{idx}. {student}")
+
+        confirm = input("Czy chcesz usunąć któregoś uczestnika? (Tak/Nie): ").strip().lower()
+        if confirm in ["tak", "t", "yes", "y"]:
+            try:
+                index = int(input("\nPodaj numer uczestnika do usunięcia: ").strip())
+                if 1 <= index <= len(matches):
+                    self.remove_student(matches[index - 1])
+
                 else:
-                    print("Nie rozpoznano odpowiedzi. Nic nie zostało zrobione.")
+                    print("Nieprawidłowy numer.")
+            except ValueError:
+                print("To nie jest poprawny numer")
 
-                return True
-
-        print(f"\nNie znaleziono uczestnika {search_first_name} {search_last_name}.")
-        return False
+        elif confirm in ["nie", "n", "no"]:
+            print("Anulowano usuwanie.")
+        else:
+            print("Nie rozpoznano odpowiedzi. Spróbój ponownie.")
+        return True
 
     def total_student(self):
 
@@ -218,12 +232,12 @@ print("\nProgram '--CAMP--' służy do rejestracji uczestników na obóz sportow
 while True:
 
     print("""\nCo chcesz zrobić?
-    0. Zapisz i zamknij program
     1. Dodaj uczestnika.
     2. Usuń użytkownika.
     3. Wyszukaj użytkownika.
     4. Przejrzyj wszystkich użytkowników
     5. Przejrzyj grupy wiekowe z uczestnikami.
+    0. Zapisz i zamknij program
     """)
 
     activity = input("\nWybierz opcję (0-5): ").strip()
