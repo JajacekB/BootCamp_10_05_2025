@@ -284,7 +284,7 @@ while True:
 
     print("""\nCo chcesz zrobić?
     1. Dodaj uczestnika obozu.
-    2. Usuń uczestnika.
+    2. Usuń uczestnika obozu.
     3. Wyszukaj uczestnika obozu.
     4. Przejrzyj wszystkich uczestników obozu
     5. Grupy wiekowe wraz z uczestnikami obozu.
