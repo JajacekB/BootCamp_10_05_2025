@@ -145,8 +145,8 @@ class Camp:
 
 
     def find_student(self):
-        search_first_name = input("Podaj imię szukanego uczestnika: ").strip()
-        search_last_name = input("Podaj nazwisko szukanego uczestnika: ").strip()
+        search_first_name = input("Podaj imię szukanego uczestnika: ").strip().casefold()
+        search_last_name = input("Podaj nazwisko szukanego uczestnika: ").strip().casefold()
 
         for student in self.students:
             if student.first_name == search_first_name and student.last_name == search_last_name:
@@ -167,7 +167,7 @@ class Camp:
 
     def total_student(self):
 
-        sorted_students = sorted(group.students, key=lambda s: (s.last_name.lower(), s.first_name.lower()))
+        sorted_students = sorted(self.students, key=lambda s: (s.last_name.lower(), s.first_name.lower()))
 
         for student in sorted_students:
             print(student)
