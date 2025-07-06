@@ -149,7 +149,7 @@ class Camp:
         search_last_name = input("Podaj nazwisko szukanego uczestnika: ").strip().casefold()
 
         for student in self.students:
-            if student.first_name == search_first_name and student.last_name == search_last_name:
+            if student.first_name.casefold() == search_first_name and student.last_name.casefold() == search_last_name:
                 print(f"\nZnaleziono uczestnika obozu:\n{student}")
 
                 confirm = input("Czy chcesz usunąć uczestnika? (Tak/Nie): ").strip().lower()
@@ -175,12 +175,12 @@ class Camp:
     def grup_student(self):
         for group in self.groups:
             print("-" * 40)
-            print(group)
+            print('\n', group)
 
             sorted_students = sorted(group.students, key=lambda s: (s.last_name.lower(), s.first_name.lower()))
 
             for student in sorted_students:
-                print("  _", student)
+                print("  -", student)
 
     def save_to_file(self, filename="sport_camp.pkl"):
         try:
