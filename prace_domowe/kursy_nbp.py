@@ -28,17 +28,17 @@ class Waluta(BaseModel):
 class NBPClient:
     def __init__(self, base_url = "https://api.nbp.pl/api", date: str = None):
         """
-
-        :param base_url:
-        :param date:
+        Inicjacja klasy NBPClient
+        :param base_url: adres api NBP
+        :param date: Data. Wartość None to data dzisiejsza
         """
-
+        self.base_url = base_url
 
     def load_input_currency(self):
 
         self.table = "A"
 
-        print("""Jaką walutę chcesz sprawdzić podaj kod waluty:
+        print("""\nJaką walutę chcesz sprawdzić podaj kod waluty:
         USD - Dolar amerykański
         EUR - Euro
         CHF - Frank szwajcarskie
@@ -70,15 +70,15 @@ class NBPClient:
                 break
 
             try:
-                parsed_date = datetime.date(date_input, "%Y-%m-%d").date()
-                stat_date = datetime.date("2002-01-02", "%Y-%m-%d").date()
+                parsed_date = datetime.strptime(date_input, "%Y-%m-%d").date()
+                start_date = datetime.strptime("2002-01-02", "%Y-%m-%d").date()
                 today = datetime.today().date()
 
-                if stat_date <= parsed_date <= today:
+                if start_date <= parsed_date <= today:
                     self.date = date_input
                     break
                 else:
-                    print(f"\nData musi być z zakresu {stat_date} - {today}. Spróbuj ponownie")
+                    print(f"\nData musi być z zakresu {start_date} - {today}. Spróbuj ponownie")
             except ValueError:
                 print("\nNiepoprawny format daty, użyj formatu RRRR-MM-DD")
 
@@ -91,8 +91,8 @@ class NBPClient:
                 break
 
             try:
-                parsed_date = datetime.date(date_input, "%Y-%m-%d").date()
-                stat_date = datetime.date("2013-01-02", "%Y-%m-%d").date()
+                parsed_date = datetime.strptime(date_input, "%Y-%m-%d").date()
+                stat_date = datetime.strptime("2013-01-02", "%Y-%m-%d").date()
                 today = datetime.today().date()
 
                 if stat_date <= parsed_date <= today:
@@ -107,7 +107,12 @@ class NBPClient:
 
         url = self.build_url_currency()
         response = requests.get(url)
-        response_data = response.json()
+
+        try:
+            response_data = response.json()
+        except ValueError:
+            print("Brak danych dla podanej daty. Najprawdopodobniej jest to dzień wolny np. weekend lub święto.")
+            return
 
         currency_data = Waluta(**response_data)
         effectiveDate = currency_data.rates[0].effectiveDate
@@ -134,7 +139,12 @@ class NBPClient:
 
         url = self.build_url_gold()
         response = requests.get(url)
-        response_data = response.json()
+
+        try:
+            response_data = response.json()
+        except ValueError:
+            print("Brak danych dla podanej daty. Najprawdopodobniej jest to dzień wolny np. weekend lub święto.")
+            return
 
         gold = Gold(**response_data[0])
         gold_date = gold.data
@@ -161,3 +171,31 @@ class NBPClient:
         :return:
         """
 
+print("\nProgram '--KURSIKI--' słuzy do sprawdzania ceny złota lub najpopularniejszych walut.")
+
+client = NBPClient()
+
+while True:
+    print("""\nCo chcesz zrobić?
+    1. Sprawdzić cenę złota
+    2. Sprawdzić kurs waluty
+    0. zakończyć program
+    """)
+
+    activbity = input("\nWybierz jedną z opcji (0-2): ")
+
+    match activbity:
+        case "1":
+            client.load_input_gold()
+            client.get_gold_price()
+
+        case "2":
+            client.load_input_currency()
+            client.get_currency_rate()
+
+        case "0":
+            print("\nKoniec programu.")
+            break
+
+        case _:
+            print("\nZły wybór!!!")
