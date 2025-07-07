@@ -1,0 +1,3 @@
+# z api nbp kurs złota
+# dzienny, historyczny
+
