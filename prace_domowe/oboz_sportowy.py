@@ -21,7 +21,7 @@ class Student:
         self.first_name = first_name
         self.last_name = last_name
         self.birthdate_str = birthdate_str
-        self.birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d").date()
+        self.birthdate_date = datetime.strptime(birthdate_str, "%Y-%m-%d").date()
         self.age = self.calculate_age()
         self.email = email
         self.group_name = self.determine_group()
@@ -33,10 +33,9 @@ class Student:
     # Obliczanie wieku uczestnika
     def calculate_age(self):
         today = datetime.now().date()
-        birthdate_date = datetime.strptime(self.birthdate_str, "%Y-%m-%d").date()
-        years = today.year - birthdate_date.year
+        years = today.year - self.birthdate_date.year
 
-        if (today.month, today.day) < (birthdate_date.month, birthdate_date.day):
+        if (today.month, today.day) < (self.birthdate_date.month, self.birthdate_date.day):
             years -= 1
         return years
 
@@ -184,7 +183,7 @@ class Camp:
             try:
                 index = int(input("\nPodaj numer uczestnika do usunięcia: ").strip())
                 if 1 <= index <= len(matches):
-                    final_confirmation = input(f"\n Czy na pewno chcesz usunąć: {matches[index -1]}? (Tak/Nie)").strip().lower()
+                    final_confirmation = input(f"\nCzy na pewno chcesz usunąć: {matches[index -1]}? (Tak/Nie)").strip().lower()
                     if final_confirmation in ["tak", "t", "yes", "y"]:
                         self.remove_student(matches[index - 1])
                     elif final_confirmation in ["nie", "n", "no"]:
