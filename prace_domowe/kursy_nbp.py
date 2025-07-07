@@ -13,11 +13,6 @@ class Rate(BaseModel):
     mid: float
 
 
-class Gold(BaseModel):
-    data: datetime
-    cena: float
-
-
 class Waluta(BaseModel):
     table: str
     currency: str
@@ -25,11 +20,16 @@ class Waluta(BaseModel):
     rates: List[Rate]
 
 
+class Gold(BaseModel):
+    data: datetime
+    cena: float
+
+
 class NBPClient:
     def __init__(self, base_url = "https://api.nbp.pl/api", date: str = None):
         """
         Inicjacja klasy NBPClient
-        :param base_url: adres api NBP
+        :param base_url: Adres api NBP
         :param date: Data. Wartość None to data dzisiejsza
         """
         self.base_url = base_url
@@ -166,9 +166,8 @@ class NBPClient:
 
     def send_request(self, url: str) -> dict:
         """
-
-        :param url:
-        :return:
+        Miejsce na obsługę błędów łączności internetowej
+        :return
         """
 
 print("\nProgram '--KURSIKI--' słuzy do sprawdzania ceny złota lub najpopularniejszych walut.")
@@ -198,4 +197,4 @@ while True:
             break
 
         case _:
-            print("\nZły wybór!!!")
+            print("\nZły wybór. Spróbuj jeszcze raz.")
