@@ -80,19 +80,17 @@ class Vehicle(ABC):
         )
 
 
-
-
 class Car(Vehicle):
-    def __init__(self, vehicle_id, brand, cash_per_day, is_available, seats, fuel_type, borrower=None, return_date=None):
+    def __init__(self, vehicle_id, brand, cash_per_day, is_available, size, fuel_type, borrower=None, return_date=None):
         super().__init__(vehicle_id, brand, cash_per_day, is_available, borrower, return_date)
-        self.seats = seats
+        self.size() = size
         self.fuel_type = fuel_type
 
     def get_type(self):
         return "Samochód"
 
     def __str__(self):
-        return super().__str__() + f"""Liczba miejsc: {self.seats}
+        return super().__str__() + f"""Rozmiar samochodu: {self.size}
     Typ paliwa: {self.fuel_type}
     """
 
@@ -100,7 +98,7 @@ class Car(Vehicle):
     def to_dict(self):
         data = super().to_dict()  # pobiera dane z Vehicle
         data.update({
-            "seats": self.seats,
+            "size": self.size,
             "fuel_type": self.fuel_type
         })
         return data
@@ -113,7 +111,7 @@ class Car(Vehicle):
             brand=data["brand"],
             cash_per_day=data["cash_per_day"],
             is_available=data["is_available"],
-            seats=data["seats"],
+            size=data["size"],
             fuel_type=data["fuel_type"],
             borrower=data["borrower"],
             return_date=datetime.strptime(data["return_date"], "%Y-%m-%d").date() if data["return_date"] else None
