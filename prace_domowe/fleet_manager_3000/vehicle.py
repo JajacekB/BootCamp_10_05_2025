@@ -1,5 +1,5 @@
 # Program Fleet Manager 3000
-# program służy do obsługi wypozyczlni ppojazdów.
+# program służy do obsługi wypożyczlni pojazdów.
 
 from abc import ABC, abstractmethod
 from datetime import date, timedelta, datetime
@@ -83,7 +83,7 @@ class Vehicle(ABC):
 class Car(Vehicle):
     def __init__(self, vehicle_id, brand, cash_per_day, is_available, size, fuel_type, borrower=None, return_date=None):
         super().__init__(vehicle_id, brand, cash_per_day, is_available, borrower, return_date)
-        self.size() = size
+        self.size = size
         self.fuel_type = fuel_type
 
     def get_type(self):
