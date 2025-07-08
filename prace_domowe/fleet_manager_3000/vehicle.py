@@ -27,7 +27,7 @@ class Vehicle(ABC):
     def get_type(self):
         pass
 
-    def rent_car(self, borrower, numer_of_days):
+    def rent(self, borrower, numer_of_days):
         if not self.__is_available:
             return False
 
@@ -37,46 +37,25 @@ class Vehicle(ABC):
         return True
 
 
-    def return_car(self):
+    def return(self):
         if self.__is_available:
             return True
 
-        self.__borrower = True
+        self.__is_available = True
         self.__borrower = None
         self.__return_date = None
 
     def __str__(self):
+        return_date_str = self.__return_date.strftime("%Y-%m-%d") if self.__return_date else "brak"
         return f"""ID: {self.__id}
     Marka: {self.__brand}
     Cena/dzień: {self.__cash_per_day} zł
     Dostępny: {self.__is_available}
     Wypożyczył: {self.__borrower}
-    Data zwrotu: {self.__return_date}
+    Data zwrotu: {return_date_str}
     """
 
-    # konwersja obiektu klasy Vehicle do słownika dla późniejszego zapisu w pliku .json
-    def to_dict(self):
-        return {
-            "id": self.__id,
-            "brand": self.__brand,
-            "cash_per_day": self.__cash_per_day,
-            "is_available": self.__is_available,
-            "borrower": self.__borrower,
-            "return_date": self.__return_date.strftime("%Y-%m-%d") if self.__return_date else None,
-            "type": self.get_type()
-        }
 
-    # konwersja słownika (.json) do obiektu klasy Vehicle
-    @classmethod
-    def from_dict(cls, data):
-        return cls(
-            vehicle_id=data["id"],
-            brand=data["brand"],
-            cash_per_day=data["cash_per_day"],
-            is_available=data["is_available"],
-            borrower=data["borrower"],
-            return_date=datetime.strptime(data["return_date"], "%Y-%m-%d").date() if data["return_date"] else None
-        )
 
 
 class Car(Vehicle):
@@ -102,3 +81,37 @@ class Bike(Vehicle):
         :param category:
         """
         self.type = category
+
+
+
+
+
+
+
+
+
+
+
+    # konwersja obiektu klasy Vehicle do słownika dla późniejszego zapisu w pliku .json
+    def to_dict(self):
+        return {
+            "id": self.__id,
+            "brand": self.__brand,
+            "cash_per_day": self.__cash_per_day,
+            "is_available": self.__is_available,
+            "borrower": self.__borrower,
+            "return_date": self.__return_date.strftime("%Y-%m-%d") if self.__return_date else None,
+            "type": self.get_type()
+        }
+
+    # konwersja słownika (.json) do obiektu klasy Vehicle
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            vehicle_id=data["id"],
+            brand=data["brand"],
+            cash_per_day=data["cash_per_day"],
+            is_available=data["is_available"],
+            borrower=data["borrower"],
+            return_date=datetime.strptime(data["return_date"], "%Y-%m-%d").date() if data["return_date"] else None
+        )
