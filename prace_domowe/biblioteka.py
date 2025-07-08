@@ -324,7 +324,7 @@ while True:
 
     activity = input("\nWybierz opcję (0-9): ").strip()
 
-    match activit:
+    match activity:
 
         case "1":
             library.add_book()

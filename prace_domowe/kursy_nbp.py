@@ -63,7 +63,7 @@ class NBPClient:
             print("\nNiepoprawny kod waluty. Spróbuj ponownie.")
 
         while True:
-            date_input = input("\nPodaj datę kursu waluty (RRRR-MM-DD) (Naciśnij ENTER jesli chcesz dzisiajszą: ").strip()
+            date_input = input("\nPodaj datę kursu waluty (RRRR-MM-DD) (Naciśnij ENTER jesli chcesz dzisiajszą): ").strip()
 
             if date_input =="":
                 self.date = None
@@ -84,7 +84,7 @@ class NBPClient:
 
     def load_input_gold(self):
         while True:
-            date_input = input("\nPodaj datę ceny złota (RRRR-MM-DD) (Naciśnij ENTER jesli chcesz dzisiajszą: ").strip()
+            date_input = input("\nPodaj datę ceny złota (RRRR-MM-DD) (Naciśnij ENTER jesli chcesz dzisiajszą): ").strip()
 
             if date_input =="":
                 self.date = None
