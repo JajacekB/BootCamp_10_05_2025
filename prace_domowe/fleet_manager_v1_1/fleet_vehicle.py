@@ -27,7 +27,7 @@ class Vehicle(ABC):
     def get_type(self):
         pass
 
-    def rent(self, borrower, numer_of_days):
+    def rent_vehicle(self, borrower, numer_of_days):
         if not self.__is_available:
             return False
 
