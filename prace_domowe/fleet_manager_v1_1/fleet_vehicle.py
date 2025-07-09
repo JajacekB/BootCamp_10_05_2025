@@ -1,4 +1,4 @@
-# Program Fleet Manager 3000
+# Program Fleet Manager Tajfun 2.0
 # program służy do obsługi wypożyczlni pojazdów.
 
 from abc import ABC, abstractmethod
@@ -27,6 +27,10 @@ class Vehicle(ABC):
     def get_type(self):
         pass
 
+    @property
+    def vehicle_id(self):
+        return self.__vehicle_id
+
     def rent_vehicle(self, borrower, numer_of_days):
         if not self.__is_available:
             return False
@@ -35,7 +39,6 @@ class Vehicle(ABC):
         self.__borrower = borrower
         self.__return_date = date.today() + timedelta(days=numer_of_days)
         return True
-
 
     def return_vehicle(self):
         if self.__is_available:
