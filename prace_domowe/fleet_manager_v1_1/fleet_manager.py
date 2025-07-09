@@ -1,7 +1,6 @@
 from fleet_vehicle import Car, Scooter, Bike
 
 
-
 class FleetManager():
     def __init__(self):
         self.vehicles = []
