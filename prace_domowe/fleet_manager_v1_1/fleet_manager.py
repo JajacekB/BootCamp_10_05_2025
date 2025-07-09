@@ -60,10 +60,10 @@ class FleetManager():
                 bike_type = input("\nPodaj rodzaj typ roweru: ").strip()
                 is_electric = bool(input("\nCzy rower jest elektryczny: ").strip())
                 is_electric_bool = is_electric in ("tak", "t", "yes", "y")
-                vehicle = Bike(vehicle_type, brand, cash_per_day, bike_type, is_electric_bool)
+                vehicle = Bike(vehicle_id, brand, cash_per_day, True, bike_type, is_electric_bool)
 
-            print(f"\nCzy chcesz dodać pojazd: - {vehicle}? (Tak/Nie): ")
-            choice = input().strip().lower()
+            print(f"\nCzy chcesz dodać pojazd? - {vehicle}")
+            choice = input("(Tak/Nie): ").strip().lower()
 
             if choice in ("tak", "t", "yes", "y"):
                 self.vehicles.append(vehicle)

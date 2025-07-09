@@ -50,7 +50,8 @@ class Vehicle(ABC):
 
     def __str__(self):
         return_date_str = self.__return_date.strftime("%Y-%m-%d") if self.__return_date else "brak"
-        return f"""ID: {self.__vehicle_id}
+        return f"""
+    ID: {self.__vehicle_id}
     Marka: {self.__brand}
     Cena/dzień: {self.__cash_per_day} zł
     Dostępny: {self.__is_available}
@@ -163,7 +164,7 @@ class Bike(Vehicle):
 
     def __str__(self):
         return super().__str__() + (f"""Typ roweru: {self.bike_type}
-        Elektryczny: {'Tak' if self.is_electric else 'Nie'}\n""")
+    Elektryczny: {'Tak' if self.is_electric else 'Nie'}\n""")
 
     def to_dict(self):
         data = super().to_dict()  # pobiera dane z Vehicle
