@@ -1,9 +1,40 @@
 from fleet_vehicle import Car, Scooter, Bike
+import pickle
+import os
 
 
 class FleetManager():
     def __init__(self):
         self.vehicles = []
+
+    def save_file(self, filename="fleet_manager.pkl"):
+        try:
+            with open(filename, "wb") as f:
+                pickle.dump(self, f)
+            print(f"\nDane zapisano do pliku '{filename}'.")
+        except Exception as e:
+            print(f"\nBłąd podczas zapisu: {e}")
+
+    @staticmethod
+    def load_file(filename="fleet_manager.pkl"):
+        if not os.path.exists(filename):
+            print(f"\nPlik '{filename}' nie istnieje. Rozpoczynam z pustą bazą.")
+            return FleetManager()
+
+        try:
+            with open(filename, "rb") as f:
+                loaded = pickle.load(f)
+
+            if not isinstance(loaded, FleetManager):
+                print("\nBłąd: Nieprawidłowy typ danych w pliku.")
+                return FleetManager()
+
+            print(f"\nWczytano dane z pliku '{filename}'.")
+            return loaded
+
+        except Exception as e:
+            print(f"\nBłąd podczas wczytywania pliku: {e}.")
+            return FleetManager()
 
     def generate_id(self,prefix):
         max_num = 0
@@ -42,7 +73,7 @@ class FleetManager():
 
                 brand = input("\nPodaj producenta pojazdu: ").strip().capitalize()
                 cash_per_day = float(input("\nPodaj cenę najmu za jedną dobę: ").strip())
-                size = input("\nPodaj rozmiar samochodu (Miejski, Kompakt, Limuzyna, CrossOver, SUV: ").strip().capitalize()
+                size = input("\nPodaj rozmiar samochodu (Miejski, Kompakt, Limuzyna, CrossOver, SUV): ").strip().capitalize()
                 fuel_type = input("\nPodaj rodzaj paliwa: ").strip()
                 vehicle = Car(vehicle_id, brand, cash_per_day, True, size, fuel_type)
 
@@ -57,7 +88,7 @@ class FleetManager():
 
                 brand = input("\nPodaj producenta pojazdu: ").strip().capitalize()
                 cash_per_day = float(input("\nPodaj cenę najmu za jedną dobę: ").strip())
-                bike_type = input("\nPodaj rodzaj typ roweru (Szosowy, Miejski, MTB: ").strip().capitalize()
+                bike_type = input("\nPodaj rodzaj typ roweru (Szosowy, Miejski, MTB): ").strip().capitalize()
                 is_electric = bool(input("\nCzy rower jest elektryczny: ").strip())
                 is_electric_bool = is_electric in ("tak", "t", "yes", "y")
                 vehicle = Bike(vehicle_id, brand, cash_per_day, True, bike_type, is_electric_bool)
@@ -81,9 +112,35 @@ class FleetManager():
         if not self.vehicles:
             print("\nNie ma jeszcze pojazdów w wypożyczalni.")
         else:
+            car_list = []
+            scooter_list = []
+            bike_list = []
             print("\nLista pojazdów:\n")
+
             for vehicle in self.vehicles:
-                print(vehicle)
+                if isinstance(vehicle, Car):
+                    print("\nLista Samochodów:\n")
+                    car_list.append(vehicle)
+
+                elif isinstance(vehicle, Scooter):
+                    print("\nLista Scooterów:\n")
+                    car_list.append(vehicle)
+
+                elif isinstance(vehicle, Bike):
+                    print("\nLista Rowerów:\n")
+                    bike_list.append(vehicle)
+
+            print("Samochody")
+            for v in car_list:
+                print(v)
+
+            print("Skutery:")
+            for v in scooter_list:
+                print(v)
+
+            print("Rowery:")
+            for v in bike_list:
+                print(v)
 
     def get_available_vehicles(self):
         pass

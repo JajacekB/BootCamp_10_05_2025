@@ -1,9 +1,6 @@
-from fleet_vehicle import Car, Scooter, Bike
 from fleet_manager import FleetManager
 
-
-
-fleet = FleetManager()
+fleet = FleetManager.load_file()
 
 print("\nProgram ---Fleet Manager Turbo--- służy do zarządzania małą wypożyczalnią pojazdów.")
 
@@ -19,11 +16,13 @@ while True:
     match activity:
         case "1":
             fleet.add_vehicle()
+            fleet.save_file()
 
         case "2":
             fleet.get_all_vehicles()
 
         case "0":
+            fleet.save_file()
             print("\nKoniec programu.")
             break
 

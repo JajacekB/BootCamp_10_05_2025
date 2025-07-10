@@ -94,8 +94,8 @@ class Car(Vehicle):
         return "Samochód"
 
     def __str__(self):
-        return super().__str__() + f"""Rozmiar samochodu: {self.size}
-    Typ paliwa: {self.fuel_type}
+        return super().__str__() + f"""    Rozmiar samochodu: {self.size}
+        Typ paliwa: {self.fuel_type}
     """
 
     # Konwersja obiektu klasy Car do słownika dla późniejszego zapisu w pliku .json z nadpisaniem klasy Vehicle
@@ -131,7 +131,7 @@ class Scooter(Vehicle):
         return "Scooter"
 
     def __str__(self):
-        return super().__str__() + f"Maksymalna prędkość: {self.max_speed}km/h\n"
+        return super().__str__() + f"    Maksymalna prędkość: {self.max_speed}km/h\n"
 
     # Konwersja obiektu klasy Scooter do słownika dla późniejszego zapisu w pliku .json z nadpisaniem klasy Vehicle
     def to_dict(self):
@@ -163,8 +163,8 @@ class Bike(Vehicle):
         return "Rower"
 
     def __str__(self):
-        return super().__str__() + (f"""Typ roweru: {self.bike_type}
-    Elektryczny: {'Tak' if self.is_electric else 'Nie'}\n""")
+        return super().__str__() + (f"""    Typ roweru: {self.bike_type}
+        Elektryczny: {'Tak' if self.is_electric else 'Nie'}\n""")
 
     def to_dict(self):
         data = super().to_dict()  # pobiera dane z Vehicle
