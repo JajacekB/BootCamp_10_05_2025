@@ -40,24 +40,24 @@ class FleetManager():
 
             if vehicle_type == "car":
 
-                brand = input("\nPodaj producenta pojazdu: ").strip()
+                brand = input("\nPodaj producenta pojazdu: ").strip().capitalize()
                 cash_per_day = float(input("\nPodaj cenę najmu za jedną dobę: ").strip())
-                size = input("\nPodaj rozmiar samochodu (miejski, kompakt, limuzyna, SUV mały, SUV: ").strip()
+                size = input("\nPodaj rozmiar samochodu (Miejski, Kompakt, Limuzyna, CrossOver, SUV: ").strip().capitalize()
                 fuel_type = input("\nPodaj rodzaj paliwa: ").strip()
                 vehicle = Car(vehicle_id, brand, cash_per_day, True, size, fuel_type)
 
             elif vehicle_type == "scooter":
 
-                brand = input("\nPodaj producenta pojazdu: ").strip()
+                brand = input("\nPodaj producenta pojazdu: ").strip().capitalize()
                 cash_per_day = float(input("\nPodaj cenę najmu za jedną dobę: ").strip())
                 max_speed = input("\npodaj prędkość maksymalną: ").strip()
                 vehicle = Scooter(vehicle_id, brand, cash_per_day, True, max_speed)
 
             elif vehicle_type == "bike":
 
-                brand = input("\nPodaj producenta pojazdu: ").strip()
+                brand = input("\nPodaj producenta pojazdu: ").strip().capitalize()
                 cash_per_day = float(input("\nPodaj cenę najmu za jedną dobę: ").strip())
-                bike_type = input("\nPodaj rodzaj typ roweru: ").strip()
+                bike_type = input("\nPodaj rodzaj typ roweru (Szosowy, Miejski, MTB: ").strip().capitalize()
                 is_electric = bool(input("\nCzy rower jest elektryczny: ").strip())
                 is_electric_bool = is_electric in ("tak", "t", "yes", "y")
                 vehicle = Bike(vehicle_id, brand, cash_per_day, True, bike_type, is_electric_bool)
@@ -100,3 +100,8 @@ class FleetManager():
     def get_vehicles_by_type(self):
         pass
 
+    def get_all_clients(self):
+        pass
+
+    def get_active_clients(self):
+        pass

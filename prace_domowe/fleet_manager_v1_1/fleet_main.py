@@ -5,7 +5,7 @@ from fleet_manager import FleetManager
 
 fleet = FleetManager()
 
-print("\n Program ---Fleet Manager Turbo--- służy do zarządzania małą wypożyczalnią pojazdów.")
+print("\nProgram ---Fleet Manager Turbo--- służy do zarządzania małą wypożyczalnią pojazdów.")
 
 while True:
     print("""\nMożesz zrobić takie czynności:

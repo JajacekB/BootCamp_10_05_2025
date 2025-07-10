@@ -52,11 +52,11 @@ class Vehicle(ABC):
         return_date_str = self.__return_date.strftime("%Y-%m-%d") if self.__return_date else "brak"
         return f"""
     ID: {self.__vehicle_id}
-    Marka: {self.__brand}
-    Cena/dzień: {self.__cash_per_day} zł
-    Dostępny: {self.__is_available}
-    Wypożyczył: {self.__borrower}
-    Data zwrotu: {return_date_str}
+        Marka: {self.__brand}
+        Cena/dzień: {self.__cash_per_day} zł
+        Dostępny: {self.__is_available}
+        Wypożyczył: {self.__borrower}
+        Data zwrotu: {return_date_str}
     """
 
     # konwersja obiektu klasy Vehicle do słownika dla późniejszego zapisu w pliku .json
