@@ -146,20 +146,34 @@ class FleetManager():
     def get_rented_vehicles(self, vehicle_type="all", sort_by="date"):
         return self.get_vehicles(status="rented", vehicle_type=vehicle_type, sort_by=sort_by)
 
-    def get_vehicles(self, status="all", vehicle_type="all", sort_by="date"):
+    def get_vehicles(self, status="all", vehicle_type="all", sort_by=None, min_price=None, max_price=None):
         filtered = self.vehicles
+
+        # Filtrowanie według dostępności
         if status == "available":
             filtered = [v for v in self.vehicles if v.is_available]
+            sort_by = "id"  # automatycznie sortuj po ID
         elif status == "rented":
             filtered = [v for v in self.vehicles if not v.is_available]
+            sort_by = "date"  # automatycznie sortuj po dacie zwrotu
         else:
             filtered = list(self.vehicles)
+            if not sort_by:
+                sort_by = input("Sortuj wg (id, date): ").strip().lower()
+                if sort_by not in ("id", "date"):
+                    print("Niepoprawna opcja sortowania. Używam domyślnej (id).")
+                    sort_by = "id"
 
-
+        # Filtrowanie według typu pojazdu
         if vehicle_type != "all":
             filtered = [v for v in filtered if v.get_type().lower() == vehicle_type.lower()]
+        # Filtrowanie po cenie wynajmu
+        if min_price is not None:
+            filtered = [v for v in filtered if float(v.cash_per_day) >= min_price]
+        if max_price is not None:
+            filtered = [v for v in filtered if float(v.cash_per_day) <= max_price]
 
-
+        # Sortowanie
         if sort_by == "date":
             filtered.sort(key=lambda v: v.return_date or date.max)
         elif sort_by == "id":

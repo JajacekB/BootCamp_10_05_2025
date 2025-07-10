@@ -32,6 +32,10 @@ class Vehicle(ABC):
         return self.__vehicle_id
 
     @property
+    def cash_per_day(self):
+        return self.__cash_per_day
+
+    @property
     def is_available(self):
         return self.__is_available
 

@@ -6,11 +6,11 @@ print("\nProgram ---Fleet Manager Turbo--- służy do zarządzania małą wypoż
 
 while True:
     print("""\nMożesz zrobić takie czynności:
-    0. Zakonmczyć program
+    0. Zakończyć program
     1. Dodać pojazd
-    2. Wyświetlić dostępne pojazdy
-    3. Sam nie wiem co
-        """)
+    2. Wyświetlić wszystkie pojazdy
+    3. Wyświetlić filtrowane
+    """)
 
     activity = input("\n Wybierz opcję (0-3): ")
 
@@ -27,7 +27,20 @@ while True:
             vehicle_type = input("Wpisz typ pojazdu (all, car, scooter, bike): ").strip().lower()
             sort_by = input("Sortuj wg (id, date): ").strip().lower()
 
-            vehicles = fleet.get_vehicles(status=status, vehicle_type=vehicle_type, sort_by=sort_by)
+            min_price_input = input("Minimalna cena za dobę (ENTER aby pominąć): ").strip()
+            max_price_input = input("Maksymalna cena za dobę (ENTER aby pominąć): ").strip()
+
+            min_price = float(min_price_input) if min_price_input else None
+            max_price = float(max_price_input) if max_price_input else None
+
+            vehicles = fleet.get_vehicles(
+                status=status,
+                vehicle_type=vehicle_type,
+                sort_by=sort_by,
+                min_price=min_price,
+                max_price=max_price
+            )
+
             if not vehicles:
                 print("Brak pojazdów spełniających kryteria.")
             else:
