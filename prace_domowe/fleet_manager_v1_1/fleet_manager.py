@@ -1,9 +1,39 @@
 from fleet_vehicle import Car, Scooter, Bike
-
+import pickle
+import os
 
 class FleetManager():
     def __init__(self):
         self.vehicles = []
+
+    def save_file(self, filename="fleet_manager.pkl"):
+        try:
+            with open(filename, "wb") as f:
+                pickle.dump(self, f)
+            print(f"\nDane zapisano do pliku '{filename}'.")
+        except Exception as e:
+            print(f"\nBłąd podczas zapisu: {e}")
+
+    @staticmethod
+    def load_file(filename="fleet_manager.pkl"):
+        if not os.path.exists(filename):
+            print(f"\nPlik '{filename}' nie istnieje. Rozpoczynam z pustą bazą.")
+            return FleetManager()
+
+        try:
+            with open(filename, "rb") as f:
+                loaded = pickle.load(f)
+
+            if not isinstance(loaded, FleetManager):
+                print("\nBłąd: Nieprawidłowy typ danych w pliku.")
+                return FleetManager()
+
+            print(f"\nWczytano dane z pliku '{filename}'.")
+            return loaded
+
+        except Exception as e:
+            print(f"\nBłąd podczas wczytywania pliku: {e}.")
+            return FleetManager()
 
     def generate_id(self,prefix):
         max_num = 0
