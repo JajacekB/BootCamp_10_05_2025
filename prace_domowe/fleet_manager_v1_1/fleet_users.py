@@ -21,7 +21,7 @@ class User:
 
 class Admin(User):
     def __init__(self, login, password):
-        super().__init__(user_name="Admin", login=login, email="admin@system.local", password=password)
+        super().__init__(user_name="Admin", login="admin", email="admin@system.local", password="admin")
 
     def add_vehicles(self, fleet_manager, vehicle):
         fleet_manager.add_vehicle(vehicle)

@@ -23,9 +23,17 @@ while True:
             fleet.get_all_vehicles()
 
         case "3":
-            status = input("Wpisz status (all, available, rented): ").strip().lower()
+            status = input("\nWpisz status (all, available, rented): ").strip().lower()
+
+            # Informacja o automatycznym sortowaniu
+            if status == "available":
+                print("Sortowanie będzie ustawione automatycznie na 'id' (po ID pojazdu).")
+            elif status == "rented":
+                print("Sortowanie będzie ustawione automatycznie na 'date' (po dacie zwrotu).")
+            else:
+                print("Sortowanie domyślnie po ID pojazdu.")
+
             vehicle_type = input("Wpisz typ pojazdu (all, car, scooter, bike): ").strip().lower()
-            sort_by = input("Sortuj wg (id, date): ").strip().lower()
 
             min_price_input = input("Minimalna cena za dobę (ENTER aby pominąć): ").strip()
             max_price_input = input("Maksymalna cena za dobę (ENTER aby pominąć): ").strip()
@@ -36,13 +44,12 @@ while True:
             vehicles = fleet.get_vehicles(
                 status=status,
                 vehicle_type=vehicle_type,
-                sort_by=sort_by,
                 min_price=min_price,
                 max_price=max_price
             )
 
             if not vehicles:
-                print("Brak pojazdów spełniających kryteria.")
+                print("\nBrak pojazdów spełniających kryteria.")
             else:
                 for v in vehicles:
                     print(v)

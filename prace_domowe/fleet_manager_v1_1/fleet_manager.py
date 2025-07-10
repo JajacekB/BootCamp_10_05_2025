@@ -90,8 +90,8 @@ class FleetManager():
                 brand = input("\nPodaj producenta pojazdu: ").strip().capitalize()
                 cash_per_day = float(input("\nPodaj cenę najmu za jedną dobę: ").strip())
                 bike_type = input("\nPodaj rodzaj typ roweru (Szosowy, Miejski, MTB): ").strip().capitalize()
-                is_electric = bool(input("\nCzy rower jest elektryczny: ").strip())
-                is_electric_bool = is_electric in ("tak", "t", "yes", "y")
+                electric_input = input("\nCzy rower jest elektryczny: ").strip().lower()
+                is_electric_bool = electric_input in ("tak", "t", "yes", "y")
                 vehicle = Bike(vehicle_id, brand, cash_per_day, True, bike_type, is_electric_bool)
 
             print(f"\nCzy chcesz dodać pojazd? - {vehicle}")
@@ -107,6 +107,12 @@ class FleetManager():
                 print("\nNiepoprawna odpowiedź. Spróbuj ponownie.")
 
     def remove_vehicle(self,vehicle_id):
+        pass
+
+    def borrow_vehicle(self):
+        pass
+
+    def return_vehicle(self):
         pass
 
     def get_all_vehicles(self):
@@ -158,11 +164,9 @@ class FleetManager():
             sort_by = "date"  # automatycznie sortuj po dacie zwrotu
         else:
             filtered = list(self.vehicles)
-            if not sort_by:
-                sort_by = input("Sortuj wg (id, date): ").strip().lower()
-                if sort_by not in ("id", "date"):
-                    print("Niepoprawna opcja sortowania. Używam domyślnej (id).")
-                    sort_by = "id"
+            if sort_by not in ("id", "date"):
+                print("Niepoprawna opcja sortowania. Sortowanie domyślne (id).")
+                sort_by = "id"
 
         # Filtrowanie według typu pojazdu
         if vehicle_type != "all":
@@ -181,19 +185,8 @@ class FleetManager():
 
         return filtered
 
-
-    def get_vehicles_by_id(self):
-        pass
-
-    def get_vehicles_by_date(self):
-        pass
-
-    def get_vehicles_by_type(self):
-        pass
-
     def get_all_clients(self):
         pass
 
     def get_active_clients(self):
         pass
-
