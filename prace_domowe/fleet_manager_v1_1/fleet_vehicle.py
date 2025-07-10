@@ -35,6 +35,10 @@ class Vehicle(ABC):
     def is_available(self):
         return self.__is_available
 
+    @property
+    def return_date(self):
+        return self.__return_date
+
     def rent_vehicle(self, borrower, numer_of_days):
         if not self.__is_available:
             return False
@@ -95,7 +99,7 @@ class Car(Vehicle):
         self.fuel_type = fuel_type
 
     def get_type(self):
-        return "Samochód"
+        return "car"
 
     def __str__(self):
         return super().__str__() + f"""    Rozmiar samochodu: {self.size}
@@ -132,7 +136,7 @@ class Scooter(Vehicle):
         self.max_speed = max_speed
 
     def get_type(self):
-        return "Scooter"
+        return "scooter"
 
     def __str__(self):
         return super().__str__() + f"    Maksymalna prędkość: {self.max_speed}km/h\n"
@@ -164,7 +168,7 @@ class Bike(Vehicle):
         self.is_electric = is_electric
 
     def get_type(self):
-        return "Rower"
+        return "bike"
 
     def __str__(self):
         return super().__str__() + (f"""    Typ roweru: {self.bike_type}
