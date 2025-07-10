@@ -9,9 +9,10 @@ while True:
     0. Zakonmczyć program
     1. Dodać pojazd
     2. Wyświetlić dostępne pojazdy
+    3. Sam nie wiem co
         """)
 
-    activity = input("\n Wybierz opcję (0-2): ")
+    activity = input("\n Wybierz opcję (0-3): ")
 
     match activity:
         case "1":
@@ -20,6 +21,18 @@ while True:
 
         case "2":
             fleet.get_all_vehicles()
+
+        case "3":
+            status = input("Wpisz status (all, available, rented): ").strip().lower()
+            vehicle_type = input("Wpisz typ pojazdu (all, car, scooter, bike): ").strip().lower()
+            sort_by = input("Sortuj wg (id, date): ").strip().lower()
+
+            vehicles = fleet.get_vehicles(status=status, vehicle_type=vehicle_type, sort_by=sort_by)
+            if not vehicles:
+                print("Brak pojazdów spełniających kryteria.")
+            else:
+                for v in vehicles:
+                    print(v)
 
         case "0":
             fleet.save_file()

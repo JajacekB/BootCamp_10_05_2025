@@ -31,6 +31,10 @@ class Vehicle(ABC):
     def vehicle_id(self):
         return self.__vehicle_id
 
+    @property
+    def is_available(self):
+        return self.__is_available
+
     def rent_vehicle(self, borrower, numer_of_days):
         if not self.__is_available:
             return False

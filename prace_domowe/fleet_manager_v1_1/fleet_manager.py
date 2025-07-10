@@ -1,6 +1,7 @@
 from fleet_vehicle import Car, Scooter, Bike
 import pickle
 import os
+from datetime import date
 
 
 class FleetManager():
@@ -119,15 +120,12 @@ class FleetManager():
 
             for vehicle in self.vehicles:
                 if isinstance(vehicle, Car):
-                    print("\nLista Samochodów:\n")
                     car_list.append(vehicle)
 
                 elif isinstance(vehicle, Scooter):
-                    print("\nLista Scooterów:\n")
-                    car_list.append(vehicle)
+                    scooter_list.append(vehicle)
 
                 elif isinstance(vehicle, Bike):
-                    print("\nLista Rowerów:\n")
                     bike_list.append(vehicle)
 
             print("Samochody")
@@ -142,11 +140,33 @@ class FleetManager():
             for v in bike_list:
                 print(v)
 
-    def get_available_vehicles(self):
-        pass
+    def get_available_vehicles(self, vehicle_type="all", sort_by="id"):
+        return self.get_vehicles(status="available", vehicle_type=vehicle_type, sort_by=sort_by)
 
-    def get_rented_vehicles(self):
-        pass
+    def get_rented_vehicles(self, vehicle_type="all", sort_by="date"):
+        return self.get_vehicles(status="rented", vehicle_type=vehicle_type, sort_by=sort_by)
+
+    def get_vehicles(self, status="all", vehicle_type="all", sort_by="date"):
+        filtered = self.vehicles
+        if status == "available":
+            filtered = [v for v in self.vehicles if v.is_available]
+        elif status == "rented":
+            filtered = [v for v in self.vehicles if not v.is_available]
+        else:
+            filtered = list(self.vehicles)
+
+
+        if vehicle_type != "all":
+            filtered = [v for v in filtered if v.get_type().lower() == vehicle_type.lower()]
+
+
+        if sort_by == "date":
+            filtered.sort(key=lambda v: v.return_date or date.max)
+        elif sort_by == "id":
+            filtered.sort(key=lambda v: v.vehicle_id)
+
+        return filtered
+
 
     def get_vehicles_by_id(self):
         pass
@@ -162,3 +182,4 @@ class FleetManager():
 
     def get_active_clients(self):
         pass
+
