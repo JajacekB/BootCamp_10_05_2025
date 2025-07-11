@@ -1,3 +1,5 @@
+from pandas.io.clipboard import is_available
+
 from fleet_vehicle import Car, Scooter, Bike
 import pickle
 import os
@@ -106,8 +108,27 @@ class FleetManager():
             else:
                 print("\nNiepoprawna odpowiedź. Spróbuj ponownie.")
 
-    def remove_vehicle(self,vehicle_id):
-        pass
+    def remove_vehicle(self):
+
+        vehicle_id = input("\n Podaj numer referencyjny pojazdu, który chcesz usunąć: ").strip()
+
+        for vehicle in self.vehicles:
+            if vehicle_id == vehicle.vehicle_id:
+                if vehicle.is_available:
+                    print(f"\nCzy chcesz usunąć pojad - {vehicle}")
+                    choice = input("\n(Tak/Nie): ").strip().lower()
+                    if choice in ("tak", "t", "yes", "y"):
+                        self.vehicles.remove(vehicle)
+                        print("\nPojazd został usunięty ze stanu wypożyczalni.")
+                    elif choice in ("nie", "n", "no"):
+                        print("\nUsuwanie pojazdu anulowane.")
+                    else:
+                        print("\nNiepoprawna odpowiedź. spróbuj ponownie.")
+                else:
+                    print("\nPojast jest obecnie wypozyczony, nie można go usunąć.")
+                return
+
+        print("\nNie znaleziono pojazdu o podanym ID")
 
     def borrow_vehicle(self):
         pass

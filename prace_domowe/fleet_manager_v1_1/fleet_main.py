@@ -8,8 +8,9 @@ while True:
     print("""\nMożesz zrobić takie czynności:
     0. Zakończyć program
     1. Dodać pojazd
-    2. Wyświetlić wszystkie pojazdy
-    3. Wyświetlić filtrowane
+    2. Usuń pojazd
+    3. Wyświetlić wszystkie pojazdy
+    4. Wyświetlić filtrowane
     """)
 
     activity = input("\n Wybierz opcję (0-3): ")
@@ -20,10 +21,14 @@ while True:
             fleet.save_file()
 
         case "2":
-            fleet.get_all_vehicles()
+            fleet.remove_vehicle()
+            fleet.save_file()
 
         case "3":
-            status = input("\nWpisz status (all, available, rented): ").strip().lower()
+            fleet.get_all_vehicles()
+
+        case "4":
+            status = input("\nKtóre pojazdy chcesz przejrzeć (all, available, rented): ").strip().lower()
 
             # Informacja o automatycznym sortowaniu
             if status == "available":
