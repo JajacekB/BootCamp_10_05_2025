@@ -9,11 +9,12 @@ while True:
     0. Zakończyć program
     1. Dodać pojazd
     2. Usuń pojazd
-    3. Wyświetlić wszystkie pojazdy
-    4. Wyświetlić filtrowane
+    3. Wynajęcie pojazdu
+    4. Wyświetlić wszystkie pojazdy
+    5. Wyświetlić filtrowane pojazdy
     """)
 
-    activity = input("\n Wybierz opcję (0-3): ")
+    activity = input("\n Wybierz opcję (0-5): ")
 
     match activity:
         case "1":
@@ -25,9 +26,13 @@ while True:
             fleet.save_file()
 
         case "3":
-            fleet.get_all_vehicles()
+            fleet.borrow_vehicle()
+            fleet.save_file()
 
         case "4":
+            fleet.get_all_vehicles()
+
+        case "5":
             status = input("\nKtóre pojazdy chcesz przejrzeć (all, available, rented): ").strip().lower()
 
             # Informacja o automatycznym sortowaniu

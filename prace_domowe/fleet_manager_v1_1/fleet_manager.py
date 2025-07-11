@@ -1,9 +1,8 @@
-from pandas.io.clipboard import is_available
 
 from fleet_vehicle import Car, Scooter, Bike
 import pickle
 import os
-from datetime import date
+from datetime import date, timedelta, datetime
 
 
 class FleetManager():
@@ -110,7 +109,7 @@ class FleetManager():
 
     def remove_vehicle(self):
 
-        vehicle_id = input("\n Podaj numer referencyjny pojazdu, który chcesz usunąć: ").strip()
+        vehicle_id = input("\n Podaj numer referencyjny pojazdu, który chcesz usunąć: ").strip().capitalize()
 
         for vehicle in self.vehicles:
             if vehicle_id == vehicle.vehicle_id:
@@ -131,7 +130,58 @@ class FleetManager():
         print("\nNie znaleziono pojazdu o podanym ID")
 
     def borrow_vehicle(self):
-        pass
+        type_map = {
+            "car": Car,
+            "scooter": Scooter,
+            "bike": Bike
+        }
+        type_input = input("\nJaki typ pojazdu chcesz wypozyczyć (car, scooter, bike)? ").strip().lower()
+        vehicle_class = type_map.get(type_input)
+
+        if vehicle_class:
+            available_vehicle = [v for v in self.vehicles if isinstance(v, vehicle_class) and v.is_available]
+
+            if not available_vehicle:
+                print("\nBrak dostępnych pojazdów.")
+            else:
+                print(f"\nDostępne {type_input}s:\n")
+                for v in available_vehicle:
+                    print(v)
+            id_input = input("\nPodaj numer pojazdu, który chcesz wypozyczyć: ").strip().capitalize()
+            borrowed_vehicle = next((b for b in available_vehicle if b.vehicle_id == id_input), None)
+            if borrowed_vehicle is None:
+                print("\nZły numer pojazdu. Spróbuj jeszcze raz.")
+                return
+
+            days_input = float(input(f"\nPodaj na jaki okres chcesz wypożyczyć {type_input}: "))
+            if days_input <= 0:
+                print("\nZła ilość dni. Spróbuj jeszcze raz.")
+                return
+
+            today = datetime.now()
+            return_date = today + timedelta(days=days_input)
+            return_date_str = return_date.strftime("%Y-%m-%d")
+
+            price = days_input * float(borrowed_vehicle.cash_per_day)
+            print(f"""\n Czy chcesz wypozyczyć {borrowed_vehicle}
+            na {days_input} dni za {price:.2f} zł?
+            """)
+            choice = input("\n(Tak/Nie)").strip().lower()
+            if choice in ["nie", "n", "no"]:
+                print(f"\nWypożyczenie {type_input} anulowano. ")
+            elif choice in ["tak", "t", "yes", "y"]:
+
+                borrowed_vehicle.is_available = False
+                # borrowed_vehicle.vehicle_borrower = user.name
+                borrowed_vehicle.return_date = return_date_str
+
+                print(f"\nWypożyczenie {type_input} zrealizowane.")
+
+        else:
+            print("\nNiepoprawny typ pojazdu.")
+
+
+
 
     def return_vehicle(self):
         pass

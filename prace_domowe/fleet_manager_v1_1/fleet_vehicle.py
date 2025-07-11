@@ -39,9 +39,17 @@ class Vehicle(ABC):
     def is_available(self):
         return self.__is_available
 
+    @is_available.setter
+    def is_available(self, value):
+        self.__is_available = value
+
     @property
     def return_date(self):
         return self.__return_date
+
+    @return_date.setter
+    def return_date(self, value):
+        self.__return_date = value
 
     def rent_vehicle(self, borrower, numer_of_days):
         if not self.__is_available:
@@ -61,7 +69,10 @@ class Vehicle(ABC):
         self.__return_date = None
 
     def __str__(self):
-        return_date_str = self.__return_date.strftime("%Y-%m-%d") if self.__return_date else "brak"
+        if isinstance(self.__return_date, date):
+            return_date_str = self.__return_date.strftime("%Y-%m-%d")
+        else:
+            return_date_str = str(self.__return_date) if self.__return_date else "Brak"
         return f"""
     ID: {self.__vehicle_id}
         Marka: {self.__brand}
