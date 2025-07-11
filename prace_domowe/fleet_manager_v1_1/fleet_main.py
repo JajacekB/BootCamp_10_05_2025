@@ -10,11 +10,17 @@ while True:
     1. Dodać pojazd
     2. Usuń pojazd
     3. Wynajęcie pojazdu
-    4. Wyświetlić wszystkie pojazdy
-    5. Wyświetlić filtrowane pojazdy
+    4. Zwrot pojazdu
+    5. Wyświetlić wszystkie pojazdy
+    6. Wyświetlić filtrowane pojazdy
+    
     """)
 
-    activity = input("\n Wybierz opcję (0-5): ")
+    #  7. Wyszukiwanie pojazdu po ID
+    #  8. Statystyki floty
+    #  9. Export do JSON
+
+    activity = input("\n Wybierz opcję (0-6): ")
 
     match activity:
         case "1":
@@ -30,39 +36,15 @@ while True:
             fleet.save_file()
 
         case "4":
-            fleet.get_all_vehicles()
+            fleet.return_vehicle()
+            fleet.save_file()
+
 
         case "5":
-            status = input("\nKtóre pojazdy chcesz przejrzeć (all, available, rented): ").strip().lower()
+            fleet.get_all_vehicles()
 
-            # Informacja o automatycznym sortowaniu
-            if status == "available":
-                print("Sortowanie będzie ustawione automatycznie na 'id' (po ID pojazdu).")
-            elif status == "rented":
-                print("Sortowanie będzie ustawione automatycznie na 'date' (po dacie zwrotu).")
-            else:
-                print("Sortowanie domyślnie po ID pojazdu.")
-
-            vehicle_type = input("Wpisz typ pojazdu (all, car, scooter, bike): ").strip().lower()
-
-            min_price_input = input("Minimalna cena za dobę (ENTER aby pominąć): ").strip()
-            max_price_input = input("Maksymalna cena za dobę (ENTER aby pominąć): ").strip()
-
-            min_price = float(min_price_input) if min_price_input else None
-            max_price = float(max_price_input) if max_price_input else None
-
-            vehicles = fleet.get_vehicles(
-                status=status,
-                vehicle_type=vehicle_type,
-                min_price=min_price,
-                max_price=max_price
-            )
-
-            if not vehicles:
-                print("\nBrak pojazdów spełniających kryteria.")
-            else:
-                for v in vehicles:
-                    print(v)
+        case "6":
+            fleet.display_filtered_vehicles()
 
         case "0":
             fleet.save_file()

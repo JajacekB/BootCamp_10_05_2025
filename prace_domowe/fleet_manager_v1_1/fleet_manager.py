@@ -180,11 +180,26 @@ class FleetManager():
         else:
             print("\nNiepoprawny typ pojazdu.")
 
-
-
-
     def return_vehicle(self):
-        pass
+        return_id = input("\nPodaj numer pojazdu, który chcesz zwrócić").strip()
+
+        returned_vehicle = next((b for b in self.vehicles if b.vehicle_id == return_id), None)
+
+        if returned_vehicle is None:
+            print(f"\nNie znaleziono pojazdu o numerze {return_id}.")
+            return
+
+        if returned_vehicle.is_vaialable:
+            print(f"\nPojazd '{returned_vehicle}' nie jest wypozyczony")
+            return
+
+        else:
+            returned_vehicle.is_available = True
+            # returned_vehicle.vehicle_borrower = None
+            returned_vehicle.return_date = None
+            print(f"\n {returned_vehicle.vehicle_id} został zwrócony.")
+            return
+
 
     def get_all_vehicles(self):
         if not self.vehicles:
@@ -255,6 +270,42 @@ class FleetManager():
             filtered.sort(key=lambda v: v.vehicle_id)
 
         return filtered
+
+    def display_filtered_vehicles(self):
+        status = input("\nKtóre pojazdy chcesz przejrzeć (all, available, rented): ").strip().lower()
+
+        # Informacja o automatycznym sortowaniu
+        if status == "available":
+            print("Sortowanie będzie ustawione automatycznie na 'id' (po ID pojazdu).")
+            sort_by = "id"
+        elif status == "rented":
+            print("Sortowanie będzie ustawione automatycznie na 'date' (po dacie zwrotu).")
+            sort_by = "date"
+        else:
+            print("Sortowanie domyślnie po ID pojazdu.")
+            sort_by = "id"
+
+        vehicle_type = input("Wpisz typ pojazdu (all, car, scooter, bike): ").strip().lower()
+
+        min_price_input = input("Minimalna cena za dobę (ENTER aby pominąć): ").strip()
+        max_price_input = input("Maksymalna cena za dobę (ENTER aby pominąć): ").strip()
+
+        min_price = float(min_price_input) if min_price_input else None
+        max_price = float(max_price_input) if max_price_input else None
+
+        vehicles = self.get_vehicles(
+            status=status,
+            vehicle_type=vehicle_type,
+            sort_by=sort_by,
+            min_price=min_price,
+            max_price=max_price
+        )
+
+        if not vehicles:
+            print("\nBrak pojazdów spełniających kryteria.")
+        else:
+            for v in vehicles:
+                print(v)
 
     def get_all_clients(self):
         pass
