@@ -124,7 +124,7 @@ class FleetManager():
                     else:
                         print("\nNiepoprawna odpowiedź. spróbuj ponownie.")
                 else:
-                    print("\nPojast jest obecnie wypozyczony, nie można go usunąć.")
+                    print("\nPojazd jest obecnie wypożyczony, nie można go usunąć.")
                 return
 
         print("\nNie znaleziono pojazdu o podanym ID")
@@ -153,7 +153,7 @@ class FleetManager():
                 print("\nZły numer pojazdu. Spróbuj jeszcze raz.")
                 return
 
-            days_input = float(input(f"\nPodaj na jaki okres chcesz wypożyczyć {type_input}: "))
+            days_input = float(input(f"\nPodaj na ile dni chcesz wypożyczyć {type_input}: "))
             if days_input <= 0:
                 print("\nZła ilość dni. Spróbuj jeszcze raz.")
                 return
@@ -181,7 +181,7 @@ class FleetManager():
             print("\nNiepoprawny typ pojazdu.")
 
     def return_vehicle(self):
-        return_id = input("\nPodaj numer pojazdu, który chcesz zwrócić").strip()
+        return_id = input("\nPodaj numer pojazdu, który chcesz zwrócić: ").strip().capitalize()
 
         returned_vehicle = next((b for b in self.vehicles if b.vehicle_id == return_id), None)
 
@@ -189,7 +189,7 @@ class FleetManager():
             print(f"\nNie znaleziono pojazdu o numerze {return_id}.")
             return
 
-        if returned_vehicle.is_vaialable:
+        if returned_vehicle.is_available:
             print(f"\nPojazd '{returned_vehicle}' nie jest wypozyczony")
             return
 
