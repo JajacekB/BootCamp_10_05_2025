@@ -3,6 +3,13 @@ from mysql.connector import Error
 
 
 try:
+    connection = mysql.connector.connect(
+        host='',
+        port=3380,  # standartowy port dla mysql=3306
+        database='',
+        user='',
+        password=''
+    )
 
 
     if connection.is_connected():
