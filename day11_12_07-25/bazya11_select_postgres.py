@@ -3,12 +3,20 @@ import asyncpg
 
 async def fetch_data():
     conn = await asyncpg.connect(
-    host="localhost",
-    port=5432,
-    database="mydatabase",
-    user="myuser",
-    password="mypassword"
+        host="localhost",
+        port=5432,
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
     )
+    #conn = await asyncpg.connect(
+    #    host=
+    #    port=5432,
+    #    database=,
+    #    user=,
+    #    password=
+    #)
+
 
     try:
         rows = await conn.fetch("SELECT * FROM person;")
