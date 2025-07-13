@@ -55,10 +55,10 @@ def main():
         # print(get_users(session))
 
         # update
-        # update_email(session, 1, "margaret@op.pl")
-        # session.commit()
-        # print('\n== After delete ==')
-        # print(get_users(session))
+        update_email(session, 1, "margaret@op.pl")
+        session.commit()
+        print('\n== After delete ==')
+        print(get_users(session))
 
         # delete
         delete_user(session, 2)
