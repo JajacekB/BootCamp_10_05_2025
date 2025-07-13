@@ -1,4 +1,4 @@
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, getcontext
 
 decimal_1 = Decimal("0.1")
 decimal_2 = Decimal(0.1)
@@ -57,4 +57,13 @@ rounding_nearest_005 = (
 print(rounding_nearest_005)
 
 print(Decimal("1.01") + 9)
+getcontext().prec = 3
+add = a + b
+print("Dodawanie", add)
+substract = a - b
+print("Odejmowanie", substract)
+miltiplay = a * b
+print("Mnożenie", miltiplay)
+divide = a / b
+print("Dzielenie", divide)
 
