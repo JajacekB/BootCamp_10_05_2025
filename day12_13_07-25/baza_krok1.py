@@ -24,7 +24,7 @@ class Post(Base):
     content = Column(String(200))
     user_id = Column(Integer, ForeignKey('users.id'))
 
-    user = relationship("User", back_populates='posts')
+    user = relationship("Users", back_populates='posts')
 
 
 Base.metadata.create_all(engine)
