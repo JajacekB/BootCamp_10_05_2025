@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 from datetime import date, timedelta, datetime
 
+
 class Vehicle(ABC):
     def __init__(self, vehicle_id, brand, cash_per_day, is_available=True, borrower=None, return_date=None):
         """
