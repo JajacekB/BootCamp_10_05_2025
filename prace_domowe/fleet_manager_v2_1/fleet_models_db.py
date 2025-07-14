@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, Date, create_engine, ForeignKey, Table
-from fleet_database import Base
+from sqlalchemy import Column, Integer, String, Float, Boolean, Date, ForeignKey
+from prace_domowe.fleet_manager_v2_1.fleet_database import Base
 
 
 class Vehicle(Base):
@@ -23,6 +23,7 @@ class Vehicle(Base):
 
 class Car(Vehicle):
     __tablename__ = 'cars'
+    id = Column(Integer, ForeignKey('vehicles.id'), primary_key=True)  # <-- klucz obcy do vehicles.id
     size = Column(String)
     fuel_type = Column(String)
 
@@ -40,6 +41,7 @@ class Car(Vehicle):
 
 class Scooter(Vehicle):
     __tablename__ = 'scooters'
+    id = Column(Integer, ForeignKey('vehicles.id'), primary_key=True)
     max_speed = Column(Integer)
 
     __mapper_args__ = {
@@ -56,6 +58,7 @@ class Scooter(Vehicle):
 
 class Bike(Vehicle):
     __tablename__ = 'bikes'
+    id = Column(Integer, ForeignKey('vehicles.id'), primary_key=True)
     bike_type = Column(String)
     is_electric = Column(Boolean)
 
