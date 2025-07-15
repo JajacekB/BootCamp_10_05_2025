@@ -1,14 +1,13 @@
 from fleet_manager_user import (
-    login_user, register_user, change_password,
-    add_client, remove_client, get_clients, remove_seller
-)
+    login_user, register_user, change_password, add_seller,
+    add_client, remove_client, get_clients, remove_seller)
 from fleet_manager_fleet import (
     get_vehicle, borrow_vehicle, return_vehicle,
     add_vehicle, remove_vehicle, pause_vehicle,
     borrow_vehicle_to_client, return_vehicle_from_client,
     return_vehicle_by_id
 )
-from prace_domowe.fleet_manager_v2_1.fleet_manager_user import add_seller, remove_seller
+
 
 
 def logoff_user():
@@ -26,6 +25,29 @@ def handle_choice(options: dict):
     else:
         print("❌ Zły wybór. Spróbuj ponownie.")
 
+def start_menu():
+    while True:
+        print("""
+=== SYSTEM WYPOŻYCZANIA POJAZDÓW ===
+
+1. Zaloguj się
+2. Zarejestruj się
+0. Zamknij program
+""")
+        choice = input("Wybierz opcję (0-2): ").strip()
+
+        if choice == "1":
+            user = login_user()
+            if user:
+                return user
+        elif choice == "2":
+            register_user()
+            # Po rejestracji możesz np. automatycznie zalogować lub wrócić do menu startowego
+        elif choice == "0":
+            print("Do widzenia!")
+            exit(0)
+        else:
+            print("❌ Niepoprawny wybór, spróbuj ponownie.")
 
 def menu_client(user):
     while True:
@@ -91,9 +113,9 @@ def menu_admin(user):
 12. Zmień hasło""")
         handle_choice({
             "0": logoff_user,
-            "1": lambda: add_seller(role="seller"),
+            "1": lambda: add_seller(),
             "2": lambda: remove_seller(role="seller"),
-            "3": lambda: add_client(role="client"),
+            "3": lambda: add_client(),
             "4": lambda: remove_client(role="client"),
             "5": get_clients,
             "6": add_vehicle,
@@ -107,20 +129,22 @@ def menu_admin(user):
 
 
 def main():
-    print("\n=== SYSTEM WYPOŻYCZANIA POJAZDÓW ===")
-    user = login_user()
-    if not user:
-        return
-    menus = {
-        "client": menu_client,
-        "seller": menu_seller,
-        "admin": menu_admin
-    }
-    menu_function = menus.get(user.role)
-    if menu_function:
-        menu_function(user)
-    else:
-        print("❌ Nieznana rola użytkownika.")
+    while True:
+        user = start_menu()
+        if not user:
+            # np. jeśli login_user zwróci None lub anulujesz logowanie, wróć do start_menu
+            continue
+
+        menus = {
+            "client": menu_client,
+            "seller": menu_seller,
+            "admin": menu_admin
+        }
+        menu_function = menus.get(user.role)
+        if menu_function:
+            menu_function(user)
+        else:
+            print(f"❌ Nieznana rola użytkownika: {user.role}")
 
 
 if __name__ == "__main__":

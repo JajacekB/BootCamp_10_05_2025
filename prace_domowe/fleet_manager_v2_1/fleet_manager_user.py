@@ -46,6 +46,7 @@ def register_user():
     first_name = input("Imię: ").strip().capitalize()
     last_name = input("Nazwisko: ").strip().capitalize()
     login = input("Login: ").strip()
+    phone = input("Nr telefon:").strip()
     email = input("Email: ").strip()
     address = input("Adres zamieszkania: ").strip()
 
@@ -64,6 +65,7 @@ def register_user():
         first_name=first_name,
         last_name=last_name,
         login=login,
+        phone=phone,
         email=email,
         password_hash=hashed_pw,
         address=address,
