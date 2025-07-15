@@ -49,7 +49,7 @@ def start_menu():
             exit(0)
         else:
             print("❌ Niepoprawny wybór, spróbuj ponownie.")
-
+0
 def menu_client(user):
     while True:
         print(f"""\n=== MENU KLIENTA ===
@@ -76,7 +76,7 @@ def menu_seller(user):
 3. Przeglądaj klientów
 4. Dodaj pojazd
 5. Usuń pojazd
-6. Wyłącz pojazd z użytkowania
+6. Przeglądaj pojazdy
 7. Wypożycz pojazd klientowi
 8. Zwróć pojazd od klienta
 9. Zwróć pojazd po ID
@@ -88,7 +88,7 @@ def menu_seller(user):
             "3": get_clients,
             "4": add_vehicle,
             "5": remove_vehicle,
-            "6": pause_vehicle,
+            "6": get_vehicle,
             "7": borrow_vehicle_to_client,
             "8": return_vehicle_from_client,
             "9": return_vehicle_by_id,
@@ -107,7 +107,7 @@ def menu_admin(user):
 5. Przeglądaj klientów
 6. Dodaj pojazd
 7. Usuń pojazd
-8. Wyłącz pojazd z użytkowania
+8. Przeglądaj pojazdy
 9. Wypożycz pojazd klientowi
 10. Zwróć pojazd od klienta
 11. Zwróć pojazd po ID
@@ -121,7 +121,7 @@ def menu_admin(user):
             "5": get_clients,
             "6": add_vehicle,
             "7": remove_vehicle,
-            "8": pause_vehicle,
+            "8": get_vehicle,
             "9": borrow_vehicle_to_client,
             "10": return_vehicle_from_client,
             "11": return_vehicle_by_id,

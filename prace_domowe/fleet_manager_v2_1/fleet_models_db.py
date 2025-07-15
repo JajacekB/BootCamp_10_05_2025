@@ -33,9 +33,10 @@ class Car(Vehicle):
 
     def __repr__(self):
         return(
-            f"<Car {self.vehicle_id}\n"
+            f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
-            f"{self.size}, {self.fuel_type}>"
+            f"{self.size}, {self.fuel_type},\n"
+            f"{self.cash_per_day}zł za dzień"
         )
 
 
@@ -50,9 +51,10 @@ class Scooter(Vehicle):
 
     def __repr__(self):
         return (
-            f"<Scooter {self.vehicle_id}\n"
+            f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
-            f"{self.max_speed}km/h>"
+            f"{self.max_speed}km/h,\n"
+            f"{self.cash_per_day}zł za dzień"
         )
 
 
@@ -68,9 +70,10 @@ class Bike(Vehicle):
 
     def __repr__(self):
         return (
-            f"<Bike {self.vehicle_id}\n"
+            f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
-            f"{self.bike_type}, {'elektryczny' if self.is_electric else 'zwykły'}>"
+            f"{self.bike_type}, {'elektryczny' if self.is_electric else 'zwykły'},\n"
+            f"{self.cash_per_day}zł za dzień"
         )
 
 
