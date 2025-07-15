@@ -1,10 +1,14 @@
-from fleet_manager_user import login_user, register_user, change_password, add_client, remove_client, get_client
+from fleet_manager_user import (
+    login_user, register_user, change_password,
+    add_client, remove_client, get_clients, remove_seller
+)
 from fleet_manager_fleet import (
     get_vehicle, borrow_vehicle, return_vehicle,
     add_vehicle, remove_vehicle, pause_vehicle,
     borrow_vehicle_to_client, return_vehicle_from_client,
     return_vehicle_by_id
 )
+from prace_domowe.fleet_manager_v2_1.fleet_manager_user import add_seller, remove_seller
 
 
 def logoff_user():
@@ -87,8 +91,8 @@ def menu_admin(user):
 12. Zmień hasło""")
         handle_choice({
             "0": logoff_user,
-            "1": lambda: add_client(role="seller"),
-            "2": lambda: remove_client(role="seller"),
+            "1": lambda: add_seller(role="seller"),
+            "2": lambda: remove_seller(role="seller"),
             "3": lambda: add_client(role="client"),
             "4": lambda: remove_client(role="client"),
             "5": get_clients,

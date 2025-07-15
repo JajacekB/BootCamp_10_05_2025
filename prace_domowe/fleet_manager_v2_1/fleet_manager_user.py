@@ -5,7 +5,7 @@ import bcrypt
 
 
 def login_user():
-    session = Session()
+    # session = Session()
     while True:
         print("\n=== LOGOWANIE DO SYSTEMU ===")
         login_or_email = input("\nLogin: ").strip()
@@ -24,12 +24,12 @@ def login_user():
                 print(f"\nZalogowano jako {user.first_name} {user.last_name} ({user.role})")
                 return user  # Wylogowanie = powrót None albo exit
 
-        print(f"\nCo chcesz zrobić?"
-                f"1. Spróbować jeszcze raz."
-                f"2. Zarejestrować się."
+        print(f"\nCo chcesz zrobić?\n"
+                f"1. Spróbować jeszcze raz.\n"
+                f"2. Zarejestrować się.\n"
                 f"3. Anulować logowanie."
         )
-        choise = input("\nWybierz opcje 1, 2 lub 3: ").strip()
+        choise = input("\nWybierz opcje (1 - 3): ").strip()
         if choise == "1":
             continue
         elif choise == "2":
@@ -74,6 +74,7 @@ def register_user():
         try:
             session.add(new_user)
             session.commit()
+            session.refresh(new_user)
             print(f"\nUżytkownik {login} został zarejestrowany pomyślnie.")
             return new_user
         except IntegrityError:
@@ -96,7 +97,7 @@ def add_seller():
 def remove_seller():
     print(">>> [MOCK] Usuwanie sprzedawcy...")
 
-def get_client():
+def get_clients():
     print(">>> [MOCK] Przeglądanie klientów...")
 
 def log_off_user():
