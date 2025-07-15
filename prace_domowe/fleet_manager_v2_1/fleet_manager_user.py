@@ -2,6 +2,7 @@ from fleet_database import Session
 from fleet_models_db import User
 from sqlalchemy.exc import NoResultFound, IntegrityError
 import bcrypt
+import getpass
 
 
 def login_user():
@@ -51,8 +52,8 @@ def register_user():
     address = input("Adres zamieszkania: ").strip()
 
     while True:
-        password = input("Hasło: ").strip()
-        password_confirm = input("Potwierdź hasło: ")
+        password = getpass.getpass("Hasło: ").strip()
+        password_confirm = getpass.getpass("Potwierdź hasło: ").strip()
 
         if password != password_confirm:
             print("\nHasła nie są takie same, Spróbój ponownie.")

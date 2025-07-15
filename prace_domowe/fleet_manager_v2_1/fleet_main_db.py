@@ -30,9 +30,10 @@ def start_menu():
         print("""
 === SYSTEM WYPOŻYCZANIA POJAZDÓW ===
 
+0. Zamknij program
 1. Zaloguj się
 2. Zarejestruj się
-0. Zamknij program
+
 """)
         choice = input("Wybierz opcję (0-2): ").strip()
 

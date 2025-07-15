@@ -65,7 +65,7 @@ def add_vehicle():
         vehicle_id = generate_vehicle_id(session, prefix)
 
         brand = input("\nPodaj producenta pojazdu: ").strip().capitalize()
-        vehicle_model = input("\nPodaj model samochodu:").strip().capitalize()
+        vehicle_model = input("\nPodaj model:").strip().capitalize()
         cash_per_day = get_positive_float("\nPodaj cenę najmu za jedną dobę: ")
 
         if vehicle_type == "car":
