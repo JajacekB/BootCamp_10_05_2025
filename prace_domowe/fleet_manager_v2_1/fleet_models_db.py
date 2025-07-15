@@ -33,8 +33,8 @@ class Car(Vehicle):
 
     def __repr__(self):
         return(
-            f"<Car {self.vehicle_id}"
-            f"{self.brand}, {self.vehicle_model}"
+            f"<Car {self.vehicle_id}\n"
+            f"{self.brand}, {self.vehicle_model}\n"
             f"{self.size}, {self.fuel_type}>"
         )
 
@@ -50,8 +50,8 @@ class Scooter(Vehicle):
 
     def __repr__(self):
         return (
-            f"<Scooter {self.vehicle_id}"
-            f"{self.brand}, {self.vehicle_model}"
+            f"<Scooter {self.vehicle_id}\n"
+            f"{self.brand}, {self.vehicle_model}\n"
             f"{self.max_speed}km/h>"
         )
 

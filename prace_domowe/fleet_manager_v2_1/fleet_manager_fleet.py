@@ -107,7 +107,7 @@ def add_vehicle():
                 is_electric=is_electric_bool
             )
         while True:
-            print(f"\nCzy chcesz dodać pojazd? )- {vehicle}")
+            print(f"\nCzy chcesz dodać pojazd?  {vehicle}")
             choice = input("(Tak/Nie): ").strip().lower()
             if choice in ("tak", "t", "yes", "y"):
                 session.add(vehicle)
