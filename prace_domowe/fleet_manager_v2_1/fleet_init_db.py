@@ -1,16 +1,16 @@
-from fleet_models_db import *
-from fleet_database import Session, engine
-from sqlalchemy.exc import IntegrityError
-import bcrypt
-
-# Tworzenie tabel w bazie danych
+# from fleet_models_db import *
+# from fleet_database import Session, engine
+# from sqlalchemy.exc import IntegrityError
+# import bcrypt
+#
+# # Tworzenie tabel w bazie danych
 # Base.metadata.create_all(engine)
 # print("Baza danych i tabele zostały utworzone.")
-
-session = Session()
-
+#
+# session = Session()
+#
 # existing_admin = session.query(User).filter_by(login="admin").first()
-
+#
 # if not existing_admin:
 #     admin_user = User(
 #         first_name="Admin",
@@ -31,5 +31,5 @@ session = Session()
 #         print("Nie udało się utworzyć domyślnego admina (prawdopodobnie już istnieje).")
 # else:
 #     print("Urzytkownik 'admin' już istniej.")
-
+#
 # session.close()

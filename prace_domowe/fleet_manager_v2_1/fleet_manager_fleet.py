@@ -1,6 +1,49 @@
 from fleet_models_db import Vehicle, Car, Scooter, Bike
 from sqlalchemy import func, cast, Integer
 from fleet_database import Session
+from datetime import date, datetime, timedelta
+from fleet_models_db import RentalHistory, Invoice
+
+def generate_reservation_id(session):
+    last = session.query(RentalHistory).order_by(RentalHistory.id.desc()).first()
+    last_num = int(last.reservation_id[1:]) if last else 0
+    new_num = last_num + 1
+    return f"R{new_num:04d}"
+
+def calculate_rental_cost(user, daily_rate, days, session):
+    """
+    Zwraca koszt z uwzględnieniem rabatu i programu lojalnościowego.
+    """
+    # Zlicz zakończone wypożyczenia
+    past_rentals = session.query(RentalHistory).filter_by(user_id=user.id).count()
+    next_rental_number = past_rentals + 1
+
+    # Lojalność
+    if next_rental_number % 10 == 0:
+        print("🎉 To Twoje 10. wypożyczenie – za darmo!")
+        return 0.0
+
+    # Rabaty
+    if days >= 14:
+        discount = 0.20
+    elif days >= 7:
+        discount = 0.09
+    elif days >= 5:
+        discount = 0.05
+    else:
+        discount = 0.0
+
+    price = days * daily_rate * (1 - discount)
+    if discount > 0:
+        print(f"✅ Przyznano rabat {int(discount * 100)}%.")
+    return round(price, 2)
+
+def generate_invoice_number(session):
+    last = session.query(Invoice).order_by(Invoice.id.desc()).first()
+    last_num = int(last.invoice_number.split('-')[-1]) if last else 0
+    new_num = last_num + 1
+    year = datetime.date.today().year
+    return f"F{year}-{new_num:04d}"
 
 def generate_vehicle_id(session, prefix: str) -> str:
     prefix_len = len(prefix)
@@ -181,7 +224,7 @@ def get_vehicle():
                 print(f"\n--- {current_type.upper()} ---")
             print(vehicle)
 
-def borrow_vehicle():
+def rent_vehicle():
     print(">>> [MOCK] Wypożyczanie pojazdu...")
 
 def return_vehicle():
@@ -190,7 +233,7 @@ def return_vehicle():
 def pause_vehicle():
     print(">>> [MOCK] Oddanie pojazdu do naprawy...")
 
-def borrow_vehicle_to_client():
+def rent_vehicle_to_client():
     print(">>> [MOCK] Wypozyczenie pojazdu do kientowi...")
 
 def return_vehicle_from_client():
@@ -198,3 +241,64 @@ def return_vehicle_from_client():
 
 def return_vehicle_by_id():
     print(">>> [MOCK] Zwrot pojazdu po ID...")
+
+
+
+# Do użycia przy zwrocie pojazdu.
+#
+#
+# days = (end_date - start_date).days or 1
+# total_cost = calculate_rental_cost(user, vehicle.cash_per_day, days, session)
+#
+# rental = RentalHistory(
+#     user_id=user.id,
+#     vehicle_id=vehicle.id,
+#     start_date=start_date,
+#     end_date=end_date,
+#     total_cost=total_cost
+# )
+# session.add(rental)
+#
+# # Oznacz pojazd jako dostępny
+# vehicle.is_available = True
+# vehicle.borrower_id = None
+# vehicle.return_date = None
+#
+# session.commit()
+# print(f"\n✅ Pojazd zwrócony. Opłata: {total_cost:.2f} zł.")
+
+
+def create_rental_and_invoice(user, vehicle, start_date, end_date, session):
+    days = (end_date - start_date).days or 1
+    total_cost = calculate_rental_cost(user, vehicle.cash_per_day, days, session)
+
+    reservation_id = generate_reservation_id(session)
+    rental = RentalHistory(
+        reservation_id=reservation_id,
+        user_id=user.id,
+        vehicle_id=vehicle.id,
+        start_date=start_date,
+        end_date=end_date,
+        total_cost=total_cost
+    )
+    session.add(rental)
+    session.flush()  # żeby mieć id rental przed fakturą
+
+    invoice_number = generate_invoice_number(session)
+    invoice = Invoice(
+        invoice_number=invoice_number,
+        rental_id=rental.id,
+        amount=total_cost
+    )
+    session.add(invoice)
+
+    # Aktualizacja statusu pojazdu
+    vehicle.is_available = False
+    vehicle.borrower_id = user.id
+    vehicle.return_date = end_date
+
+    session.commit()
+
+    print(f"\n✅ Rezerwacja {reservation_id} została utworzona.")
+    print(f"📄 Faktura numer: {invoice_number}, kwota: {total_cost} zł.")
+    return rental, invoice

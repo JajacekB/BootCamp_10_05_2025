@@ -2,9 +2,9 @@ from fleet_manager_user import (
     login_user, register_user, change_password, add_seller,
     add_client, remove_client, get_clients, remove_seller)
 from fleet_manager_fleet import (
-    get_vehicle, borrow_vehicle, return_vehicle,
+    get_vehicle, rent_vehicle, return_vehicle,
     add_vehicle, remove_vehicle, pause_vehicle,
-    borrow_vehicle_to_client, return_vehicle_from_client,
+    rent_vehicle_to_client, return_vehicle_from_client,
     return_vehicle_by_id
 )
 
@@ -61,7 +61,7 @@ def menu_client(user):
         handle_choice({
             "0": logoff_user,
             "1": get_vehicle,
-            "2": lambda: borrow_vehicle(user),
+            "2": lambda: rent_vehicle(user),
             "3": lambda: return_vehicle(user),
             "4": lambda: change_password(user)
         })
@@ -77,10 +77,11 @@ def menu_seller(user):
 4. Dodaj pojazd
 5. Usuń pojazd
 6. Przeglądaj pojazdy
-7. Wypożycz pojazd klientowi
-8. Zwróć pojazd od klienta
-9. Zwróć pojazd po ID
-10. Zmień hasło""")
+7. Wypożycz pojazd
+8. Wypożycz pojazd klientowi
+9. Zwróć pojazd od klienta
+10. Zwróć pojazd po ID
+11. Zmień hasło""")
         handle_choice({
             "0": logoff_user,
             "1": add_client,
@@ -89,10 +90,11 @@ def menu_seller(user):
             "4": add_vehicle,
             "5": remove_vehicle,
             "6": get_vehicle,
-            "7": borrow_vehicle_to_client,
-            "8": return_vehicle_from_client,
-            "9": return_vehicle_by_id,
-            "10": lambda: change_password(user)
+            "7": rent_vehicle,
+            "8": rent_vehicle_to_client,
+            "9": return_vehicle_from_client,
+            "10": return_vehicle_by_id,
+            "11": lambda: change_password(user)
         })
 
 
@@ -108,10 +110,11 @@ def menu_admin(user):
 6. Dodaj pojazd
 7. Usuń pojazd
 8. Przeglądaj pojazdy
-9. Wypożycz pojazd klientowi
-10. Zwróć pojazd od klienta
-11. Zwróć pojazd po ID
-12. Zmień hasło""")
+9. Wypożycz pojazd
+10. Wypożycz pojazd klientowi
+11. Zwróć pojazd od klienta
+12. Zwróć pojazd po ID
+13. Zmień hasło""")
         handle_choice({
             "0": logoff_user,
             "1": lambda: add_seller(),
@@ -122,10 +125,11 @@ def menu_admin(user):
             "6": add_vehicle,
             "7": remove_vehicle,
             "8": get_vehicle,
-            "9": borrow_vehicle_to_client,
-            "10": return_vehicle_from_client,
-            "11": return_vehicle_by_id,
-            "12": lambda: change_password(user)
+            "9": rent_vehicle,
+            "10": rent_vehicle_to_client,
+            "11": return_vehicle_from_client,
+            "12": return_vehicle_by_id,
+            "13": lambda: change_password(user)
         })
 
 

@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, Date, ForeignKey
-from prace_domowe.fleet_manager_v2_1.fleet_database import Base
+from sqlalchemy.orm import relationship
+from fleet_database import Base
+from datetime import datetime, date, timedelta
 
 
 class Vehicle(Base):
@@ -11,9 +13,12 @@ class Vehicle(Base):
     vehicle_model = Column(String, nullable=False)
     cash_per_day = Column(Float, nullable=False)
     is_available = Column(Boolean, default=True)
-    borrower = Column(String, nullable=True)
+    borrower_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     return_date = Column(Date, nullable=True)
     type = Column(String)  # 'car', 'scooter', 'bike'
+
+    borrower = relationship("User", back_populates="vehicles")
+    rental_history = relationship("RentalHistory", back_populates="vehicle")
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -89,6 +94,42 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
     address = Column(String, nullable=True)
+    vehicles = relationship("Vehicle", back_populates="borrower")
+    rental_history = relationship("RentalHistory", back_populates="user")
 
     def __repr__(self):
         return f"<User {self.login} ({self.role})>"
+
+
+class RentalHistory(Base):
+    __tablename__ = 'rental_history'
+
+    id = Column(Integer, primary_key=True)
+    reservation_id = Column(String, unique=True, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=False)
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    total_cost = Column(Float, nullable=False)
+
+    user = relationship("User", back_populates="rental_history")
+    vehicle = relationship("Vehicle", back_populates="rental_history")
+    invoice = relationship("Invoice", back_populates="rental", uselist=False)
+
+    def __repr__(self):
+        return f"<RentalHistory {self.reservation_id} User:{self.user_id} Vehicle:{self.vehicle_id}>"
+
+
+class Invoice(Base):
+    __tablename__ = 'invoices'
+
+    id = Column(Integer, primary_key=True)
+    invoice_number = Column(String, unique=True, nullable=False, index=True)
+    rental_id = Column(Integer, ForeignKey('rental_history.id'), nullable=True)
+    issue_date = Column(Date, default=date.today)
+    amount = Column(Float, nullable=False)
+
+    rental = relationship("RentalHistory", back_populates="invoice")
+
+    def __repr__(self):
+        return f"<Invoice {self.invoice_number} Amount:{self.amount}>"
