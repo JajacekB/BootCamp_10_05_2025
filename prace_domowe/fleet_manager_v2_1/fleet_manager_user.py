@@ -1,6 +1,9 @@
+from pandas.io.clipboard import is_available
+
 from fleet_database import Session
-from fleet_models_db import User
+from fleet_models_db import User, Vehicle
 from sqlalchemy.exc import NoResultFound, IntegrityError
+from sqlalchemy import or_
 import bcrypt
 import getpass
 
@@ -52,8 +55,10 @@ def register_user():
     address = input("Adres zamieszkania: ").strip()
 
     while True:
-        password = getpass.getpass("Hasło: ").strip()
-        password_confirm = getpass.getpass("Potwierdź hasło: ").strip()
+        # password = getpass.getpass("Hasło: ").strip()
+        password = input("Hasło: ").strip()
+        # password_confirm = getpass.getpass("Potwierdź hasło: ").strip()
+        password_confirm = input("Potwierdź hasło: ").strip()
 
         if password != password_confirm:
             print("\nHasła nie są takie same, Spróbój ponownie.")
@@ -89,7 +94,51 @@ def add_client():
     print(">>> [MOCK] Dodawanie klienta...")
 
 def remove_client():
-    print(">>> [MOCK] Usuwanie klienta...")
+    while True:
+        client_input = input("\nPodaj login albo ID klienta, którego chcesz usunąć z bazy: ").strip()
+
+        with Session() as session:
+            query = session.query(User).filter(
+                or_(
+                    User.login == client_input,
+                    User.id == int(client_input) if client_input.isdigit() else -1
+                )
+            ).first()
+
+            if not query:
+                print("\n❌ Nie znaleziono klienta o podanym loginie lub ID.")
+            elif query.role == "admin":
+                print("\n❌ Nie można usunąć użytkownika o roli admin.")
+            else:
+                active_rentals = session.query(Vehicle).filter_by(borrower_id=query.id, is_available=False).count()
+                if active_rentals > 0:
+                    print(f"\n🚫 Nie można usunąć klienta {query.login}, ponieważ ma aktywne wypożyczenie.")
+                else:
+                    while True:
+                        choice = input(f"\n✅ Znaleziono klienta: \n{query}\nCzy chcesz go usunąć? (TAK/NIE)? ").strip().lower()
+                        if choice in ("tak", "t", "yes", "y"):
+                            session.delete(query)
+                            session.commit()
+                            print(f"\n✅ Klient:\n{query}\nzostał usunięty z bazy.")
+                            return  # koniec funkcji po usunięciu
+                        elif choice in ("nie", "n", "no"):
+                            print("\n❌ Anulowano usunięcie klienta.")
+                            return  # koniec funkcji po anulowaniu
+                        else:
+                            print("\n❌ Niepoprawna odpowiedź. Wpisz 'tak' lub 'nie'.")
+                            continue
+
+        # Pytanie, czy chce próbować jeszcze raz
+        while True:
+            retry = input("\nCzy chcesz spróbować ponownie? (TAK/NIE): ").strip().lower()
+            if retry in ("tak", "t", "yes", "y"):
+                break  # wracamy do początku pętli
+            elif retry in ("nie", "n", "no"):
+                print("Powrót do menu.")
+                return  # wychodzimy z funkcji
+            else:
+                print("Niepoprawna odpowiedź. Wpisz 'tak' lub 'nie'.")
+
 
 def change_password():
     print(">>> [MOCK] Zmiana hasła...")

@@ -118,9 +118,9 @@ def menu_admin(user):
         handle_choice({
             "0": logoff_user,
             "1": lambda: add_seller(),
-            "2": lambda: remove_seller(role="seller"),
+            "2": lambda: remove_seller,
             "3": lambda: add_client(),
-            "4": lambda: remove_client(role="client"),
+            "4": remove_client,
             "5": get_clients,
             "6": add_vehicle,
             "7": remove_vehicle,
