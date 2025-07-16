@@ -40,7 +40,7 @@ class Car(Vehicle):
         return(
             f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
-            f"{self.size}, {self.fuel_type},\n"
+            f"{self.size}, {self.fuel_type}\n"
             f"{self.cash_per_day}zł za dzień"
         )
 
@@ -58,7 +58,7 @@ class Scooter(Vehicle):
         return (
             f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
-            f"{self.max_speed}km/h,\n"
+            f"{self.max_speed}km/h\n"
             f"{self.cash_per_day}zł za dzień"
         )
 
@@ -77,7 +77,7 @@ class Bike(Vehicle):
         return (
             f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
-            f"{self.bike_type}, {'elektryczny' if self.is_electric else 'zwykły'},\n"
+            f"{self.bike_type}, {'elektryczny' if self.is_electric else 'zwykły'}\n"
             f"{self.cash_per_day}zł za dzień"
         )
 

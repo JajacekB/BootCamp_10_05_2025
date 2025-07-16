@@ -221,8 +221,8 @@ def get_vehicle():
         for vehicle in vehicles:
             if vehicle.type != current_type:
                 current_type = vehicle.type
-                print(f"\n--- {current_type.upper()} ---")
-            print(vehicle)
+                print(f"\n--- {current_type.upper()} ---\n")
+            print(vehicle, "\n")
 
 def rent_vehicle():
     print(">>> [MOCK] Wypożyczanie pojazdu...")
