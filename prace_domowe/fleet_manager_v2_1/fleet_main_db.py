@@ -61,7 +61,7 @@ def menu_client(user):
 """)
         handle_choice({
             "0": logoff_user,
-            "1": get_vehicle(only_available=True),
+            "1": lambda: get_vehicle(only_available=True),
             "2": lambda: rent_vehicle(user),
             "3": lambda: return_vehicle(user),
             "4": lambda: change_password(user)
@@ -74,7 +74,7 @@ def menu_seller(user):
 0. Wyloguj się
 1. Dodaj klienta
 2. Usuń klienta
-3. Przeglądaj klientów *
+3. Przeglądaj klientów
 4. Dodaj pojazd
 5. Usuń pojazd *
 6. Przeglądaj pojazdy
@@ -91,7 +91,7 @@ def menu_seller(user):
             "3": get_clients,
             "4": add_vehicle,
             "5": remove_vehicle,
-            "6": get_vehicle(),
+            "6": lambda: get_vehicle(),
             "7": rent_vehicle,
             "8": rent_vehicle_to_client,
             "9": return_vehicle_from_client,
@@ -108,7 +108,7 @@ def menu_admin(user):
 2. Usuń sprzedawcę
 3. Dodaj klienta
 4. Usuń klienta
-5. Przeglądaj klientów *
+5. Przeglądaj klientów
 6. Dodaj pojazd
 7. Usuń pojazd *
 8. Przeglądaj pojazdy 
@@ -127,7 +127,7 @@ def menu_admin(user):
             "5": get_clients,
             "6": add_vehicle,
             "7": remove_vehicle,
-            "8": get_vehicle(),
+            "8": lambda: get_vehicle(),
             "9": rent_vehicle,
             "10": rent_vehicle_to_client,
             "11": return_vehicle_from_client,

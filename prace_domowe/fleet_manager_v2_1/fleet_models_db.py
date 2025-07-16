@@ -101,7 +101,9 @@ class User(Base):
     rental_history = relationship("RentalHistory", back_populates="user")
 
     def __repr__(self):
-        return f"<User {self.login} ({self.role})>"
+        return (f"    Klient: [ID={self.id}]\n"
+                f"          {self.first_name} {self.last_name}"
+            )
 
 
 class RentalHistory(Base):

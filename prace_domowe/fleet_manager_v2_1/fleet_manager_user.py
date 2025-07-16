@@ -177,6 +177,7 @@ def get_clients():
             if not clients:
                 print("\n🚫 Brak klientów spełniających podane kryteria.")
                 return
+            print("\n>>> WSZYSCY KIENCI WYPOŻYCZALNI <<<\n")
             for client in clients:
                 print(client, "\n")
         elif client_status in ("t", "tak", "z", "z wypożyczeniem"):
@@ -196,6 +197,7 @@ def get_clients():
             if not clients:
                 print("\n🚫 Brak klientów spełniających podane kryteria.")
                 return
+            print("\n\n>>> KLIENCI Z WYPOŻYCZENIEM <<<\n")
             for client in clients:
                 print(client, "\n")
             while True:
@@ -246,8 +248,9 @@ def get_clients():
             if not clients:
                 print("\n🚫 Brak klientów spełniających podane kryteria.")
                 return
+            print("\n\n>>> KLIENCI BEZ WYPOŻYCXZENIA <<<\n")
             for client in clients:
-                print("\n", client)
+                print(client, "\n")
 
 def change_password():
     print(">>> [MOCK] Zmiana hasła...")
