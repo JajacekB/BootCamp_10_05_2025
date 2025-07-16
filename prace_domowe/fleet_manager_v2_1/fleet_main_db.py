@@ -1,6 +1,6 @@
 from fleet_manager_user import (
     login_user, register_user, change_password, add_seller,
-    add_client, remove_client, get_clients, remove_seller)
+    add_client, remove_user, get_clients)
 from fleet_manager_fleet import (
     get_vehicle, rent_vehicle, return_vehicle,
     add_vehicle, remove_vehicle, pause_vehicle,
@@ -55,12 +55,13 @@ def menu_client(user):
         print(f"""\n=== MENU KLIENTA ===
 0. Wyloguj się
 1. Przeglądaj pojazdy
-2. Wypożycz pojazd
-3. Zwróć pojazd
-4. Zmień hasło""")
+2. Wypożycz pojazd *
+3. Zwróć pojazd *
+4. Zmień hasło*
+""")
         handle_choice({
             "0": logoff_user,
-            "1": get_vehicle,
+            "1": get_vehicle(only_available=True),
             "2": lambda: rent_vehicle(user),
             "3": lambda: return_vehicle(user),
             "4": lambda: change_password(user)
@@ -73,23 +74,24 @@ def menu_seller(user):
 0. Wyloguj się
 1. Dodaj klienta
 2. Usuń klienta
-3. Przeglądaj klientów
+3. Przeglądaj klientów *
 4. Dodaj pojazd
-5. Usuń pojazd
+5. Usuń pojazd *
 6. Przeglądaj pojazdy
-7. Wypożycz pojazd
-8. Wypożycz pojazd klientowi
-9. Zwróć pojazd od klienta
-10. Zwróć pojazd po ID
-11. Zmień hasło""")
+7. Wypożycz pojazd *
+8. Wypożycz pojazd klientowi *
+9. Zwróć pojazd od klienta *
+10. Zwróć pojazd po ID *
+11. Zmień hasło *
+""")
         handle_choice({
             "0": logoff_user,
             "1": add_client,
-            "2": remove_client,
+            "2": lambda: remove_user(role="client"),
             "3": get_clients,
             "4": add_vehicle,
             "5": remove_vehicle,
-            "6": get_vehicle,
+            "6": get_vehicle(),
             "7": rent_vehicle,
             "8": rent_vehicle_to_client,
             "9": return_vehicle_from_client,
@@ -101,30 +103,31 @@ def menu_seller(user):
 def menu_admin(user):
     while True:
         print(f"""\n=== MENU ADMINA ===
-0. Wyloguj się
+0. Wyloguj się 
 1. Dodaj sprzedawcę
 2. Usuń sprzedawcę
 3. Dodaj klienta
 4. Usuń klienta
-5. Przeglądaj klientów
+5. Przeglądaj klientów *
 6. Dodaj pojazd
-7. Usuń pojazd
-8. Przeglądaj pojazdy
-9. Wypożycz pojazd
-10. Wypożycz pojazd klientowi
-11. Zwróć pojazd od klienta
-12. Zwróć pojazd po ID
-13. Zmień hasło""")
+7. Usuń pojazd *
+8. Przeglądaj pojazdy 
+9. Wypożycz pojazd *
+10. Wypożycz pojazd klientowi *
+11. Zwróć pojazd od klienta *
+12. Zwróć pojazd po ID *
+13. Zmień hasło *
+""")
         handle_choice({
             "0": logoff_user,
-            "1": lambda: add_seller(),
-            "2": lambda: remove_seller,
-            "3": lambda: add_client(),
-            "4": remove_client,
+            "1": add_seller,
+            "2": lambda: remove_user(role="seller"),
+            "3": add_client,
+            "4": lambda: remove_user(role="client"),
             "5": get_clients,
             "6": add_vehicle,
             "7": remove_vehicle,
-            "8": get_vehicle,
+            "8": get_vehicle(),
             "9": rent_vehicle,
             "10": rent_vehicle_to_client,
             "11": return_vehicle_from_client,

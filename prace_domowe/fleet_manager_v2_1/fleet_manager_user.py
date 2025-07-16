@@ -1,5 +1,3 @@
-from pandas.io.clipboard import is_available
-
 from fleet_database import Session
 from fleet_models_db import User, Vehicle
 from sqlalchemy.exc import NoResultFound, IntegrityError
@@ -42,30 +40,39 @@ def login_user():
             print("\nAnulowano logowanie.")
             return None
 
-def register_user():
-    # session = Session()
-    print("\n=== REJESTRACJA DO SYSTEMU ===")
+def register_user(role="client", auto=False):
+    """
+    Rejestracja nowego użytkownika.
+    :param role: 'client' lub 'seller'
+    :param auto: jeśli True, login i hasło są generowane automatycznie (dla sprzedawcy).
+    """
+    print(f"\n=== REJESTRACJA NOWEGO {'SPRZEDAWCY' if role == 'seller' else 'KLIENTA'} ===")
 
-    print("\nPodaj dane potrzebne do zalogowania")
+    print("\nPodaj dane potrzebne do rejestracji")
     first_name = input("Imię: ").strip().capitalize()
     last_name = input("Nazwisko: ").strip().capitalize()
-    login = input("Login: ").strip()
-    phone = input("Nr telefon:").strip()
+    phone = input("Nr telefonu: ").strip()
     email = input("Email: ").strip()
     address = input("Adres zamieszkania: ").strip()
 
-    while True:
-        # password = getpass.getpass("Hasło: ").strip()
-        password = input("Hasło: ").strip()
-        # password_confirm = getpass.getpass("Potwierdź hasło: ").strip()
-        password_confirm = input("Potwierdź hasło: ").strip()
-
-        if password != password_confirm:
-            print("\nHasła nie są takie same, Spróbój ponownie.")
-        else:
-            break
-
-    hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    if auto and role == "seller":
+        with Session() as session:
+            count = session.query(User).filter_by(role="seller").count()
+            seller_number = str(count + 1).zfill(2)
+            login = f"seller{seller_number}"
+            raw_password = login  # np. seller01
+            password_hash = bcrypt.hashpw(raw_password.encode(), bcrypt.gensalt()).decode()
+            print(f"\nUtworzono login: {login} | hasło: {raw_password}")
+    else:
+        login = input("Login: ").strip()
+        while True:
+            password = input("Hasło: ").strip()
+            password_confirm = input("Potwierdź hasło: ").strip()
+            if password != password_confirm:
+                print("\n❌ Hasła nie są takie same. Spróbuj ponownie.")
+            else:
+                break
+        password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
     new_user = User(
         first_name=first_name,
@@ -73,9 +80,9 @@ def register_user():
         login=login,
         phone=phone,
         email=email,
-        password_hash=hashed_pw,
+        password_hash=password_hash,
         address=address,
-        role="client"
+        role=role
     )
 
     with Session() as session:
@@ -83,80 +90,79 @@ def register_user():
             session.add(new_user)
             session.commit()
             session.refresh(new_user)
-            print(f"\nUżytkownik {login} został zarejestrowany pomyślnie.")
+            print(f"\n✅ Użytkownik {login} został dodany pomyślnie.")
             return new_user
         except IntegrityError:
             session.rollback()
-            print("\nLogin lub email już istnieje. Spróbuj z innymi danymi.")
+            print("\n❌ Login, telefon lub email już istnieje. Spróbuj z innymi danymi.")
             return None
 
 def add_client():
-    print(">>> [MOCK] Dodawanie klienta...")
+    return register_user(role="client")
 
-def remove_client():
+def add_seller():
+    return register_user(role="seller", auto=True)
+
+def remove_user(role="client"):
     while True:
-        client_input = input("\nPodaj login albo ID klienta, którego chcesz usunąć z bazy: ").strip()
+        with Session() as session:
+            users = session.query(User).filter_by(role=role).all()
+            if not users:
+                print(f"\nℹ️ Brak użytkowników o roli '{role}' w bazie.")
+                return
+
+            print(f"\n📋 Lista użytkowników o roli '{role}':")
+            for user in users:
+                print(f" - ID: {user.id}, Login: {user.login}, Imię: {user.first_name} {user.last_name}")
+
+        user_input = input(f"\nPodaj login albo ID użytkownika o roli '{role}', którego chcesz usunąć: ").strip()
 
         with Session() as session:
             query = session.query(User).filter(
                 or_(
-                    User.login == client_input,
-                    User.id == int(client_input) if client_input.isdigit() else -1
+                    User.login == user_input,
+                    User.id == int(user_input) if user_input.isdigit() else -1
                 )
             ).first()
 
             if not query:
-                print("\n❌ Nie znaleziono klienta o podanym loginie lub ID.")
+                print("\n❌ Nie znaleziono użytkownika o podanym loginie lub ID.")
             elif query.role == "admin":
-                print("\n❌ Nie można usunąć użytkownika o roli admin.")
+                print("\n❌ Nie można usunąć użytkownika o roli 'admin'.")
+            elif query.role != role:
+                print(f"\n❌ Użytkownik {query.login} ma rolę '{query.role}', a nie '{role}'.")
             else:
-                active_rentals = session.query(Vehicle).filter_by(borrower_id=query.id, is_available=False).count()
+                active_rentals = session.query(Vehicle).filter_by(
+                    borrower_id=query.id, is_available=False).count()
                 if active_rentals > 0:
-                    print(f"\n🚫 Nie można usunąć klienta {query.login}, ponieważ ma aktywne wypożyczenie.")
+                    print(f"\n🚫 Nie można usunąć użytkownika {query.login}, ponieważ ma aktywne wypożyczenie.")
                 else:
-                    while True:
-                        choice = input(f"\n✅ Znaleziono klienta: \n{query}\nCzy chcesz go usunąć? (TAK/NIE)? ").strip().lower()
-                        if choice in ("tak", "t", "yes", "y"):
-                            session.delete(query)
-                            session.commit()
-                            print(f"\n✅ Klient:\n{query}\nzostał usunięty z bazy.")
-                            return  # koniec funkcji po usunięciu
-                        elif choice in ("nie", "n", "no"):
-                            print("\n❌ Anulowano usunięcie klienta.")
-                            return  # koniec funkcji po anulowaniu
-                        else:
-                            print("\n❌ Niepoprawna odpowiedź. Wpisz 'tak' lub 'nie'.")
-                            continue
+                    confirm = input(f"\n✅ Znaleziono użytkownika: \n{query}\n"
+                                    f"Czy chcesz go usunąć? (TAK/NIE)? ").strip().lower()
+                    if confirm in ("tak", "t", "yes", "y"):
+                        session.delete(query)
+                        session.commit()
+                        print(f"\n✅ Użytkownik {query.login} został usunięty z bazy.")
+                    else:
+                        print("\n❌ Anulowano usunięcie użytkownika.")
 
-        # Pytanie, czy chce próbować jeszcze raz
+        # Pytanie o kolejne usunięcie
         while True:
-            retry = input("\nCzy chcesz spróbować ponownie? (TAK/NIE): ").strip().lower()
-            if retry in ("tak", "t", "yes", "y"):
-                break  # wracamy do początku pętli
-            elif retry in ("nie", "n", "no"):
-                print("Powrót do menu.")
-                return  # wychodzimy z funkcji
+            again = input("\nCzy chcesz usunąć kolejnego użytkownika? (TAK/NIE): ").strip().lower()
+            if again in ("tak", "t", "yes", "y"):
+                break  # wraca do początku głównej pętli
+            elif again in ("nie", "n", "no"):
+                print("🔙 Powrót do menu.")
+                return
             else:
-                print("Niepoprawna odpowiedź. Wpisz 'tak' lub 'nie'.")
-
-
-def change_password():
-    print(">>> [MOCK] Zmiana hasła...")
-
-def add_seller():
-    print(">>> [MOCK] Dodawanie sprzedawcy...")
-
-def remove_seller():
-    print(">>> [MOCK] Usuwanie sprzedawcy...")
+                print("❌ Niepoprawna odpowiedź. Wpisz 'tak' lub 'nie'.")
 
 def get_clients():
     print(">>> [MOCK] Przeglądanie klientów...")
 
-def log_off_user():
-    print(">>> [MOCK] Wylogowano.")
 
 
 
 
-
-
+def change_password():
+    print(">>> [MOCK] Zmiana hasła...")

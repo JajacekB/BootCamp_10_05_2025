@@ -41,7 +41,8 @@ class Car(Vehicle):
             f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
             f"{self.size}, {self.fuel_type}\n"
-            f"{self.cash_per_day}zł za dzień"
+            f"{self.cash_per_day}zł za dzień\n"
+            f"{'Dostępny' if self.is_available else 'Niedostępny'}"
         )
 
 
@@ -59,7 +60,8 @@ class Scooter(Vehicle):
             f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
             f"{self.max_speed}km/h\n"
-            f"{self.cash_per_day}zł za dzień"
+            f"{self.cash_per_day}zł za dzień\n"
+            f"{'Dostępny' if self.is_available else 'Niedostępny'}"
         )
 
 
@@ -78,7 +80,8 @@ class Bike(Vehicle):
             f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
             f"{self.bike_type}, {'elektryczny' if self.is_electric else 'zwykły'}\n"
-            f"{self.cash_per_day}zł za dzień"
+            f"{self.cash_per_day}zł za dzień\n"
+            f"{'Dostępny' if self.is_available else 'Niedostępny'}"
         )
 
 

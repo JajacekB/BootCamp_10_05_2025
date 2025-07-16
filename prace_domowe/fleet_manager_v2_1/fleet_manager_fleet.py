@@ -183,13 +183,16 @@ def remove_vehicle():
             else:
                 print("\n❌ Niepoprawna odpowiedź. spróbuj ponownie.")
 
-def get_vehicle():
+def get_vehicle(only_available: bool = False):
     print("\n>>> Przeglądanie pojazdów <<<")
-    status = input("\nKtóre pojazdy chcesz przejrzeć (all, available, rented): ").strip().lower()
 
-    if status not in ("all", "available", "rented"):
-        print("\n❌ Zły wybór statusu pojazdu, spróbuj jeszcze raz.")
-        return
+    if only_available:
+        status = "available"
+    else:
+        status = input("\nKtóre pojazdy chcesz przejrzeć (all, available, rented): ").strip().lower()
+        if status not in ("all", "available", "rented"):
+            print("\n❌ Zły wybór statusu pojazdu, spróbuj jeszcze raz.")
+            return
 
     vehicle_type = input("\nJakiego typu pojazdy chcesz zobaczyć? (all, car, scooter, bike): ").strip().lower()
     if vehicle_type not in ("all", "car", "scooter", "bike"):
@@ -204,7 +207,6 @@ def get_vehicle():
             query = query.filter(Vehicle.is_available == True)
         elif status == "rented":
             query = query.filter(Vehicle.is_available == False)
-        # "all" nie filtruje po dostępności
 
         # Filtrowanie po typie
         if vehicle_type != "all":
