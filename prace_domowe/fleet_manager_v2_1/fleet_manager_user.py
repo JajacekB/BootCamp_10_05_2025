@@ -249,13 +249,5 @@ def get_clients():
             for client in clients:
                 print("\n", client)
 
-
-# Analogicznie, gdybyś chciał:
-# klientów bez pojazdów → User.id nie znajduje się w liście borrower_id pojazdów wypożyczonych (is_available == False)
-#
-# pełną listę → po prostu User z role == client
-
-
-
 def change_password():
     print(">>> [MOCK] Zmiana hasła...")
