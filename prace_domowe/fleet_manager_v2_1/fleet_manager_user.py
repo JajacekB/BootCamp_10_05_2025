@@ -1,7 +1,7 @@
 from fleet_database import Session
 from fleet_models_db import User, Vehicle
 from sqlalchemy.exc import NoResultFound, IntegrityError
-from sqlalchemy import or_
+from sqlalchemy import or_, not_
 import bcrypt
 import getpass
 
@@ -158,9 +158,102 @@ def remove_user(role="client"):
                 print("❌ Niepoprawna odpowiedź. Wpisz 'tak' lub 'nie'.")
 
 def get_clients():
-    print(">>> [MOCK] Przeglądanie klientów...")
+    print(">>> Przeglądanie klientów <<<")
+    client_status = input(
+        "\nW jaki sposób chcesz przeglądać klientów?"
+        "\n(A) - wszyscy"
+        "\n(T) - tylko z wypożyczeniem"
+        "\n(N) - tylko bez wypożyczenia"
+        "\n\nTwój wybór: "
+    ).strip().lower()
+    with Session() as session:
+        if client_status in ("a", "wszyscy"):
+            clients = (
+                session.query(User)
+                .filter(User.role == "client")
+                .order_by(User.last_name, User.first_name)
+                .all()
+            )
+            if not clients:
+                print("\n🚫 Brak klientów spełniających podane kryteria.")
+                return
+            for client in clients:
+                print(client, "\n")
+        elif client_status in ("t", "tak", "z", "z wypożyczeniem"):
+            borrower_ids = (
+                session.query(Vehicle.borrower_id)
+                .filter(Vehicle.is_available == False, Vehicle.borrower_id != None)
+                .distinct()
+                .all()
+            )
+            borrower_ids = [row[0] for row in borrower_ids]
+            clients = (
+                session.query(User)
+                .filter(User.id.in_(borrower_ids), User.role == "client")
+                .order_by(User.last_name, User.first_name)
+                .all()
+            )
+            if not clients:
+                print("\n🚫 Brak klientów spełniających podane kryteria.")
+                return
+            for client in clients:
+                print(client, "\n")
+            while True:
+                choice = input(
+                    f"\nCo chcesz teraz zrobić:"
+                    f"\n(P) - Powrót do menu główneg"
+                    f"\n(W) - Wyświetl szczegóły użytkownika"
+                    f"\n\nTwój wybór: "
+                ).strip().lower()
+                if choice not in ["p", "powrót", "w", "wyświetl"]:
+                    print("\nZły wybór, spróbuj jeszcze raz.")
+                    continue
+                if choice in ["p", "powrót"]:
+                    return
+                if choice in ["w", "wyświetl"]:
+                    while True:
+                        user_input = input("\nPodaj ID klient: ").strip()
+                        try:
+                            id_input = int(user_input)
+                            break  # poprawna liczba, wychodzimy z pętli
+                        except ValueError:
+                            print("❌ Podaj poprawny numer ID (liczbę całkowitą).")
+                    client = session.query(User).filter(User.id == id_input).first()
+                    if not clients:
+                        print("❌ Nie znaleziono użytkownika o podanym ID.")
+                        return
+                    vehicles = session.query(Vehicle).filter(Vehicle.borrower_id == id_input).all()
+                    print("\n", client, ":")
+                    for vehicle in vehicles:
+                        print("\n      ", vehicle)
+        elif client_status in ("n", "nie", "bez", "bez wypożyczenia"):
+            borrowed_ids = (
+                session.query(Vehicle.borrower_id)
+                .filter(Vehicle.is_available == False, Vehicle.borrower_id != None)
+                .distinct()
+                .all()
+            )
+            borrower_id_list = [id for (id,) in borrowed_ids]
+            clients = (
+                session.query(User)
+                .filter(
+                    User.role == "client",
+                    not_(User.id.in_(borrower_id_list))
+                )
+                .order_by(User.last_name, User.first_name)
+                .all()
+            )
+            if not clients:
+                print("\n🚫 Brak klientów spełniających podane kryteria.")
+                return
+            for client in clients:
+                print("\n", client)
 
 
+# Analogicznie, gdybyś chciał:
+# klientów bez pojazdów → User.id nie znajduje się w liście borrower_id pojazdów wypożyczonych (is_available == False)
+#
+# pełną listę → po prostu User z role == client
 
 
 
