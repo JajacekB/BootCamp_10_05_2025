@@ -131,7 +131,8 @@ def add_vehicles_batch():
                 individual_id = input(
                     "Wpisz unikalny identyfikator pojazdu 😊\n"
                     "➡ Dla samochodu i skutera będzie to numer rejestracyjny,\n"
-                    "➡ Dla roweru – numer seryjny (zazwyczaj znajdziesz go na ramie, blisko suportu): "
+                    "➡ Dla roweru – numer seryjny (zazwyczaj znajdziesz go na ramie, blisko suportu):"
+                    "?  "
                 ).strip()
                 if any(v.individual_id == individual_id for v in vehicles):
                     print("⚠️ Ten identyfikator już istnieje w tej serii. Podaj inny.")
@@ -168,6 +169,9 @@ def add_vehicles_batch():
                     is_electric=specific_fields["is_electric"],
                     individual_id=individual_id
                 )
+            session.add(vehicle)
+            session.flush()
+
             vehicles.append(vehicle)
 
         # Krok 4. Przegląd wpisanych pojazdów
@@ -178,16 +182,17 @@ def add_vehicles_batch():
         # Krok 5. Czy wszystko się zgadza? Czy poprawić?
         while True:
             answer = input(
-                f"\nSprawdź uważnie czy wszystko się zgadza."
-                f"\nCzy chcesz coś poprawić? (Tak/Nie): "
+                f"\nSprawdź uważnie czy wszystko się zgadza?"
+                f"\nWybierz opcję: (Tak/Nie): "
             ).strip().lower()
-            if answer in ("nie", "n", "no"):
+            if answer in ("tak", "t", "yes", "y"):
                 break
-            elif answer in ("tak", "t", "yes", "y"):
+            elif answer in ("nie", "n", "no"):
                 option = input(
                     f"\nWybierz sposób edycji:"
                     f"\n👉 Numer pojazdu ➡ tylko ten jeden"
                     f"\n👉 'all' ➡ zastosuj zmiany do wszystkich"
+                    f"\nPodaj odpowiedź: "
                 ).strip().lower()
                 if option == "all":
                     print("\n--- Popraw dane wspólne (ENTER = brak zmian) ---")
@@ -251,7 +256,6 @@ def add_vehicles_batch():
         try:
             for v in vehicles:
                 session.add(v)
-                session.flush()
             session.commit()
             print(f"\n✅ Dodano {len(vehicles)} pojazdów do bazy.")
         except IntegrityError as e:
