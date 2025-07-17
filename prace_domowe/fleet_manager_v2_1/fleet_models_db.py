@@ -142,3 +142,12 @@ class Invoice(Base):
 
     def __repr__(self):
         return f"<Invoice {self.invoice_number} Amount:{self.amount}>"
+
+class Promotion(Base):
+    __tablename__ = "promotions"
+
+    id = Column(Integer, primary_key=True)
+    description = Column(String)
+    discount_percent = Column(Float)
+    min_days = Column(Integer)
+    type = Column(String)  # 'time' lub 'loyalty'

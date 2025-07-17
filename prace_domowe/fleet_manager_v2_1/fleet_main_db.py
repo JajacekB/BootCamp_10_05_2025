@@ -1,3 +1,5 @@
+from fleet_promo_db import  show_dynamic_promo_banner
+from fleet_database import SessionLocal
 from fleet_manager_user import (
     login_user, register_user, change_password, add_seller,
     add_client, remove_user, get_clients)
@@ -7,7 +9,7 @@ from fleet_manager_fleet import (
     rent_vehicle_to_client, return_vehicle_from_client,
     return_vehicle_by_id
 )
-
+session = SessionLocal()
 
 
 def logoff_user():
@@ -27,6 +29,7 @@ def handle_choice(options: dict):
 
 def start_menu():
     while True:
+        show_dynamic_promo_banner(session)
         print("""
 === SYSTEM WYPOŻYCZANIA POJAZDÓW ===
 
@@ -52,6 +55,7 @@ def start_menu():
 0
 def menu_client(user):
     while True:
+        show_dynamic_promo_banner(session)
         print(f"""\n=== MENU KLIENTA ===
 0. Wyloguj się
 1. Przeglądaj pojazdy
@@ -156,4 +160,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        session.close()
