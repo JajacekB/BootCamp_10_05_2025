@@ -1,5 +1,6 @@
 from fleet_models_db import Vehicle, Car, Scooter, Bike
 from sqlalchemy import func, cast, Integer
+from sqlalchemy.exc import IntegrityError
 from fleet_database import Session
 from datetime import date, datetime, timedelta
 from fleet_models_db import RentalHistory, Invoice
@@ -48,7 +49,6 @@ def generate_invoice_number(session):
 def generate_vehicle_id(session, prefix: str) -> str:
     prefix_len = len(prefix)
     prefix_upper = prefix.upper()
-
     max_number = session.query(
         func.max(
             cast(func.substr(Vehicle.vehicle_id, prefix_len + 1), Integer)
@@ -84,9 +84,11 @@ def get_positive_float(prompt):
             else:
                 print("❌ Liczba musi być większa od zera.")
         except ValueError:
-            print("❌ Wprowadź poprawną liczbę całkowitą (np. 25).")
+            print("❌ Wprowadź poprawną liczbę (np. 25.5).")
 
-def add_vehicle():
+def add_vehicles_batch():
+
+    # Krok 1. Wybór typu pojazdu
     type_prefix_map = {
         "car": "C",
         "scooter": "S",
@@ -97,63 +99,164 @@ def add_vehicle():
         if vehicle_type in type_prefix_map:
             prefix = type_prefix_map[vehicle_type]
             break
-        else:
-            print("\nNiepoprawny typ pojazdu. Spróbuj jeszcze raz")
-            continue
+
+        print("\nNiepoprawny typ pojazdu. Spróbuj jeszcze raz")
+
+    count = get_positive_int("\nIle pojazdów chcesz dodać? ")
+
+    # Krok 2. Wprowadzenie wspólnych danych
+    print("\n--- Dane wspólne dla całej serii ---")
+    brand = input("Producent: ").strip().capitalize()
+    model = input("Model: ").strip().capitalize()
+    cash_per_day = get_positive_float("Cena za jedną dobę w zł: ")
+
+    specific_fields = {}
+    if vehicle_type == "car":
+        specific_fields["size"] = input("Rozmiar (Miejski, Kompakt, Limuzyna, Crosover, SUV): ").strip().capitalize()
+        specific_fields["fuel_type"] = input("Rodzaj paliwa (benzyna, diesel, hybryda, electric): ").strip()
+    elif vehicle_type == "scooter":
+        specific_fields["max_speed"] = get_positive_int("prędkość maksymalna (km/h): ")
+    elif vehicle_type == "bike":
+        specific_fields["bike_type"] = input("Typ roweru (MTB, Miejski, Szosowy): ").strip().capitalize()
+        electric_input = input("Czy rower jest elektryczny (tak/nie): ").strip().lower()
+        specific_fields["is_electric"] = electric_input in ("tak", "t", "yes", "y")
+
+    # Krok 3. Wprowadzanie indywidualnych i tworzenie pojazdu
+    vehicles = []
     with Session() as session:
-        vehicle_id = generate_vehicle_id(session, prefix)
+        for i in range(count):
+            print(f"\n--- POJAZD #{i + 1} ---")
+            vehicle_id = generate_vehicle_id(session, prefix)
+            while True:
+                individual_id = input(
+                    "Wpisz unikalny identyfikator pojazdu 😊\n"
+                    "➡ Dla samochodu i skutera będzie to numer rejestracyjny,\n"
+                    "➡ Dla roweru – numer seryjny (zazwyczaj znajdziesz go na ramie, blisko suportu): "
+                ).strip()
+                if any(v.individual_id == individual_id for v in vehicles):
+                    print("⚠️ Ten identyfikator już istnieje w tej serii. Podaj inny.")
+                else:
+                    break
 
-        brand = input("\nPodaj producenta pojazdu: ").strip().capitalize()
-        vehicle_model = input("\nPodaj model: ").strip().capitalize()
-        cash_per_day = get_positive_float("\nPodaj cenę najmu za jedną dobę: ")
+            if vehicle_type == "car":
+                vehicle = Car(
+                    vehicle_id=vehicle_id,
+                    brand=brand,
+                    vehicle_model=model,
+                    cash_per_day=cash_per_day,
+                    size=specific_fields["size"],
+                    fuel_type=specific_fields["fuel_type"],
+                    individual_id=individual_id
+                )
+            elif vehicle_type == "scooter":
+                vehicle = Scooter(
+                    vehicle_id=vehicle_id,
+                    brand=brand,
+                    vehicle_model=model,
+                    cash_per_day=cash_per_day,
+                    max_speed=specific_fields["max_speed"],
 
-        if vehicle_type == "car":
-            size = input(
-                "\nPodaj rozmiar samochodu (Miejski, Kompakt, Limuzyna, CrossOver, SUV): ").strip().capitalize()
-            fuel_type = input("\nPodaj rodzaj paliwa: ").strip()
-            vehicle = Car(
-                vehicle_id=vehicle_id,
-                brand=brand,
-                vehicle_model=vehicle_model,
-                cash_per_day=cash_per_day,
-                size=size,
-                fuel_type=fuel_type
-            )
-        elif vehicle_type == "scooter":
-            max_speed = get_positive_int("\nPodaj prędkość maksymalną (km/h): ")
-            vehicle = Scooter(
-                vehicle_id=vehicle_id,
-                brand=brand,
-                vehicle_model=vehicle_model,
-                cash_per_day=cash_per_day,
-                max_speed=max_speed
-            )
-        elif vehicle_type == "bike":
-            bike_type = input("\nPodaj typ roweru (Szosowy, Miejski, MTB): ").strip().capitalize()
-            electric_input = input("\nCzy rower jest elektryczny: ").strip().lower()
-            is_electric_bool = electric_input in ("tak", "t", "yes", "y")
-            vehicle = Bike(
-                vehicle_id=vehicle_id,
-                brand=brand,
-                vehicle_model=vehicle_model,
-                cash_per_day=cash_per_day,
-                bike_type=bike_type,
-                is_electric=is_electric_bool
-            )
+                    individual_id=individual_id
+                )
+            elif vehicle_type == "bike":
+                vehicle = Bike(
+                    vehicle_id=vehicle_id,
+                    brand=brand,
+                    vehicle_model=model,
+                    cash_per_day=cash_per_day,
+                    bike_type=specific_fields["bike_type"],
+                    is_electric=specific_fields["is_electric"],
+                    individual_id=individual_id
+                )
+            vehicles.append(vehicle)
+
+        # Krok 4. Przegląd wpisanych pojazdów
+        print("\n--- PRZEGLĄD POJAZDÓW ---")
+        for i, v in enumerate(vehicles, 1):
+            print(f"\n[{i}] {v}")
+
+        # Krok 5. Czy wszystko się zgadza? Czy poprawić?
         while True:
-            print(f"\nCzy chcesz dodać pojazd?\n{vehicle}")
-            choice = input("(Tak/Nie): ").strip().lower()
-            if choice in ("tak", "t", "yes", "y"):
-                session.add(vehicle)
-                session.commit()
-                session.refresh(vehicle)
-                print(f"\n✅ Pojazd:\n{vehicle}\nzostał dodany pomyślnie.")
-                return vehicle
-            elif choice in ("nie", "n", "no"):
-                print("\nWprowadzanie pojazdu anulowane.")
-                return None
+            answer = input(
+                f"\nSprawdź uważnie czy wszystko się zgadza."
+                f"\nCzy chcesz coś poprawić? (Tak/Nie): "
+            ).strip().lower()
+            if answer in ("nie", "n", "no"):
+                break
+            elif answer in ("tak", "t", "yes", "y"):
+                option = input(
+                    f"\nWybierz sposób edycji:"
+                    f"\n👉 Numer pojazdu ➡ tylko ten jeden"
+                    f"\n👉 'all' ➡ zastosuj zmiany do wszystkich"
+                ).strip().lower()
+                if option == "all":
+                    print("\n--- Popraw dane wspólne (ENTER = brak zmian) ---")
+                    new_brand = input(f"Producent ({brand}): ").strip()
+                    new_model = input(f"Model ({model}): ").strip()
+                    new_cash = input(f"Cena za dobę ({cash_per_day}): ").strip()
+                    if new_brand: brand = new_brand.capitalize()
+                    if new_model: model = new_model.capitalize()
+                    if new_cash:
+                        cash_per_day = get_positive_float("Nowa cena za dobę: ")
+
+                    if vehicle_type == "car":
+                        new_size = input(f"Rozmiar ({specific_fields['size']}): ").strip()
+                        new_fuel = input(f"Paliwo ({specific_fields["fuel_type"]}): ").strip()
+                        if new_size: specific_fields['size'] = new_size.capitalize()
+                        if new_fuel: specific_fields['fuel_type'] = new_fuel
+
+                    elif vehicle_type == "scooter":
+                        new_speed = input(f"Prędkość maks. ({specific_fields['max_speed']}): ").strip()
+                        if new_speed:
+                            specific_fields["max_speed"] = get_positive_int("Nowa prędkość maksymalna: ")
+
+                    elif vehicle_type == "bike":
+                        new_type = input(f"Typ roweru ({specific_fields['bike_type']})").strip().capitalize()
+                        new_electric = input(f"Elektryczny ("
+                                            f"{'tak' if specific_fields['is_electric'] else 'nie'}): ").strip().lower()
+                        if new_type: specific_fields["bike_type"] = new_type.capitalize()
+                        if new_electric:
+                            specific_fields["is_electric"] = new_electric in ("tak", "t", "yes", "y")
+
+                    # Krok 6 Aktualizacja wszystkich w serii
+                    for v in vehicles:
+                        v.brand = brand
+                        v.vehicle_model = model
+                        v.cash_per_day = cash_per_day
+                        for k, val in specific_fields.items():
+                            setattr(v, k, val)
+                    print("✅ Dane wspólne zostały zaktualizowane.")
+                    continue
+                elif option.isdigit() and 1 <= int(option) <=len(vehicles):
+                    idx = int(option) - 1
+                    new_id = input("Nowy identyfikator: ").strip()
+                    if any(v.individual_id == new_id for i, v in enumerate(vehicles) if i != idx):
+                        print("❌ Taki identyfikator już istnieje.")
+                    else:
+                        vehicles[idx].individual_id = new_id
+                        print("✅ Zmieniono indywidualny identyfikator.")
+                        continue
+                else:
+                    print("🤔 Nie rozumiem, spróbuj jeszcze raz.")
+                    continue
             else:
-                print("\nNiepoprawna odpowiedź. Wpisz 'tak' lub 'nie'.")
+                print("🤔 Wpisz 'tak' lub 'nie'.")
+
+        # Krok 7 Zapis do bazy
+        existing_ids = [v.individual_id for v in vehicles]
+        if len(existing_ids) != len(set(existing_ids)):
+            print("❌ Duplikat identyfikatorów indywidualnych w serii. Operacja przerwana.")
+            return
+
+        try:
+            for v in vehicles:
+                session.add(v)
+                session.flush()
+            session.commit()
+            print(f"\n✅ Dodano {len(vehicles)} pojazdów do bazy.")
+        except IntegrityError as e:
+            session.rollback()
+            print(f"\n❌ Błąd zapisu: {e}. Wszystkie zmiany zostały wycofane.")
 
 def remove_vehicle():
     vehicle_id = input("\nPodaj numer referencyjny pojazdu, który chcesz usunąć: ").strip().upper()

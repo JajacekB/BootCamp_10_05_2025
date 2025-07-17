@@ -15,6 +15,7 @@ class Vehicle(Base):
     is_available = Column(Boolean, default=True)
     borrower_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     return_date = Column(Date, nullable=True)
+    individual_id = Column(String, unique=True, nullable=False)
     type = Column(String)  # 'car', 'scooter', 'bike'
 
     borrower = relationship("User", back_populates="vehicles")
@@ -41,6 +42,7 @@ class Car(Vehicle):
             f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
             f"{self.size}, {self.fuel_type}\n"
+            f"Numer rejestracyjny: {self.individual_id}\n"
             f"{self.cash_per_day}zł za dzień\n"
             f"{'Dostępny' if self.is_available else 'Niedostępny'}"
         )
@@ -59,7 +61,8 @@ class Scooter(Vehicle):
         return (
             f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
-            f"{self.max_speed}km/h\n"
+            f"Maks. prędkość: {self.max_speed}km/h\n"
+            f"Numer rejestracyjny: {self.individual_id}\n"
             f"{self.cash_per_day}zł za dzień\n"
             f"{'Dostępny' if self.is_available else 'Niedostępny'}"
         )
@@ -80,6 +83,7 @@ class Bike(Vehicle):
             f"ID: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
             f"{self.bike_type}, {'elektryczny' if self.is_electric else 'zwykły'}\n"
+            f"Numer seryjny: {self.individual_id}\n"
             f"{self.cash_per_day}zł za dzień\n"
             f"{'Dostępny' if self.is_available else 'Niedostępny'}"
         )

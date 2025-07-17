@@ -9,6 +9,7 @@
 #
 # session = Session()
 #
+# # tworzenie konta Admin
 # existing_admin = session.query(User).filter_by(login="admin").first()
 #
 # if not existing_admin:
@@ -30,6 +31,6 @@
 #         session.rollback()
 #         print("Nie udało się utworzyć domyślnego admina (prawdopodobnie już istnieje).")
 # else:
-#     print("Urzytkownik 'admin' już istniej.")
+#     print("Urzytkownik 'admin' już istnieje.")
 #
 # session.close()

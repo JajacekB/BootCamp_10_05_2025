@@ -3,7 +3,7 @@ from fleet_manager_user import (
     add_client, remove_user, get_clients)
 from fleet_manager_fleet import (
     get_vehicle, rent_vehicle, return_vehicle,
-    add_vehicle, remove_vehicle, pause_vehicle,
+    add_vehicles_batch, remove_vehicle, pause_vehicle,
     rent_vehicle_to_client, return_vehicle_from_client,
     return_vehicle_by_id
 )
@@ -89,7 +89,7 @@ def menu_seller(user):
             "1": add_client,
             "2": lambda: remove_user(role="client"),
             "3": get_clients,
-            "4": add_vehicle,
+            "4": add_vehicles_batch,
             "5": remove_vehicle,
             "6": lambda: get_vehicle(),
             "7": rent_vehicle,
@@ -125,7 +125,7 @@ def menu_admin(user):
             "3": add_client,
             "4": lambda: remove_user(role="client"),
             "5": get_clients,
-            "6": add_vehicle,
+            "6": add_vehicles_batch,
             "7": remove_vehicle,
             "8": lambda: get_vehicle(),
             "9": rent_vehicle,
