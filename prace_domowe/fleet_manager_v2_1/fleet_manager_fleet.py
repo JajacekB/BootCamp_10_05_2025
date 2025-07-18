@@ -88,10 +88,13 @@ def generate_vehicle_id( prefix: str) -> str:
         new_vehicle_id = f"{prefix_upper}{next_number:03d}"
         return new_vehicle_id
 
-def get_positive_int(prompt):
+def get_positive_int(prompt, allow_empty=False):
     while True:
+        value = input(prompt).strip()
+        if allow_empty and not value:
+            return None
         try:
-            value = int(input(prompt).strip())
+            value = int(value)
             if value > 0:
                 return value
             else:
@@ -463,8 +466,30 @@ def rent_vehicle(user: User):
             f"W terminie od {start_date} do {end_date}.\n"
             f" Miłej jazdy!")
 
+def rent_vehicle_for_client(user: User):
+    print(f"\n>>> Rezerwacja dla klienta <<<")
+    while True:
+        client_id = get_positive_int(
+            "\nPodaj id klienta, dla którego chcesz wynająć pojazd (ENTER = Ty sam): ",
+            allow_empty=True
+        )
 
+        if client_id is None:
+            rent_vehicle(user)
+            return
 
+        with Session() as session:
+            client = session.query(User).filter_by(id=client_id).first()
+            if not client:
+                print("❌ Nie znaleziono użytkownika o podanym ID.")
+                continue
+
+            if client.role != "Client":
+                print("🚫 Ten użytkownik nie ma roli klienta.")
+                continue
+
+            rent_vehicle(client)
+            return
 
 
 

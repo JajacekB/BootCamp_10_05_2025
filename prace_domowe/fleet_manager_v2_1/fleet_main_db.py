@@ -59,7 +59,7 @@ def menu_client(user):
         print(f"""\n=== MENU KLIENTA ===
 0. Wyloguj się
 1. Przeglądaj pojazdy
-2. Wypożycz pojazd *
+2. Wypożycz pojazd
 3. Zwróć pojazd *
 4. Zmień hasło*
 """)
@@ -82,7 +82,7 @@ def menu_seller(user):
 4. Dodaj nowy pojazd
 5. Usuń pojazd 
 6. Przeglądaj pojazdy
-7. Wypożycz pojazd *
+7. Wypożycz pojazd
 8. Wypożycz pojazd klientowi *
 9. Zwróć pojazd od klienta *
 10. Zwróć pojazd po ID *
@@ -116,7 +116,7 @@ def menu_admin(user):
 6. Dodaj nowy pojazd
 7. Usuń pojazd
 8. Przeglądaj pojazdy 
-9. Wypożycz pojazd *
+9. Wypożycz pojazd
 10. Wypożycz pojazd klientowi *
 11. Zwróć pojazd od klienta *
 12. Zwróć pojazd po ID *
