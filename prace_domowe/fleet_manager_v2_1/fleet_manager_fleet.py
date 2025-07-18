@@ -396,12 +396,12 @@ def rent_vehicle(user: User):
         # Krok 3: Wybór modelu
         while True:
             choosen_model = input("\nPodaj model pojazdu do wypożyczenia: ").strip()
-            choosen_vechicle = next(
+            choosen_vehicle = next(
                 (v for v in available_vehicles if v.vehicle_model.lower() == choosen_model.lower()),
                 None
             )
 
-            if not choosen_vechicle:
+            if not choosen_vehicle:
                 print("\n🚫 Nie znaleziono pojazdu o podanym medelu. Wybierz ponownie")
                 continue
 
@@ -410,8 +410,8 @@ def rent_vehicle(user: User):
 
         # Krok 4: Oblicz koszty i rabaty.
         days = (end_date - start_date).days
-        base_cost = days * choosen_vechicle.cash_per_day
-        total_cost, discount_value, discount_type = calculate_rental_cost(user, choosen_vechicle.cash_per_day, days)
+        base_cost = days * choosen_vehicle.cash_per_day
+        total_cost, discount_value, discount_type = calculate_rental_cost(user, choosen_vehicle.cash_per_day, days)
 
         # Krok 5. Potwierdzenie
 
@@ -431,17 +431,17 @@ def rent_vehicle(user: User):
         invoice_number = generate_invoice_number(end_date)
 
         # Aktualizowanie wypożyczonego pojazdu
-        choosen_vechicle.is_available = False
-        choosen_vechicle.return_date = end_date
-        choosen_vechicle.borrower_id = user.id
+        choosen_vehicle.is_available = False
+        choosen_vehicle.return_date = end_date
+        choosen_vehicle.borrower_id = user.id
 
-        session.add(choosen_vechicle)
+        session.add(choosen_vehicle)
 
         # Aktualizacja historii wypożyczeń
         rental = RentalHistory(
             reservation_id=reservation_id,
             user_id=user.id,
-            vehicle_id=choosen_vechicle.vehicle_id,
+            vehicle_id=choosen_vehicle.vehicle_id,
             start_date=start_date,
             end_date=end_date,
             total_cost=total_cost
@@ -450,17 +450,18 @@ def rent_vehicle(user: User):
         # Dane do faktury
         invoice = Invoice(
             invoice_number=invoice_number,
-            user_id=user.id,
+            rental_id=reservation_id,
             amount=total_cost,
-            date_issued=end_date
+            issue_date=end_date
         )
 
         session.add_all([rental, invoice])
         session.commit()
 
         print(
-            f"\n✅ Zarezerwowałeś {choosen_vechicle.brand} {choosen_vechicle.vehcicle_model}\n"
-            f"W terminie od {start_date} do {end_date}. Miłej jazdy!")
+            f"\n✅ Zarezerwowałeś {choosen_vehicle.brand} {choosen_vehicle.vehicle_model}\n"
+            f"W terminie od {start_date} do {end_date}.\n"
+            f" Miłej jazdy!")
 
 
 
