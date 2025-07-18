@@ -255,5 +255,104 @@ def get_clients():
             for client in clients:
                 print(client, "\n")
 
-def change_password():
-    print(">>> [MOCK] Zmiana hasła...")
+def update_profile(user: User):
+    while True:
+        print(
+            f"\n=== AKTUALIZACJA PROFILU UŻYTKOWNIKA ==="
+            f"\nZalogowany jako: {user.first_name} {user.last_name} ({user.login})"
+            f"\nCo chcesz zmienić?"
+            f"1. Dane osobowe (imę, nazwisko, telefon, email, adres zamiszkania)"
+            f"2. Hasło"
+            f"3. Wyjdź bez zmian"
+        )
+
+        choice = input("\nWybierz opcję (1 -3)").strip()
+
+        if choice == "1":
+            with Session() as session:
+                db_user = session.query(User).filter(User.id == user.id).first()
+                if not db_user:
+                    print("❌ Nie znaleziono użytkownika w bazie.")
+                    return
+
+                print("\nWprowadź nowe dane lub naciśnij (ENTER), aby pozostawić bez zmiany")
+
+                def prompt_update(field_name, current_value):
+                    val = input(f"{field_name} [{current_value}]: ").strip()
+                    return val if val else current_value
+
+                new_first_name = prompt_update("Imię:", db_user.first_name).strip().capitalize()
+                new_last_name = prompt_update("Nazwisko:", db_user.last_name).strip().capitalize()
+                new_phone = prompt_update("Telefon:", db_user.phone).strip()
+                new_email = prompt_update("Email:", db_user.email).strip()
+                new_address = prompt_update("Adres:", db_user.address).strip()
+
+                print(
+                    f"\nNowe dane użytkownkia:"
+                    f"\nImię: {new_first_name}"
+                    f"Nazwisko: {new_last_name}"
+                    f"Telefon: {new_phone}"
+                    f"Email: {new_email}"
+                    f"Adres: {new_address}"
+                )
+
+                contfirm = input("\nCzy zapisać zmiany? (tak/nie").strip().lower()
+                if contfirm in ("tak", "t", "yes", "y"):
+                    db_user.first_name = new_first_name
+                    db_user.last_name = new_last_name
+                    db_user.phone = new_phone
+                    db_user.email = new_email
+                    db_user.address = new_address
+                    try:
+                        session.commit()
+                        print("✅ Dane zostały zaktualizowane.")
+                        user.first_name = new_first_name
+                        user.last_name = new_last_name
+                        user.phone = new_phone
+                        user.email = new_email
+                        user.address = new_address
+                    except IntegrityError:
+                        session.rollback()
+                        print("❌ Podany email lub telefon jest już zajęty przez innego użytkownika.")
+                else:
+                    print("❌ Anulowano aktualizację danych.")
+
+        elif choice == "2":
+            with Session() as session:
+                db_user = session.query(User).filter(User.id == user.id).first()
+                if not db_user:
+                    print("❌ Nie znaleziono użytkownika w bazie.")
+                    return
+
+                current_pw = input("\nPodaj obecne hasło: ").strip()
+                if not bcrypt.checkpw(current_pw.encode(), db_user.password_hash.encode()):
+                    continue
+
+                while True:
+                    new_pw = input("\nPodaj nowe hasło: ")
+                    new_pw_confirm = input("Potwierdź nowe hasło: ")
+                    if new_pw != new_pw_confirm:
+                        print("❌ Hasła nie są takie same. Spróbuj ponownie.")
+                        continue
+                    elif len(new_pw) < 6:
+                        print("❌ Hasło musi mieć co najmniej 6 znaków. Spróbuj jeszcze raz.")
+                        continue
+                    new_hash = bcrypt.checkpw(new_pw.encode(), bcrypt.gensalt()).decode()
+                    db_user.password_hash = new_hash
+                    try:
+                        session.commit()
+                        print("✅ Hasło zostało zmienione.")
+                        break
+                    except Exception as e:
+                        session.rollback()
+                        print("❌ Wystąpił błąd podczas zapisywania hasła:", e)
+                        break
+
+        elif choice == "3":
+            print("🔙 Powrót bez zmian.")
+            return
+
+        else:
+            print("❌ Niepoprawny wybór. Spróbuj ponownie.")
+
+

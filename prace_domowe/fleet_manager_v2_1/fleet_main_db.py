@@ -1,8 +1,8 @@
 from fleet_promo_db import  show_dynamic_promo_banner
 from fleet_database import SessionLocal
 from fleet_manager_user import (
-    login_user, register_user, change_password, add_seller,
-    add_client, remove_user, get_clients)
+    login_user, register_user, add_seller,
+    add_client, remove_user, get_clients, update_profile)
 from fleet_manager_fleet import (
     get_vehicle, rent_vehicle, return_vehicle,
     add_vehicles_batch, remove_vehicle, rent_vehicle_for_client,
@@ -51,7 +51,7 @@ def start_menu():
             exit(0)
         else:
             print("❌ Niepoprawny wybór, spróbuj ponownie.")
-0
+
 def menu_client(user):
     while True:
         show_dynamic_promo_banner(session)
@@ -59,15 +59,15 @@ def menu_client(user):
 0. Wyloguj się
 1. Przeglądaj pojazdy
 2. Wypożycz pojazd
-3. Zwróć pojazd *
-4. Zmień hasło *
+3. Zwróć pojazd
+4. Zaktualizuj profil
 """)
         handle_choice({
             "0": logoff_user,
             "1": lambda: get_vehicle(only_available=True),
             "2": lambda: rent_vehicle(user),
             "3": lambda: return_vehicle(user),
-            "4": lambda: change_password(user)
+            "4": lambda: update_profile(user)
         })
 
 
@@ -83,7 +83,7 @@ def menu_seller(user):
 6. Przeglądaj pojazdy
 7. Wypożycz pojazd klientowi
 8. Zwróć pojazd
-9. Zmień hasło *
+9. Aktualizuj profil
 """)
         handle_choice({
             "0": logoff_user,
@@ -95,7 +95,7 @@ def menu_seller(user):
             "6": lambda: get_vehicle(),
             "7": lambda: rent_vehicle_for_client(user),
             "8": lambda: return_vehicle(user),
-            "9": lambda: change_password(user)
+            "9": lambda: update_profile(user)
         })
 
 
@@ -113,7 +113,7 @@ def menu_admin(user):
 8. Przeglądaj pojazdy 
 9. Wypożycz pojazd klientowi
 10. Zwróć pojazd
-11. Zmień hasło *
+11. Aktualizuj profil
 """)
         handle_choice({
             "0": logoff_user,
@@ -126,8 +126,8 @@ def menu_admin(user):
             "7": remove_vehicle,
             "8": lambda: get_vehicle(),
             "9": lambda: rent_vehicle_for_client(user),
-            "10": lambda: return_vehicle(),
-            "11": lambda: change_password(user)
+            "10": lambda: return_vehicle(user),
+            "11": lambda: update_profile(user)
         })
 
 

@@ -599,7 +599,7 @@ def check_overdue_vehicles(user, session):
 
     print("\n=== Koniec sprawdzania przeterminowanych zwrotów ===\n")
 
-def return_vehicle(user):
+def return_vehicle(user: User):
     with Session() as session:
 
         def update_costs_and_invoice(rental, vehicle, actual_return_date):
