@@ -1,5 +1,5 @@
 from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, Promotion
-from sqlalchemy import func, cast, Integer
+from sqlalchemy import func, cast, Integer, extract
 from sqlalchemy.exc import IntegrityError
 from fleet_database import Session, SessionLocal
 from datetime import date, datetime, timedelta
@@ -45,13 +45,29 @@ def calculate_rental_cost(user, daily_rate, days):
             "lojalność" if loyalty_discount_days else (
             "czasowy" if discount > 0 else "brak"))
 
-def generate_invoice_number():
+def generate_invoice_number(end_date):
+    """
+                Generuje numer faktury w formacie FV/YYYY/MM/NNNN
+                - session: aktywna sesja SQLAlchemy
+                - end_date: data zakończenia wypożyczenia (datetime.date)
+                """
     with Session() as session:
-        last = session.query(Invoice).order_by(Invoice.id.desc()).first()
-        last_num = int(last.invoice_number.split('-')[-1]) if last else 0
-        new_num = last_num + 1
-        year = date.today().year
-        return f"F{year}-{new_num:04d}"
+
+        year = end_date.year
+        month = end_date.month
+
+        # Policz faktury wystawione w danym roku i miesiącu
+        count = session.query(Invoice).filter(
+            extract('year', Invoice.date) == year,
+            extract('month', Invoice.date) == month
+        ).count()
+
+        # Dodaj 1 do sekwencji
+        sequence = count + 1
+
+        # Zbuduj numer faktury
+        invoice_number = f"FV/{year}/{month:02d}/{sequence:04d}"
+        return invoice_number
 
 def generate_vehicle_id( prefix: str) -> str:
     with Session() as session:
