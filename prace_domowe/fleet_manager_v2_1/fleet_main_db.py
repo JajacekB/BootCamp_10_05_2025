@@ -76,11 +76,11 @@ def menu_seller(user):
     while True:
         print(f"""\n=== MENU SPRZEDAWCY ===
 0. Wyloguj się
-1. Dodaj klienta
+1. Dodaj nowego klienta
 2. Usuń klienta
 3. Przeglądaj klientów
-4. Dodaj pojazd
-5. Usuń pojazd *
+4. Dodaj nowy pojazd
+5. Usuń pojazd 
 6. Przeglądaj pojazdy
 7. Wypożycz pojazd *
 8. Wypożycz pojazd klientowi *
@@ -108,13 +108,13 @@ def menu_admin(user):
     while True:
         print(f"""\n=== MENU ADMINA ===
 0. Wyloguj się 
-1. Dodaj sprzedawcę
+1. Dodaj nowego sprzedawcę
 2. Usuń sprzedawcę
-3. Dodaj klienta
+3. Dodaj nowego klienta
 4. Usuń klienta
 5. Przeglądaj klientów
-6. Dodaj pojazd
-7. Usuń pojazd *
+6. Dodaj nowy pojazd
+7. Usuń pojazd
 8. Przeglądaj pojazdy 
 9. Wypożycz pojazd *
 10. Wypożycz pojazd klientowi *
