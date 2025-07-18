@@ -58,8 +58,8 @@ def generate_invoice_number(end_date):
 
         # Policz faktury wystawione w danym roku i miesiącu
         count = session.query(Invoice).filter(
-            extract('year', Invoice.date) == year,
-            extract('month', Invoice.date) == month
+            extract('year', Invoice.issue_date) == year,
+            extract('month', Invoice.issue_date) == month
         ).count()
 
         # Dodaj 1 do sekwencji
@@ -359,11 +359,11 @@ def get_vehicle(only_available: bool = False):
 def rent_vehicle(user: User):
     print("\n=== WYPOŻYCZENIE POJAZDU ===\n")
     vehicle_type = input("Wybierz typ pojazdu (car, bike, scooter): ").strip().lower()
-    start_date_str = input("\nData rozpoczęcia (YYYY-MM-DD): ").strip()
-    end_date_str = input("Data zakończenia (YYYY-MM-DD): ").strip()
+    start_date_str = input("\nData rozpoczęcia (DD-MM-YYYY): ").strip()
+    end_date_str = input("Data zakończenia (DD-MM-YYYY): ").strip()
 
-    start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
-    end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+    start_date = datetime.strptime(start_date_str, "%d-%m-%Y").date()
+    end_date = datetime.strptime(end_date_str, "%d-%m-%Y").date()
 
     # Krok 1: Znajdź dostępne pojazdy
     with Session() as session:
@@ -386,27 +386,31 @@ def rent_vehicle(user: User):
         # Krok 2: Grupuj pojazdy
         grouped = defaultdict(list)
         for v in available_vehicles:
-            key = (v.vehicle_model, v.cash_per_day)
+            key = (v.brand, v.vehicle_model, v.cash_per_day)
             grouped[key].append(v)
 
         print("\nDostępne grupy pojazdów:\n")
-        for (model, price), vehicles in grouped.items():
-            print(f"{model} | {price} zł/dzień | Dostępnych: {len(vehicles)}")
+        for (brand, model, price), vehicles in grouped.items():
+            print(f"{brand} | {model} | {price} zł/dzień | Dostępnych: {len(vehicles)}")
 
         # Krok 3: Wybór modelu
-        choosen_model = input("\nPodaj model pojazdu do wypożyczenia: ").strip()
-        choosen_vechicle = next(
-            (v for v in available_vehicles if v.vehicle_model == choosen_model),
-            None
-        )
+        while True:
+            choosen_model = input("\nPodaj model pojazdu do wypożyczenia: ").strip()
+            choosen_vechicle = next(
+                (v for v in available_vehicles if v.vehicle_model.lower() == choosen_model.lower()),
+                None
+            )
 
-        if not choosen_vechicle:
-            print("\n🚫 Nie znaleziono pojazdu o podanym medelu.")
-            return
+            if not choosen_vechicle:
+                print("\n🚫 Nie znaleziono pojazdu o podanym medelu. Wybierz ponownie")
+                continue
+
+            else:
+                break
 
         # Krok 4: Oblicz koszty i rabaty.
         days = (end_date - start_date).days
-        base_cost = days * choosen_vechicle.cach_per_day
+        base_cost = days * choosen_vechicle.cash_per_day
         total_cost, discount_value, discount_type = calculate_rental_cost(user, choosen_vechicle.cash_per_day, days)
 
         # Krok 5. Potwierdzenie
@@ -424,7 +428,7 @@ def rent_vehicle(user: User):
 
         # Generowanie numerów do rezerwacji i faktury
         reservation_id = generate_reservation_id()
-        invoice_number = generate_invoice_number()
+        invoice_number = generate_invoice_number(end_date)
 
         # Aktualizowanie wypożyczonego pojazdu
         choosen_vechicle.is_available = False
