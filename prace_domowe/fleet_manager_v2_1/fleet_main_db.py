@@ -5,9 +5,8 @@ from fleet_manager_user import (
     add_client, remove_user, get_clients)
 from fleet_manager_fleet import (
     get_vehicle, rent_vehicle, return_vehicle,
-    add_vehicles_batch, remove_vehicle, pause_vehicle,
-    return_vehicle_from_client,
-    return_vehicle_by_id, rent_vehicle_for_client
+    add_vehicles_batch, remove_vehicle, rent_vehicle_for_client,
+    check_overdue_vehicles
 )
 session = SessionLocal()
 
@@ -82,10 +81,9 @@ def menu_seller(user):
 4. Dodaj nowy pojazd
 5. Usuń pojazd 
 6. Przeglądaj pojazdy
-7. Wypożycz pojazd klientowi *
-8. Zwróć pojazd od klienta *
-8. Zwróć pojazd po ID *
-10. Zmień hasło *
+7. Wypożycz pojazd klientowi
+8. Zwróć pojazd
+9. Zmień hasło *
 """)
         handle_choice({
             "0": logoff_user,
@@ -95,10 +93,9 @@ def menu_seller(user):
             "4": add_vehicles_batch,
             "5": remove_vehicle,
             "6": lambda: get_vehicle(),
-            "7": rent_vehicle_for_client,
-            "8": return_vehicle_from_client,
-            "9": return_vehicle_by_id,
-            "10": lambda: change_password(user)
+            "7": lambda: rent_vehicle_for_client(user),
+            "8": lambda: return_vehicle(user),
+            "9": lambda: change_password(user)
         })
 
 
@@ -115,9 +112,8 @@ def menu_admin(user):
 7. Usuń pojazd
 8. Przeglądaj pojazdy 
 9. Wypożycz pojazd klientowi
-10. Zwróć pojazd od klienta *
-11. Zwróć pojazd po ID *
-12. Zmień hasło *
+10. Zwróć pojazd
+11. Zmień hasło *
 """)
         handle_choice({
             "0": logoff_user,
@@ -129,10 +125,9 @@ def menu_admin(user):
             "6": add_vehicles_batch,
             "7": remove_vehicle,
             "8": lambda: get_vehicle(),
-            "9": rent_vehicle,
-            "10": return_vehicle_from_client,
-            "11": return_vehicle_by_id,
-            "12": lambda: change_password(user)
+            "9": lambda: rent_vehicle_for_client(user),
+            "10": lambda: return_vehicle(),
+            "11": lambda: change_password(user)
         })
 
 
@@ -142,6 +137,10 @@ def main():
         if not user:
             # np. jeśli login_user zwróci None lub anulujesz logowanie, wróć do start_menu
             continue
+
+        # Uruchamiamy automaty do sprawdzania przeterminowanych pojazdów tylko raz po zalogowaniu
+        if user.role in ("seller", "admin"):
+            check_overdue_vehicles(user, session)
 
         menus = {
             "client": menu_client,

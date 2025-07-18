@@ -1,9 +1,10 @@
 from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, Promotion
-from sqlalchemy import func, cast, Integer, extract
+from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select
 from sqlalchemy.exc import IntegrityError
 from fleet_database import Session, SessionLocal
 from datetime import date, datetime, timedelta
 from collections import defaultdict
+from fleet_manager_user import get_clients, get_users_by_role
 
 
 def generate_reservation_id():
@@ -34,7 +35,7 @@ def calculate_rental_cost(user, daily_rate, days):
         for promo in time_promos:
             if days >= promo.min_days:
                 discount = promo.discount_percent / 100.0
-                print(f"✅ Przyznano rabat {int(promo.discount_percent)}% ({promo.description})")
+                print(f"\n✅ Przyznano rabat {int(promo.discount_percent)}% ({promo.description})")
                 break
 
         # Cena po uwzględnieniu rabatu i 1 dnia gratis (jeśli przysługuje)
@@ -332,18 +333,41 @@ def get_vehicle(only_available: bool = False):
         print("\n❌ Zły wybór typu pojazdu, spróbuj jeszcze raz.")
         return
 
+    today = date.today()
+
     with Session() as session:
+
+        # Podstawowe zapytanie - LEFT OUTER JOIN z RentalHistory
+        active_rental_subq = session.query(RentalHistory.id).filter(
+            RentalHistory.vehicle_id == Vehicle.id,
+            RentalHistory.start_date <= today,
+            RentalHistory.end_date >= today
+        ).exists()
+
         query = session.query(Vehicle)
 
-        # Filtrowanie po statusie
-        if status == "available":
-            query = query.filter(Vehicle.is_available == True)
-        elif status == "rented":
-            query = query.filter(Vehicle.is_available == False)
-
-        # Filtrowanie po typie
+        # Filtrowanie po typie pojazdu
         if vehicle_type != "all":
             query = query.filter(Vehicle.type == vehicle_type)
+
+        # Filtrujemy po statusie
+        if status == "available":
+            # Pojazdy bez aktywnego wynajmu na dziś i z is_available = True
+            query = query.filter(
+                and_(
+                    ~active_rental_subq,
+                    Vehicle.is_available == True
+                )
+            )
+        elif status == "rented":
+            # Pojazdy które mają aktywny wynajem na dziś lub is_available=False
+            query = query.filter(
+                or_(
+                    active_rental_subq,
+                    Vehicle.is_available == False
+                )
+            )
+        # status == "all" - bez dodatkowych filtrów
 
         vehicles = query.order_by(Vehicle.type, Vehicle.vehicle_id).all()
 
@@ -361,7 +385,7 @@ def get_vehicle(only_available: bool = False):
 
 def rent_vehicle(user: User):
     print("\n=== WYPOŻYCZENIE POJAZDU ===\n")
-    vehicle_type = input("Wybierz typ pojazdu (car, bike, scooter): ").strip().lower()
+    vehicle_type = input("Wybierz typ pojazdu (bike, car, scooter): ").strip().lower()
     start_date_str = input("\nData rozpoczęcia (DD-MM-YYYY): ").strip()
     end_date_str = input("Data zakończenia (DD-MM-YYYY): ").strip()
 
@@ -392,7 +416,7 @@ def rent_vehicle(user: User):
             key = (v.brand, v.vehicle_model, v.cash_per_day)
             grouped[key].append(v)
 
-        print("\nDostępne grupy pojazdów:\n")
+        print("\n Dostępne grupy pojazdów:\n")
         for (brand, model, price), vehicles in grouped.items():
             print(f"{brand} | {model} | {price} zł/dzień | Dostępnych: {len(vehicles)}")
 
@@ -444,7 +468,7 @@ def rent_vehicle(user: User):
         rental = RentalHistory(
             reservation_id=reservation_id,
             user_id=user.id,
-            vehicle_id=choosen_vehicle.vehicle_id,
+            vehicle_id=choosen_vehicle.id,
             start_date=start_date,
             end_date=end_date,
             total_cost=total_cost
@@ -475,6 +499,7 @@ def rent_vehicle_for_client(user: User):
         )
 
         if client_id is None:
+            print(f"\nWypozyczasz pojazd dla: {client.login}.")
             rent_vehicle(user)
             return
 
@@ -484,57 +509,291 @@ def rent_vehicle_for_client(user: User):
                 print("❌ Nie znaleziono użytkownika o podanym ID.")
                 continue
 
-            if client.role != "Client":
+            print(f"\nZnaleziony klient: {client.id}, rola: '{client.role}'")  # diagnostyka
+
+            if client.role.lower() != "client":
                 print("🚫 Ten użytkownik nie ma roli klienta.")
                 continue
+
+            print(f"\nWypozyczasz pojazd dla: [{client.id}] - {client.first_name} {client.last_name}.")
 
             rent_vehicle(client)
             return
 
+def check_overdue_vehicles(user, session):
+    if user.role not in ("seller", "admin"):
+        return  # tylko dla seller i admin
+
+    print("\n=== Sprawdzanie przeterminowanych zwrotów pojazdów ===")
+
+    today = date.today()
+    overdue_vehicles = session.query(Vehicle).filter(
+        Vehicle.return_date != None,
+        Vehicle.return_date < today,
+        Vehicle.is_available == False
+    ).order_by(Vehicle.return_date.asc()).all()
+
+    if not overdue_vehicles:
+        print("Brak przeterminowanych zwrotów.\n")
+        return
+
+    for vehicle in overdue_vehicles:
+        print(f"\nPojazd: {vehicle.brand} {vehicle.vehicle_model} (ID: {vehicle.vehicle_id})")
+        print(f"Planowany zwrot: {vehicle.return_date}")
+        answer = input("Czy pojazd został zwrócony? (tak/nie): ").strip().lower()
+
+        if answer in ("tak", "t", "yes", "y"):
+            actual_return_str = input("Podaj datę zwrotu (DD-MM-YYYY): ").strip()
+            try:
+                actual_return_date = datetime.strptime(actual_return_str, "%d-%m-%Y").date()
+            except ValueError:
+                print("Niepoprawny format daty, pomijam ten pojazd.")
+                continue
+
+            # Oblicz opóźnienie
+            delay_days = (actual_return_date - vehicle.return_date).days
+            delay_days = max(0, delay_days)
+
+            # Szukamy powiązanej historii wypożyczenia (ostatniej rezerwacji tego pojazdu i tego wypożyczającego)
+            rental = session.query(RentalHistory).filter_by(
+                vehicle_id=vehicle.id,
+                user_id=vehicle.borrower_id
+            ).order_by(RentalHistory.end_date.desc()).first()
+
+            if not rental:
+                print("Nie znaleziono historii wypożyczenia tego pojazdu dla tego użytkownika.")
+                continue
+
+            # Obliczamy dodatkową opłatę za opóźnienie (100% ceny za dzień)
+            additional_fee = delay_days * vehicle.cash_per_day
+            print(f"Dodatkowa opłata za {delay_days} dni opóźnienia: {additional_fee:.2f} zł")
+
+            # Aktualizujemy end_date w RentalHistory (przedłużenie wypożyczenia)
+            if actual_return_date > rental.end_date:
+                print(f"Przedłużam wypożyczenie z {rental.end_date} do {actual_return_date}")
+                rental.end_date = actual_return_date
+
+                # Aktualizujemy całkowity koszt (bez rabatów, bo to dodatkowe dni)
+                base_days = (rental.end_date - rental.start_date).days + 1  # liczymy dni od początku do nowej daty
+                new_total_cost = base_days * vehicle.cash_per_day
+                rental.total_cost = new_total_cost
+
+                # Aktualizujemy fakturę powiązaną z rezerwacją (Invoice)
+                invoice = rental.invoice
+                if invoice:
+                    invoice.amount = new_total_cost
+                    print(f"Zaktualizowano kwotę faktury do: {invoice.amount:.2f} zł")
+                else:
+                    print("Brak faktury powiązanej z tą rezerwacją, nie można zaktualizować kwoty.")
+
+            # Aktualizacja pojazdu - zwrot i czyszczenie danych
+            vehicle.is_available = True
+            vehicle.borrower_id = None
+            vehicle.return_date = None
+
+            session.commit()
+            print(f"Pojazd {vehicle.vehicle_model} został zwrócony i jest dostępny.")
+
+        else:
+            print("Pojazd nadal wypożyczony, sprawdzimy go ponownie jutro.")
+
+    print("\n=== Koniec sprawdzania przeterminowanych zwrotów ===\n")
+
+def return_vehicle(user):
+    with Session() as session:
+
+        def update_costs_and_invoice(rental, vehicle, actual_return_date):
+            # Oblicz liczbę dni wynajmu od startu do faktycznego zwrotu
+            rental_days = (actual_return_date - rental.start_date).days + 1
+            if rental_days < 1:
+                rental_days = 1  # minimum 1 dzień
+
+            planned_days = (rental.end_date - rental.start_date).days + 1
+
+            # Czy zwrot jest przed terminem?
+            if actual_return_date < rental.end_date:
+                # Skrócenie wypożyczenia - zmniejszamy koszt i anulujemy rabaty
+                rental.end_date = actual_return_date
+                rental.total_cost = rental_days * vehicle.cash_per_day  # bez rabatów
+                print(f"Zwrot przed terminem. Nowa kwota do zapłaty: {rental.total_cost:.2f} zł (brak rabatów)")
+            elif actual_return_date > rental.end_date:
+                # Przeterminowanie - doliczamy opłatę 100% ceny za każdy dzień opóźnienia
+                delay_days = (actual_return_date - rental.end_date).days
+                base_cost = planned_days * vehicle.cash_per_day
+                additional_fee = delay_days * vehicle.cash_per_day
+                rental.end_date = actual_return_date
+                rental.total_cost = base_cost + additional_fee
+                print(f"Przeterminowanie o {delay_days} dni. Kwota do zapłaty: {rental.total_cost:.2f} zł (w tym opłata za opóźnienie {additional_fee:.2f} zł)")
+            else:
+                # Zwrot dokładnie w terminie
+                rental.total_cost = planned_days * vehicle.cash_per_day
+                print(f"Zwrot w terminie. Kwota do zapłaty: {rental.total_cost:.2f} zł")
+
+            # Aktualizuj fakturę powiązaną z wypożyczeniem
+            if rental.invoice:
+                rental.invoice.amount = rental.total_cost
+                print(f"Zaktualizowano fakturę: {rental.invoice.invoice_number}, kwota: {rental.invoice.amount:.2f} zł")
+
+        def process_return_for_vehicle(vehicle):
+
+            # Znajdź aktywne wypożyczenie (związane z pojazdem i użytkownikiem)
+            rental = session.query(RentalHistory).filter_by(
+                vehicle_id=vehicle.id,
+                user_id=vehicle.borrower_id
+            ).order_by(RentalHistory.start_date.desc()).first()
+
+            if not rental:
+                print(f"Nie znaleziono historii wypożyczenia pojazdu {vehicle.vehicle_model}. Pomijam.")
+                return False
+
+            print(f"\nPojazd do zwrotu: {vehicle.brand} {vehicle.vehicle_model} (ID: {vehicle.vehicle_id})")
+            print(f"Planowany termin zwrotu: {rental.end_date}")
+
+            actual_return_str = input("Podaj datę faktycznego zwrotu (DD-MM-YYYY): ").strip()
+            try:
+                actual_return_date = datetime.strptime(actual_return_str, "%d-%m-%Y").date()
+            except ValueError:
+                print("Niepoprawny format daty. Zwrot pominięty.")
+                return False
+
+            update_costs_and_invoice(rental, vehicle, actual_return_date)
+
+            # Aktualizacja pojazdu - zwrot
+            vehicle.is_available = True
+            vehicle.borrower_id = None
+            vehicle.return_date = None
+
+            session.commit()
+            print(f"Pojazd {vehicle.vehicle_model} został zwrócony i jest dostępny.")
+            return True
+
+        if user.role == "client":
+            # Pobierz pojazdy wypożyczone przez klienta
+            rented_vehicles = session.query(Vehicle).filter(
+                Vehicle.borrower_id == user.id,
+                Vehicle.is_available == False
+            ).all()
+
+            if not rented_vehicles:
+                print("Nie masz obecnie wypożyczonych pojazdów.")
+                return
+
+            for vehicle in rented_vehicles:
+                print("\nCzy chcesz zwrócić ten pojazd?")
+                print(f"{vehicle.brand} {vehicle.vehicle_model} (ID: {vehicle.vehicle_id})")
+                answer = input("(tak/nie): ").strip().lower()
+                if answer not in ("tak", "t", "yes", "y"):
+                    continue
+                process_return_for_vehicle(vehicle)
+
+        elif user.role in ("seller", "admin"):
+            while True:
+                # Najpierw opcjonalnie wyświetl wypożyczone pojazdy dla danego użytkownika - albo od razu pytaj o ID pojazdu
+                vehicle_id_str = input("\nPodaj ID pojazdu do zwrotu (lub wpisz 'koniec' aby wyjść): ").strip()
+                if vehicle_id_str.lower() == "koniec":
+                    break
+
+                try:
+                    vehicle_id = int(vehicle_id_str)
+                except ValueError:
+                    print("Niepoprawne ID pojazdu.")
+                    continue
+
+                vehicle = session.query(Vehicle).filter_by(id=vehicle_id).first()
+                if not vehicle:
+                    print("Nie znaleziono pojazdu o podanym ID.")
+                    continue
+
+                if vehicle.is_available:
+                    print("Ten pojazd jest już dostępny, nie jest wypożyczony.")
+                    continue
+
+                process_return_for_vehicle(vehicle)
+
+        else:
+            print("Funkcja dostępna tylko dla klientów, sprzedawców i administratorów.")
+
+def get_available_vehicles(session):
+    today = date.today()
+
+    # Krok 1: Wszystkie pojazdy oznaczone jako dostępne
+    available_vehicles = session.query(Vehicle).filter(Vehicle.is_available == True).all()
+
+    truly_available = []
+    for vehicle in available_vehicles:
+        # Krok 2: Sprawdzenie czy pojazd nie ma aktywnego wypożyczenia na dzisiaj
+        active_rental = session.query(RentalHistory).filter(
+            RentalHistory.vehicle_id == vehicle.vehicle_id,
+            RentalHistory.start_date <= today,
+            RentalHistory.end_date >= today
+        ).first()
+
+        if not active_rental:
+            truly_available.append(vehicle)
+
+    return truly_available
 
 
+def repair_vehicle():
+    with SessionLocal() as session:
+        available_vehicles = get_available_vehicles(session)
+        if not available_vehicles:
+            print("Brak dostępnych pojazdów do naprawy.")
+            return
 
+        print("\nDostępne pojazdy do naprawy:")
+        for v in available_vehicles:
+            print(f"- {v.vehicle_model} ({v.vehicle_type}), ID: {v.id}, Numer: {v.individual_id}")
 
+        try:
+            vehicle_id = int(input("Podaj ID pojazdu do przekazania do naprawy: "))
+        except ValueError:
+            print("Błędne ID.")
+            return
 
+        vehicle = session.query(Vehicle).filter_by(id=vehicle_id, is_available=True).first()
+        if not vehicle:
+            print("Nie znaleziono pojazdu lub jest niedostępny.")
+            return
 
+        workshops = get_users_by_role("workshop", session)
+        if not workshops:
+            print("Brak zdefiniowanych użytkowników warsztatu.")
+            return
 
+        print("\nDostępne warsztaty:")
+        for idx, w in enumerate(workshops, 1):
+            print(f"{idx}. {w.first_name} {w.last_name} ({w.login})")
 
-def return_vehicle():
-    print(">>> [MOCK] Zwracanie pojazdu...")
+        try:
+            workshop_choice = int(input("Wybierz numer warsztatu: ")) - 1
+            selected_workshop = workshops[workshop_choice]
+        except (IndexError, ValueError):
+            print("Nieprawidłowy wybór.")
+            return
 
-def pause_vehicle():
-    print(">>> [MOCK] Oddanie pojazdu do naprawy...")
+        try:
+            repair_days = int(input("Podaj liczbę dni naprawy: "))
+            return_date = datetime.today().date() + timedelta(days=repair_days)
+        except ValueError:
+            print("Błędna liczba dni.")
+            return
 
-def rent_vehicle_to_client():
-    print(">>> [MOCK] Wypozyczenie pojazdu do kientowi...")
+        # Historia naprawy
+        history = RentalHistory(
+            user_id=selected_workshop.id,
+            vehicle_id=vehicle.id,
+            rent_date=datetime.today().date(),
+            return_date=return_date,
+            repair=True  # jeśli masz taką kolumnę; jeśli nie — usuń
+        )
+        session.add(history)
 
-def return_vehicle_from_client():
-    print(">>> [MOCK] Zwrot pojazdu od kienta...")
+        # Aktualizacja pojazdu
+        vehicle.is_available = False
+        vehicle.borrower_id = selected_workshop.id
+        vehicle.return_date = return_date
 
-def return_vehicle_by_id():
-    print(">>> [MOCK] Zwrot pojazdu po ID...")
+        session.commit()
+        print(f"\nPojazd {vehicle.vehicle_model} przekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {return_date}.")
 
-
-
-# Do użycia przy zwrocie pojazdu.
-#
-#
-# days = (end_date - start_date).days or 1
-# total_cost = calculate_rental_cost(user, vehicle.cash_per_day, days, session)
-#
-# rental = RentalHistory(
-#     user_id=user.id,
-#     vehicle_id=vehicle.id,
-#     start_date=start_date,
-#     end_date=end_date,
-#     total_cost=total_cost
-# )
-# session.add(rental)
-#
-# # Oznacz pojazd jako dostępny
-# vehicle.is_available = True
-# vehicle.borrower_id = None
-# vehicle.return_date = None
-#
-# session.commit()
-# print(f"\n✅ Pojazd zwrócony. Opłata: {total_cost:.2f} zł.")

@@ -5,6 +5,9 @@ from sqlalchemy import or_, not_
 import bcrypt
 import getpass
 
+def get_users_by_role(role_name: str, session):
+    """Zwraca listę użytkowników o podanej roli."""
+    return session.query(User).filter_by(role=role_name).all()
 
 def login_user():
     # session = Session()
