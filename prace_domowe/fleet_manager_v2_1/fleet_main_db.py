@@ -6,8 +6,8 @@ from fleet_manager_user import (
 from fleet_manager_fleet import (
     get_vehicle, rent_vehicle, return_vehicle,
     add_vehicles_batch, remove_vehicle, pause_vehicle,
-    rent_vehicle_to_client, return_vehicle_from_client,
-    return_vehicle_by_id
+    return_vehicle_from_client,
+    return_vehicle_by_id, rent_vehicle_for_client
 )
 session = SessionLocal()
 
@@ -61,7 +61,7 @@ def menu_client(user):
 1. Przeglądaj pojazdy
 2. Wypożycz pojazd
 3. Zwróć pojazd *
-4. Zmień hasło*
+4. Zmień hasło *
 """)
         handle_choice({
             "0": logoff_user,
@@ -82,11 +82,10 @@ def menu_seller(user):
 4. Dodaj nowy pojazd
 5. Usuń pojazd 
 6. Przeglądaj pojazdy
-7. Wypożycz pojazd
-8. Wypożycz pojazd klientowi *
-9. Zwróć pojazd od klienta *
-10. Zwróć pojazd po ID *
-11. Zmień hasło *
+7. Wypożycz pojazd klientowi *
+8. Zwróć pojazd od klienta *
+8. Zwróć pojazd po ID *
+10. Zmień hasło *
 """)
         handle_choice({
             "0": logoff_user,
@@ -96,11 +95,10 @@ def menu_seller(user):
             "4": add_vehicles_batch,
             "5": remove_vehicle,
             "6": lambda: get_vehicle(),
-            "7": rent_vehicle,
-            "8": rent_vehicle_to_client,
-            "9": return_vehicle_from_client,
-            "10": return_vehicle_by_id,
-            "11": lambda: change_password(user)
+            "7": rent_vehicle_for_client,
+            "8": return_vehicle_from_client,
+            "9": return_vehicle_by_id,
+            "10": lambda: change_password(user)
         })
 
 
@@ -116,11 +114,10 @@ def menu_admin(user):
 6. Dodaj nowy pojazd
 7. Usuń pojazd
 8. Przeglądaj pojazdy 
-9. Wypożycz pojazd
-10. Wypożycz pojazd klientowi *
-11. Zwróć pojazd od klienta *
-12. Zwróć pojazd po ID *
-13. Zmień hasło *
+9. Wypożycz pojazd klientowi
+10. Zwróć pojazd od klienta *
+11. Zwróć pojazd po ID *
+12. Zmień hasło *
 """)
         handle_choice({
             "0": logoff_user,
@@ -133,10 +130,9 @@ def menu_admin(user):
             "7": remove_vehicle,
             "8": lambda: get_vehicle(),
             "9": rent_vehicle,
-            "10": rent_vehicle_to_client,
-            "11": return_vehicle_from_client,
-            "12": return_vehicle_by_id,
-            "13": lambda: change_password(user)
+            "10": return_vehicle_from_client,
+            "11": return_vehicle_by_id,
+            "12": lambda: change_password(user)
         })
 
 
