@@ -261,9 +261,9 @@ def update_profile(user: User):
             f"\n=== AKTUALIZACJA PROFILU UŻYTKOWNIKA ==="
             f"\nZalogowany jako: {user.first_name} {user.last_name} ({user.login})"
             f"\nCo chcesz zmienić?"
-            f"1. Dane osobowe (imę, nazwisko, telefon, email, adres zamiszkania)"
-            f"2. Hasło"
-            f"3. Wyjdź bez zmian"
+            f"\n1. Dane osobowe (imę, nazwisko, telefon, email, adres zamiszkania)"
+            f"\n2. Hasło"
+            f"\n3. Wyjdź bez zmian"
         )
 
         choice = input("\nWybierz opcję (1 -3)").strip()
@@ -290,13 +290,13 @@ def update_profile(user: User):
                 print(
                     f"\nNowe dane użytkownkia:"
                     f"\nImię: {new_first_name}"
-                    f"Nazwisko: {new_last_name}"
-                    f"Telefon: {new_phone}"
-                    f"Email: {new_email}"
-                    f"Adres: {new_address}"
+                    f"\nNazwisko: {new_last_name}"
+                    f"\nTelefon: {new_phone}"
+                    f"\nEmail: {new_email}"
+                    f"\nAdres: {new_address}"
                 )
 
-                contfirm = input("\nCzy zapisać zmiany? (tak/nie").strip().lower()
+                contfirm = input("\nCzy zapisać zmiany? (tak/nie): ").strip().lower()
                 if contfirm in ("tak", "t", "yes", "y"):
                     db_user.first_name = new_first_name
                     db_user.last_name = new_last_name

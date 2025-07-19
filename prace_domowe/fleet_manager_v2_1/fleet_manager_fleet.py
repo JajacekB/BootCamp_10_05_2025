@@ -337,7 +337,7 @@ def get_vehicle(only_available: bool = False):
 
     with Session() as session:
 
-        # Podstawowe zapytanie - LEFT OUTER JOIN z RentalHistory
+        # Subzapytanie sprawdzające czy pojazd ma aktywny wynajem
         active_rental_subq = session.query(RentalHistory.id).filter(
             RentalHistory.vehicle_id == Vehicle.id,
             RentalHistory.start_date <= today,
@@ -350,25 +350,25 @@ def get_vehicle(only_available: bool = False):
         if vehicle_type != "all":
             query = query.filter(Vehicle.type == vehicle_type)
 
-        # Filtrujemy po statusie
+        # Filtrowanie po statusie
         if status == "available":
-            # Pojazdy bez aktywnego wynajmu na dziś i z is_available = True
+            # Tylko pojazdy dostępne i bez aktywnego wypożyczenia
             query = query.filter(
                 and_(
-                    ~active_rental_subq,
-                    Vehicle.is_available == True
+                    Vehicle.is_available == True,
+                    ~active_rental_subq
                 )
             )
         elif status == "rented":
-            # Pojazdy które mają aktywny wynajem na dziś lub is_available=False
+            # Pojazdy które są niedostępne lub mają aktywny wynajem
             query = query.filter(
                 or_(
-                    active_rental_subq,
-                    Vehicle.is_available == False
+                    Vehicle.is_available == False,
+                    active_rental_subq
                 )
             )
-        # status == "all" - bez dodatkowych filtrów
 
+        # Sortowanie i wykonanie
         vehicles = query.order_by(Vehicle.type, Vehicle.vehicle_id).all()
 
         if not vehicles:
@@ -713,37 +713,38 @@ def return_vehicle(user: User):
         else:
             print("Funkcja dostępna tylko dla klientów, sprzedawców i administratorów.")
 
-def get_available_vehicles(session):
-    today = date.today()
+def get_available_vehicles():
+    with Session() as session:
+        today = date.today()
 
-    # Krok 1: Wszystkie pojazdy oznaczone jako dostępne
-    available_vehicles = session.query(Vehicle).filter(Vehicle.is_available == True).all()
+        # Krok 1: Wszystkie pojazdy oznaczone jako dostępne
+        available_vehicles = session.query(Vehicle).filter(Vehicle.is_available == True).all()
 
-    truly_available = []
-    for vehicle in available_vehicles:
-        # Krok 2: Sprawdzenie czy pojazd nie ma aktywnego wypożyczenia na dzisiaj
-        active_rental = session.query(RentalHistory).filter(
-            RentalHistory.vehicle_id == vehicle.vehicle_id,
-            RentalHistory.start_date <= today,
-            RentalHistory.end_date >= today
-        ).first()
+        truly_available = []
+        for vehicle in available_vehicles:
+            # Krok 2: Sprawdzenie czy pojazd nie ma aktywnego wypożyczenia na dzisiaj
+            active_rental = session.query(RentalHistory).filter(
+                RentalHistory.vehicle_id == vehicle.vehicle_id,
+                RentalHistory.start_date <= today,
+                RentalHistory.end_date >= today
+            ).first()
 
-        if not active_rental:
-            truly_available.append(vehicle)
+            if not active_rental:
+                truly_available.append(vehicle)
 
-    return truly_available
+        return truly_available
 
 
 def repair_vehicle():
     with SessionLocal() as session:
-        available_vehicles = get_available_vehicles(session)
+        available_vehicles = get_available_vehicles()
         if not available_vehicles:
             print("Brak dostępnych pojazdów do naprawy.")
             return
 
         print("\nDostępne pojazdy do naprawy:")
         for v in available_vehicles:
-            print(f"- {v.vehicle_model} ({v.vehicle_type}), ID: {v.id}, Numer: {v.individual_id}")
+            print(f"- {v.vehicle_model} ({v.type}), ID: {v.id}, Numer: {v.individual_id}")
 
         try:
             vehicle_id = int(input("Podaj ID pojazdu do przekazania do naprawy: "))
@@ -779,21 +780,32 @@ def repair_vehicle():
             print("Błędna liczba dni.")
             return
 
-        # Historia naprawy
-        history = RentalHistory(
-            user_id=selected_workshop.id,
-            vehicle_id=vehicle.id,
-            rent_date=datetime.today().date(),
-            return_date=return_date,
-            repair=True  # jeśli masz taką kolumnę; jeśli nie — usuń
-        )
-        session.add(history)
+        while True:
+            confirm = input(
+                f"\nPotwierdź oddanie do naprawy pojazdu:\n {vehicle}"
+                f"\nWybierz (tak/nie): "
+            ).strip().lower()
+            if confirm not in ("tak", "t", "yes", "y"):
+                print("\nNaprawa anulowana.")
+                return
 
-        # Aktualizacja pojazdu
-        vehicle.is_available = False
-        vehicle.borrower_id = selected_workshop.id
-        vehicle.return_date = return_date
+            # Historia naprawy
+            reservation_id = generate_reservation_id()
 
-        session.commit()
-        print(f"\nPojazd {vehicle.vehicle_model} przekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {return_date}.")
+            history = RentalHistory(
+                reservation_id=reservation_id,
+                user_id=selected_workshop.id,
+                vehicle_id=vehicle.id,
+                start_date=datetime.today().date(),
+                end_date=return_date,
+            )
+            session.add(history)
+
+            # Aktualizacja pojazdu
+            vehicle.is_available = False
+            vehicle.borrower_id = selected_workshop.id
+            vehicle.return_date = return_date
+
+            session.commit()
+            print(f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} przekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {return_date}.")
 

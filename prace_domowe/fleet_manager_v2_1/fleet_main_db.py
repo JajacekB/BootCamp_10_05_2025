@@ -6,7 +6,7 @@ from fleet_manager_user import (
 from fleet_manager_fleet import (
     get_vehicle, rent_vehicle, return_vehicle,
     add_vehicles_batch, remove_vehicle, rent_vehicle_for_client,
-    check_overdue_vehicles
+    check_overdue_vehicles, repair_vehicle
 )
 session = SessionLocal()
 
@@ -79,11 +79,12 @@ def menu_seller(user):
 2. Usuń klienta
 3. Przeglądaj klientów
 4. Dodaj nowy pojazd
-5. Usuń pojazd 
+5. Usuń pojazd z użytkowania
 6. Przeglądaj pojazdy
 7. Wypożycz pojazd klientowi
 8. Zwróć pojazd
-9. Aktualizuj profil
+9. Oddaj pojazd do naprawy
+10. Aktualizuj profil
 """)
         handle_choice({
             "0": logoff_user,
@@ -95,7 +96,8 @@ def menu_seller(user):
             "6": lambda: get_vehicle(),
             "7": lambda: rent_vehicle_for_client(user),
             "8": lambda: return_vehicle(user),
-            "9": lambda: update_profile(user)
+            "9": repair_vehicle,
+            "10": lambda: update_profile(user)
         })
 
 
@@ -109,10 +111,11 @@ def menu_admin(user):
 4. Usuń klienta
 5. Przeglądaj klientów
 6. Dodaj nowy pojazd
-7. Usuń pojazd
+7. Usuń pojazd z użytkowania
 8. Przeglądaj pojazdy 
 9. Wypożycz pojazd klientowi
 10. Zwróć pojazd
+11. Oddaj pojazd do naprawy
 11. Aktualizuj profil
 """)
         handle_choice({
@@ -127,7 +130,8 @@ def menu_admin(user):
             "8": lambda: get_vehicle(),
             "9": lambda: rent_vehicle_for_client(user),
             "10": lambda: return_vehicle(user),
-            "11": lambda: update_profile(user)
+            "11": repair_vehicle,
+            "12": lambda: update_profile(user)
         })
 
 

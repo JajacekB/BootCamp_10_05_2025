@@ -20,6 +20,7 @@ class Vehicle(Base):
 
     borrower = relationship("User", back_populates="vehicles")
     rental_history = relationship("RentalHistory", back_populates="vehicle")
+    repair = relationship("RepairHistory", back_populates="vehicle")
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -39,7 +40,8 @@ class Car(Vehicle):
 
     def __repr__(self):
         return(
-            f"ID: [{self.vehicle_id}]\n"
+            f"id: [{self.id}]\n"
+            f"Numer ewidencyjny: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
             f"{self.size}, {self.fuel_type}\n"
             f"Numer rejestracyjny: {self.individual_id}\n"
@@ -59,7 +61,8 @@ class Scooter(Vehicle):
 
     def __repr__(self):
         return (
-            f"ID: [{self.vehicle_id}]\n"
+            f"id: [{self.id}]\n"
+            f"Numer ewidencyjny: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
             f"Maks. prędkość: {self.max_speed}km/h\n"
             f"Numer rejestracyjny: {self.individual_id}\n"
@@ -69,7 +72,7 @@ class Scooter(Vehicle):
 
 
 class Bike(Vehicle):
-    __tablename__ = 'bikes'
+    __tablename__ = 'scooters'
     id = Column(Integer, ForeignKey('vehicles.id'), primary_key=True)
     bike_type = Column(String)
     is_electric = Column(Boolean)
@@ -80,7 +83,8 @@ class Bike(Vehicle):
 
     def __repr__(self):
         return (
-            f"ID: [{self.vehicle_id}]\n"
+            f"id: [{self.id}]\n"
+            f"Numer ewidencyjny: [{self.vehicle_id}]\n"
             f"{self.brand}, {self.vehicle_model}\n"
             f"{self.bike_type}, {'elektryczny' if self.is_electric else 'zwykły'}\n"
             f"Numer seryjny: {self.individual_id}\n"
@@ -101,8 +105,10 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
     address = Column(String, nullable=True)
+
     vehicles = relationship("Vehicle", back_populates="borrower")
     rental_history = relationship("RentalHistory", back_populates="user")
+    repair_done = relationship("RepairHistory", back_populates="mechanic", foreign_keys="RepairHistory.mechanic.id")
 
     def __repr__(self):
         return (f"    Klient: [ID={self.id}]\n"
@@ -127,6 +133,27 @@ class RentalHistory(Base):
 
     def __repr__(self):
         return f"<RentalHistory {self.reservation_id} User:{self.user_id} Vehicle:{self.vehicle_id}>"
+
+
+class RepairHistory(Base):
+    __tablename__ = 'repair_history'
+
+    id = Column(Integer, primary_key=True)
+    repair_id = Column(String, unique=True, nullable=False, index=True)
+
+    vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=False)
+    mechanic_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+
+    start_date = Column(Date, nullable=False)
+    end_date = Column(Date, nullable=False)
+    cost = Column(Float, nullable=True)
+    description = Column(String, nullable=True)
+
+    mechanic = relationship("User", back_populates="repairs_done", foreign_keys=[mechanic_id])
+    vehicle = relationship("Vehicle", back_populates="repairs")
+
+    def __repr__(self):
+        return f"<RepairHistory {self.repair_id} Mechanik:{self.mechanic} Vehicle:{self.vehicle_id}>"
 
 
 class Invoice(Base):
