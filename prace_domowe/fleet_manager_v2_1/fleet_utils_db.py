@@ -140,33 +140,43 @@ def calculate_rental_cost(user, daily_rate, days):
             "czasowy" if discount > 0 else "brak"))
 
 def get_available_vehicles():
+    today = date.today()
     with Session() as session:
-        today = date.today()
+        # 1. Wszystkie dostępne pojazdy (flaga)
+        available_vehs = session.query(Vehicle).filter(Vehicle.is_available == True).all()
+        available_ids = [v.id for v in available_vehs]
 
-        # Krok 1: Wszystkie pojazdy oznaczone jako dostępne
-        available_vehicles = session.query(Vehicle).filter(Vehicle.is_available == True).all()
+        if not available_ids:
+            return []
 
-        truly_available = []
-        for vehicle in available_vehicles:
-            # Krok 2: Sprawdzenie czy pojazd nie ma aktywnego wypożyczenia na dzisiaj
-            active_rental = session.query(RentalHistory).filter(
-                and_(
-                    RentalHistory.vehicle_id == vehicle.vehicle_id,
-                    RentalHistory.start_date <= today,
-                    RentalHistory.end_date >= today
-                )
-            ).first()
+        # 2. Pojazdy wypożyczone dzisiaj
+        rented_today = session.query(RentalHistory.vehicle_id).filter(
+            and_(
+                RentalHistory.vehicle_id.in_(available_ids),
+                RentalHistory.start_date <= today,
+                today <= RentalHistory.end_date
+            )
+        ).all()
+        rented_ids = [r[0] for r in rented_today]
 
-            active_repair = session.query(RepairHistory).filter(
-                and_(
-                    RepairHistory.vehicle_id == vehicle.vehicle_id,
-                    RepairHistory.start_date <= today,
-                    RepairHistory.end_date >= today
-                    )
-            ).first()
+        # 3. Pojazdy w naprawie dzisiaj
+        repaired_today = session.query(RepairHistory.vehicle_id).filter(
+            and_(
+                RepairHistory.vehicle_id.in_(available_ids),
+                RepairHistory.start_date <= today,
+                today <= RepairHistory.end_date
+            )
+        ).all()
+        repaired_ids = [r[0] for r in repaired_today]
 
-            if not active_rental and not active_repair:
-                truly_available.append(vehicle)
+        # 4. Łączymy ID pojazdów niedostępnych
+        unavailable_ids = set(rented_ids + repaired_ids)
+
+        # 5. Finalnie wybieramy pojazdy dostępne i **nie** w wypożyczeniu ani naprawie
+        truly_available = session.query(Vehicle).filter(
+            Vehicle.is_available == True,
+            Vehicle.id.notin_(unavailable_ids)
+        ).all()
 
         return truly_available
 

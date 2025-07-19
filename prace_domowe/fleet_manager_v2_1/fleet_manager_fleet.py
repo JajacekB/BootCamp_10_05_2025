@@ -221,24 +221,22 @@ def get_vehicle(only_available: bool = False):
     if only_available:
         status = "available"
     else:
-        status = input("\nKtóre pojazdy chcesz przejrzeć (all, available, rented): ").strip().lower()
-        if status not in ("all", "available", "rented"):
+        while True:
+            status = input("\nKtóre pojazdy chcesz przejrzeć (all, available, rented): ").strip().lower()
+            if status in ("all", "available", "rented"):
+                break
             print("\n❌ Zły wybór statusu pojazdu, spróbuj jeszcze raz.")
-            return
 
-    vehicle_type = input("\nJakiego typu pojazdy chcesz zobaczyć? (all, car, scooter, bike): ").strip().lower()
-    if vehicle_type not in ("all", "car", "scooter", "bike"):
+    while True:
+        vehicle_type = input("\nJakiego typu pojazdy chcesz zobaczyć? (all, car, scooter, bike): ").strip().lower()
+        if vehicle_type in ("all", "car", "scooter", "bike"):
+            break
         print("\n❌ Zły wybór typu pojazdu, spróbuj jeszcze raz.")
-        return
-
 
     with Session() as session:
-
         if status == "available":
-            # Użycie zewnętrznej funkcji get_available_vehicles
-            vehicles = get_available_vehicles()
+            vehicles = get_available_vehicles(session)
         elif status == "rented":
-            #zewnętrzna funkcja get_vehicle_unavailable_today
             unavailable_ids = get_vehicles_unavailable_today()
             if not unavailable_ids:
                 print("\n🚫 Brak niedostępnych pojazdów na dziś.")
@@ -247,7 +245,6 @@ def get_vehicle(only_available: bool = False):
         else:
             vehicles = session.query(Vehicle).all()
 
-        # Filtrowanie po typie pojazdu
         if vehicle_type != "all":
             vehicles = [v for v in vehicles if v.type == vehicle_type]
 
@@ -255,13 +252,21 @@ def get_vehicle(only_available: bool = False):
             print("🚫 Brak pojazdów spełniających podane kryteria.")
             return
 
+        # Przygotowujemy gotowe stringi WEWNĄTRZ sesji
+        output_lines = []
         current_type = None
-        print("\n=== POJAZDY ===")
         for vehicle in sorted(vehicles, key=lambda v: (v.type, v.vehicle_id)):
             if vehicle.type != current_type:
                 current_type = vehicle.type
-                print(f"\n--- {current_type.upper()} ---\n")
-            print(vehicle, "\n")
+                output_lines.append(f"\n--- {current_type.upper()} ---\n")
+            output_lines.append(str(vehicle) + "\n")
+
+    # Po wyjściu z with sesja jest zamknięta,
+    # ale mamy już gotowe teksty do wyświetlenia
+    print("\n=== POJAZDY ===")
+    for line in output_lines:
+        print(line)
+
 
 def rent_vehicle_for_client(user: User):
     print(f"\n>>> Rezerwacja dla klienta <<<")
