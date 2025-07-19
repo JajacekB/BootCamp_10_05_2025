@@ -1,5 +1,12 @@
 from fleet_models_db import Vehicle, RentalHistory, RepairHistory
 from datetime import date, datetime, timedelta
+from fleet_utils_db import (get_vehicles_unavailable_today,
+get_available_vehicles, generate_vehicle_id, generate_reservation_id,
+generate_invoice_number, generate_repair_id, get_positive_int,
+get_positive_float
+
+
+)
 
 
 def check_overdue_vehicles(user, session):

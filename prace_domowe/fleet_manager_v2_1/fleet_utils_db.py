@@ -202,7 +202,7 @@ def get_vehicles_unavailable_today():
         ).all()
 
         # Łączenie i zwracanie wyniku
-        rented_ids = [vid[0] for vid in rented_today]
-        repaired_ids = [vid[0] for vid in repaired_today]
+        rented_ids = [vid.vehicle_id for vid in rented_today]
+        repaired_ids = [vid.vehicle_id for vid in repaired_today]
 
         return list(set(rented_ids + repaired_ids))

@@ -263,127 +263,26 @@ def get_vehicle(only_available: bool = False):
                 print(f"\n--- {current_type.upper()} ---\n")
             print(vehicle, "\n")
 
-def rent_vehicle(user: User):
-    print("\n=== WYPOŻYCZENIE POJAZDU ===\n")
-    vehicle_type = input("Wybierz typ pojazdu (bike, car, scooter): ").strip().lower()
-    start_date_str = input("\nData rozpoczęcia (DD-MM-YYYY): ").strip()
-    end_date_str = input("Data zakończenia (DD-MM-YYYY): ").strip()
-
-    start_date = datetime.strptime(start_date_str, "%d-%m-%Y").date()
-    end_date = datetime.strptime(end_date_str, "%d-%m-%Y").date()
-
-    # Krok 1: Znajdź dostępne pojazdy
-    with Session() as session:
-        available_vehicles = (
-            session.query(Vehicle)
-            .filter(Vehicle.type == vehicle_type)
-            .filter(~Vehicle.rental_history.any(
-                (RentalHistory.start_date <= end_date) &
-                (RentalHistory.end_date >= start_date)
-            ))
-            .filter(Vehicle.is_available == True)
-            .order_by(Vehicle.cash_per_day, Vehicle.brand, Vehicle.vehicle_model)
-            .all()
-        )
-
-        if not available_vehicles:
-            print("|\n🚫 Brak dostępnych pojazdów w tym okresie.")
-            return
-
-        # Krok 2: Grupuj pojazdy
-        grouped = defaultdict(list)
-        for v in available_vehicles:
-            key = (v.brand, v.vehicle_model, v.cash_per_day)
-            grouped[key].append(v)
-
-        print("\n Dostępne grupy pojazdów:\n")
-        for (brand, model, price), vehicles in grouped.items():
-            print(f"{brand} | {model} | {price} zł/dzień | Dostępnych: {len(vehicles)}")
-
-        # Krok 3: Wybór modelu
-        while True:
-            choosen_model = input("\nPodaj model pojazdu do wypożyczenia: ").strip()
-            choosen_vehicle = next(
-                (v for v in available_vehicles if v.vehicle_model.lower() == choosen_model.lower()),
-                None
-            )
-
-            if not choosen_vehicle:
-                print("\n🚫 Nie znaleziono pojazdu o podanym medelu. Wybierz ponownie")
-                continue
-
-            else:
-                break
-
-        # Krok 4: Oblicz koszty i rabaty.
-        days = (end_date - start_date).days
-        base_cost = days * choosen_vehicle.cash_per_day
-        total_cost, discount_value, discount_type = calculate_rental_cost(user, choosen_vehicle.cash_per_day, days)
-
-        # Krok 5. Potwierdzenie
-
-        print(f"\nKoszt podstawowy: {base_cost} zł")
-        confirm = input(
-            f"\nCałkowity koszt wypozyczenia po naliczeniu rabatów to: {total_cost:.2f} zł.\n"
-            f"Czy akceptujesz? (Tak/Nie): "
-        ).strip().lower()
-        if confirm not in ("tak", "t", "yes", "y"):
-            print("\n🚫 Anulowano rezerwację")
-            return
-
-        # Krok 6. Zapis danych do bazy
-
-        # Generowanie numerów do rezerwacji i faktury
-        reservation_id = generate_reservation_id()
-        invoice_number = generate_invoice_number(end_date)
-
-        # Aktualizowanie wypożyczonego pojazdu
-        choosen_vehicle.is_available = False
-        choosen_vehicle.return_date = end_date
-        choosen_vehicle.borrower_id = user.id
-
-        session.add(choosen_vehicle)
-
-        # Aktualizacja historii wypożyczeń
-        rental = RentalHistory(
-            reservation_id=reservation_id,
-            user_id=user.id,
-            vehicle_id=choosen_vehicle.id,
-            start_date=start_date,
-            end_date=end_date,
-            total_cost=total_cost
-        )
-
-        # Dane do faktury
-        invoice = Invoice(
-            invoice_number=invoice_number,
-            rental_id=reservation_id,
-            amount=total_cost,
-            issue_date=end_date
-        )
-
-        session.add_all([rental, invoice])
-        session.commit()
-
-        print(
-            f"\n✅ Zarezerwowałeś {choosen_vehicle.brand} {choosen_vehicle.vehicle_model}\n"
-            f"W terminie od {start_date} do {end_date}.\n"
-            f" Miłej jazdy!")
-
 def rent_vehicle_for_client(user: User):
     print(f"\n>>> Rezerwacja dla klienta <<<")
-    while True:
-        client_id = get_positive_int(
-            "\nPodaj id klienta, dla którego chcesz wynająć pojazd (ENTER = Ty sam): ",
-            allow_empty=True
-        )
 
-        if client_id is None:
-            print(f"\nWypozyczasz pojazd dla: {client.login}.")
-            rent_vehicle(user)
-            return
+    if user.role.lower() not in ("seller", "admin"):
+        print("🚫 Tylko sprzedawcy i administratorzy mogą rezerwować pojazdy dla klientów.")
+        return
 
-        with Session() as session:
+    with Session() as session:
+        while True:
+            client_id = get_positive_int(
+                "\nPodaj id klienta, dla którego chcesz wynająć pojazd (ENTER = Ty sam): ",
+                allow_empty=True
+            )
+
+            if client_id is None:
+                print(f"\nWypożyczasz pojazd dla siebie: {user.first_name} {user.last_name} ({user.login}).")
+                rent_vehicle(user)
+                return
+
+
             client = session.query(User).filter_by(id=client_id).first()
             if not client:
                 print("❌ Nie znaleziono użytkownika o podanym ID.")
@@ -397,8 +296,120 @@ def rent_vehicle_for_client(user: User):
 
             print(f"\nWypozyczasz pojazd dla: [{client.id}] - {client.first_name} {client.last_name}.")
 
-            rent_vehicle(client)
+            rent_vehicle(client, session=session)
             return
+
+
+def rent_vehicle(user: User, session=None):
+    if session is None:
+        with Session() as session:
+            return rent_vehicle(user, session=session)  # rekurencja z właściwą sesją
+    print("\n=== WYPOŻYCZENIE POJAZDU ===\n")
+    vehicle_type = input("Wybierz typ pojazdu (bike, car, scooter): ").strip().lower()
+    start_date_str = input("\nData rozpoczęcia (DD-MM-YYYY): ").strip()
+    end_date_str = input("Data zakończenia (DD-MM-YYYY): ").strip()
+
+    start_date = datetime.strptime(start_date_str, "%d-%m-%Y").date()
+    end_date = datetime.strptime(end_date_str, "%d-%m-%Y").date()
+
+    # Krok 1: Znajdź dostępne pojazdy
+
+    available_vehicles = (
+        session.query(Vehicle)
+        .filter(Vehicle.type == vehicle_type)
+        .filter(~Vehicle.rental_history.any(
+            (RentalHistory.start_date <= end_date) &
+            (RentalHistory.end_date >= start_date)
+        ))
+        .filter(Vehicle.is_available == True)
+        .order_by(Vehicle.cash_per_day, Vehicle.brand, Vehicle.vehicle_model)
+        .all()
+    )
+
+    if not available_vehicles:
+        print("|\n🚫 Brak dostępnych pojazdów w tym okresie.")
+        return
+
+    # Krok 2: Grupuj pojazdy
+    grouped = defaultdict(list)
+    for v in available_vehicles:
+        key = (v.brand, v.vehicle_model, v.cash_per_day)
+        grouped[key].append(v)
+
+    print("\n Dostępne grupy pojazdów:\n")
+    for (brand, model, price), vehicles in grouped.items():
+        print(f"{brand} | {model} | {price} zł/dzień | Dostępnych: {len(vehicles)}")
+
+    # Krok 3: Wybór modelu
+    while True:
+        choosen_model = input("\nPodaj model pojazdu do wypożyczenia: ").strip()
+        choosen_vehicle = next(
+            (v for v in available_vehicles if v.vehicle_model.lower() == choosen_model.lower()),
+            None
+        )
+
+        if not choosen_vehicle:
+            print("\n🚫 Nie znaleziono pojazdu o podanym medelu. Wybierz ponownie")
+            continue
+
+        else:
+            break
+
+    # Krok 4: Oblicz koszty i rabaty.
+    days = (end_date - start_date).days
+    base_cost = days * choosen_vehicle.cash_per_day
+    total_cost, discount_value, discount_type = calculate_rental_cost(user, choosen_vehicle.cash_per_day, days)
+
+    # Krok 5. Potwierdzenie
+
+    print(f"\nKoszt podstawowy: {base_cost} zł")
+    confirm = input(
+        f"\nCałkowity koszt wypozyczenia po naliczeniu rabatów to: {total_cost:.2f} zł.\n"
+        f"Czy akceptujesz? (Tak/Nie): "
+    ).strip().lower()
+    if confirm not in ("tak", "t", "yes", "y"):
+        print("\n🚫 Anulowano rezerwację")
+        return
+
+    # Krok 6. Zapis danych do bazy
+
+    # Generowanie numerów do rezerwacji i faktury
+    reservation_id = generate_reservation_id()
+    invoice_number = generate_invoice_number(end_date)
+
+    # Aktualizowanie wypożyczonego pojazdu
+    choosen_vehicle.is_available = False
+    choosen_vehicle.return_date = end_date
+    choosen_vehicle.borrower_id = user.id
+
+    session.add(choosen_vehicle)
+
+    # Aktualizacja historii wypożyczeń
+    rental = RentalHistory(
+        reservation_id=reservation_id,
+        user_id=user.id,
+        vehicle_id=choosen_vehicle.id,
+        start_date=start_date,
+        end_date=end_date,
+        total_cost=total_cost
+    )
+
+    # Dane do faktury
+    invoice = Invoice(
+        invoice_number=invoice_number,
+        rental_id=reservation_id,
+        amount=total_cost,
+        issue_date=end_date
+    )
+
+    session.add_all([rental, invoice])
+    session.commit()
+
+    print(
+        f"\n✅ Zarezerwowałeś {choosen_vehicle.brand} {choosen_vehicle.vehicle_model}\n"
+        f"W terminie od {start_date} do {end_date}.\n"
+        f" Miłej jazdy!")
+
 
 def return_vehicle(user: User):
     with Session() as session:

@@ -9,7 +9,7 @@ from fleet_manager_fleet import (
     repair_vehicle
 )
 from fleet_overdue_db import check_overdue_vehicles
-session = SessionLocal()
+# session = SessionLocal()
 
 
 def logoff_user():
@@ -29,7 +29,10 @@ def handle_choice(options: dict):
 
 def start_menu():
     while True:
-        show_dynamic_promo_banner(session)
+        with SessionLocal() as session:
+            show_dynamic_promo_banner(session)
+
+
         print("""
 === SYSTEM WYPOŻYCZANIA POJAZDÓW ===
 
@@ -53,7 +56,8 @@ def start_menu():
         else:
             print("❌ Niepoprawny wybór, spróbuj ponownie.")
 
-def menu_client(user):
+
+def menu_client(user, session):
     while True:
         show_dynamic_promo_banner(session)
         print(f"""\n=== MENU KLIENTA ===
@@ -72,7 +76,7 @@ def menu_client(user):
         })
 
 
-def menu_seller(user):
+def menu_seller(user, session):
     while True:
         print(f"""\n=== MENU SPRZEDAWCY ===
 0. Wyloguj się
@@ -102,7 +106,7 @@ def menu_seller(user):
         })
 
 
-def menu_admin(user):
+def menu_admin(user, session):
     while True:
         print(f"""\n=== MENU ADMINA ===
 0. Wyloguj się 
@@ -117,7 +121,7 @@ def menu_admin(user):
 9. Wypożycz pojazd klientowi
 10. Zwróć pojazd
 11. Oddaj pojazd do naprawy
-11. Aktualizuj profil
+12. Aktualizuj profil
 """)
         handle_choice({
             "0": logoff_user,
@@ -143,24 +147,22 @@ def main():
             # np. jeśli login_user zwróci None lub anulujesz logowanie, wróć do start_menu
             continue
 
-        # Uruchamiamy automaty do sprawdzania przeterminowanych pojazdów tylko raz po zalogowaniu
-        if user.role in ("seller", "admin"):
-            check_overdue_vehicles(user, session)
+        with SessionLocal() as session:
+            # Uruchamiamy automaty do sprawdzania przeterminowanych pojazdów tylko raz po zalogowaniu
+            if user.role in ("seller", "admin"):
+                check_overdue_vehicles(user, session)
 
-        menus = {
-            "client": menu_client,
-            "seller": menu_seller,
-            "admin": menu_admin
-        }
-        menu_function = menus.get(user.role)
-        if menu_function:
-            menu_function(user)
-        else:
-            print(f"❌ Nieznana rola użytkownika: {user.role}")
+            menus = {
+                "client": menu_client,
+                "seller": menu_seller,
+                "admin": menu_admin
+            }
+            menu_function = menus.get(user.role)
+            if menu_function:
+                menu_function(user, session)
+            else:
+                print(f"❌ Nieznana rola użytkownika: {user.role}")
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    finally:
-        session.close()
+    main()

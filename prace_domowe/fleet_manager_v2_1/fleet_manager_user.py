@@ -10,7 +10,6 @@ def get_users_by_role(role_name: str, session):
     return session.query(User).filter_by(role=role_name).all()
 
 def login_user():
-    # session = Session()
     while True:
         print("\n=== LOGOWANIE DO SYSTEMU ===")
         login_or_email = input("\nLogin: ").strip()
@@ -183,6 +182,7 @@ def get_clients():
             print("\n>>> WSZYSCY KIENCI WYPOŻYCZALNI <<<\n")
             for client in clients:
                 print(client, "\n")
+
         elif client_status in ("t", "tak", "z", "z wypożyczeniem"):
             borrower_ids = (
                 session.query(Vehicle.borrower_id)
