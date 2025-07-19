@@ -1,118 +1,15 @@
-from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, Promotion
+from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, Promotion, RepairHistory
 from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select
 from sqlalchemy.exc import IntegrityError
 from fleet_database import Session, SessionLocal
 from datetime import date, datetime, timedelta
 from collections import defaultdict
-from fleet_manager_user import get_clients, get_users_by_role
-
-
-def generate_reservation_id():
-    with Session() as session:
-        last = session.query(RentalHistory).order_by(RentalHistory.id.desc()).first()
-        last_num = int(last.reservation_id[1:]) if last else 0
-        new_num = last_num + 1
-        return f"R{new_num:04d}"
-
-def calculate_rental_cost(user, daily_rate, days):
-    with Session() as session:
-        """
-        Zwraca koszt z uwzględnieniem rabatu czasowego i lojalnościowego.
-        """
-        # Zlicz zakończone wypożyczenia
-        past_rentals = session.query(RentalHistory).filter_by(user_id=user.id).count()
-        next_rental_number = past_rentals + 1
-
-        # Sprawdzenie promocji lojalnościowej (co 10. wypożyczenie)
-        loyalty_discount_days = 1 if next_rental_number % 10 == 0 else 0
-        if loyalty_discount_days == 1:
-            print("🎉 To Twoje 10., 20., 30... wypożyczenie – pierwszy dzień za darmo!")
-
-        # Pobierz rabaty czasowe z tabeli
-        time_promos = session.query(Promotion).filter_by(type="time").order_by(Promotion.min_days.desc()).all()
-
-        discount = 0.0
-        for promo in time_promos:
-            if days >= promo.min_days:
-                discount = promo.discount_percent / 100.0
-                print(f"\n✅ Przyznano rabat {int(promo.discount_percent)}% ({promo.description})")
-                break
-
-        # Cena po uwzględnieniu rabatu i 1 dnia gratis (jeśli przysługuje)
-        paid_days = max(days - loyalty_discount_days, 0)
-        price = paid_days * daily_rate * (1 - discount)
-
-        return round(price, 2), discount * 100, "lojalność + czasowy" if discount > 0 and loyalty_discount_days else (
-            "lojalność" if loyalty_discount_days else (
-            "czasowy" if discount > 0 else "brak"))
-
-def generate_invoice_number(end_date):
-    """
-                Generuje numer faktury w formacie FV/YYYY/MM/NNNN
-                - session: aktywna sesja SQLAlchemy
-                - end_date: data zakończenia wypożyczenia (datetime.date)
-                """
-    with Session() as session:
-
-        year = end_date.year
-        month = end_date.month
-
-        # Policz faktury wystawione w danym roku i miesiącu
-        count = session.query(Invoice).filter(
-            extract('year', Invoice.issue_date) == year,
-            extract('month', Invoice.issue_date) == month
-        ).count()
-
-        # Dodaj 1 do sekwencji
-        sequence = count + 1
-
-        # Zbuduj numer faktury
-        invoice_number = f"FV/{year}/{month:02d}/{sequence:04d}"
-        return invoice_number
-
-def generate_vehicle_id( prefix: str) -> str:
-    with Session() as session:
-        prefix_len = len(prefix)
-        prefix_upper = prefix.upper()
-        max_number = session.query(
-            func.max(
-                cast(func.substr(Vehicle.vehicle_id, prefix_len + 1), Integer)
-            )
-        ).filter(
-            Vehicle.vehicle_id.ilike(f"{prefix_upper}%")
-        ).scalar()
-
-        if max_number is None:
-            max_number = 0
-
-        next_number = max_number + 1
-        new_vehicle_id = f"{prefix_upper}{next_number:03d}"
-        return new_vehicle_id
-
-def get_positive_int(prompt, allow_empty=False):
-    while True:
-        value = input(prompt).strip()
-        if allow_empty and not value:
-            return None
-        try:
-            value = int(value)
-            if value > 0:
-                return value
-            else:
-                print("❌ Liczba musi być większa od zera.")
-        except ValueError:
-            print("❌ Wprowadź poprawną liczbę całkowitą (np. 25).")
-
-def get_positive_float(prompt):
-    while True:
-        try:
-            value = float(input(prompt).strip())
-            if value > 0:
-                return value
-            else:
-                print("❌ Liczba musi być większa od zera.")
-        except ValueError:
-            print("❌ Wprowadź poprawną liczbę (np. 25.5).")
+from fleet_manager_user import get_users_by_role
+from fleet_utils_db import (
+    get_positive_int, get_positive_float,generate_repair_id,
+    generate_vehicle_id, generate_reservation_id, generate_invoice_number,
+    calculate_rental_cost, get_available_vehicles, get_vehicles_unavailable_today
+)
 
 def add_vehicles_batch():
     # Krok 1. Wybór typu pojazdu
@@ -233,7 +130,7 @@ def add_vehicles_batch():
 
                     if vehicle_type == "car":
                         new_size = input(f"Rozmiar ({specific_fields['size']}): ").strip()
-                        new_fuel = input(f"Paliwo ({specific_fields["fuel_type"]}): ").strip()
+                        new_fuel = input(f"Paliwo ({specific_fields['fuel_type']}): ").strip()
                         if new_size: specific_fields['size'] = new_size.capitalize()
                         if new_fuel: specific_fields['fuel_type'] = new_fuel
 
@@ -335,41 +232,26 @@ def get_vehicle(only_available: bool = False):
 
     today = date.today()
 
+    today = date.today()
+
     with Session() as session:
 
-        # Subzapytanie sprawdzające czy pojazd ma aktywny wynajem
-        active_rental_subq = session.query(RentalHistory.id).filter(
-            RentalHistory.vehicle_id == Vehicle.id,
-            RentalHistory.start_date <= today,
-            RentalHistory.end_date >= today
-        ).exists()
-
-        query = session.query(Vehicle)
+        if status == "available":
+            # Użycie zewnętrznej funkcji get_available_vehicles
+            vehicles = get_available_vehicles()
+        elif status == "rented":
+            #zewnętrzna funkcja get_vehicle_unavailable_today
+            unavailable_ids = get_vehicles_unavailable_today()
+            if not unavailable_ids:
+                print("\n🚫 Brak niedostępnych pojazdów na dziś.")
+                return
+            vehicles = session.query(Vehicle).filter(Vehicle.id.in_(unavailable_ids)).all()
+        else:
+            vehicles = session.query(Vehicle).all()
 
         # Filtrowanie po typie pojazdu
         if vehicle_type != "all":
-            query = query.filter(Vehicle.type == vehicle_type)
-
-        # Filtrowanie po statusie
-        if status == "available":
-            # Tylko pojazdy dostępne i bez aktywnego wypożyczenia
-            query = query.filter(
-                and_(
-                    Vehicle.is_available == True,
-                    ~active_rental_subq
-                )
-            )
-        elif status == "rented":
-            # Pojazdy które są niedostępne lub mają aktywny wynajem
-            query = query.filter(
-                or_(
-                    Vehicle.is_available == False,
-                    active_rental_subq
-                )
-            )
-
-        # Sortowanie i wykonanie
-        vehicles = query.order_by(Vehicle.type, Vehicle.vehicle_id).all()
+            vehicles = [v for v in vehicles if v.type == vehicle_type]
 
         if not vehicles:
             print("🚫 Brak pojazdów spełniających podane kryteria.")
@@ -377,7 +259,7 @@ def get_vehicle(only_available: bool = False):
 
         current_type = None
         print("\n=== POJAZDY ===")
-        for vehicle in vehicles:
+        for vehicle in sorted(vehicles, key=lambda v: (v.type, v.vehicle_id)):
             if vehicle.type != current_type:
                 current_type = vehicle.type
                 print(f"\n--- {current_type.upper()} ---\n")
@@ -520,85 +402,6 @@ def rent_vehicle_for_client(user: User):
             rent_vehicle(client)
             return
 
-def check_overdue_vehicles(user, session):
-    if user.role not in ("seller", "admin"):
-        return  # tylko dla seller i admin
-
-    print("\n=== Sprawdzanie przeterminowanych zwrotów pojazdów ===")
-
-    today = date.today()
-    overdue_vehicles = session.query(Vehicle).filter(
-        Vehicle.return_date != None,
-        Vehicle.return_date < today,
-        Vehicle.is_available == False
-    ).order_by(Vehicle.return_date.asc()).all()
-
-    if not overdue_vehicles:
-        print("Brak przeterminowanych zwrotów.\n")
-        return
-
-    for vehicle in overdue_vehicles:
-        print(f"\nPojazd: {vehicle.brand} {vehicle.vehicle_model} (ID: {vehicle.vehicle_id})")
-        print(f"Planowany zwrot: {vehicle.return_date}")
-        answer = input("Czy pojazd został zwrócony? (tak/nie): ").strip().lower()
-
-        if answer in ("tak", "t", "yes", "y"):
-            actual_return_str = input("Podaj datę zwrotu (DD-MM-YYYY): ").strip()
-            try:
-                actual_return_date = datetime.strptime(actual_return_str, "%d-%m-%Y").date()
-            except ValueError:
-                print("Niepoprawny format daty, pomijam ten pojazd.")
-                continue
-
-            # Oblicz opóźnienie
-            delay_days = (actual_return_date - vehicle.return_date).days
-            delay_days = max(0, delay_days)
-
-            # Szukamy powiązanej historii wypożyczenia (ostatniej rezerwacji tego pojazdu i tego wypożyczającego)
-            rental = session.query(RentalHistory).filter_by(
-                vehicle_id=vehicle.id,
-                user_id=vehicle.borrower_id
-            ).order_by(RentalHistory.end_date.desc()).first()
-
-            if not rental:
-                print("Nie znaleziono historii wypożyczenia tego pojazdu dla tego użytkownika.")
-                continue
-
-            # Obliczamy dodatkową opłatę za opóźnienie (100% ceny za dzień)
-            additional_fee = delay_days * vehicle.cash_per_day
-            print(f"Dodatkowa opłata za {delay_days} dni opóźnienia: {additional_fee:.2f} zł")
-
-            # Aktualizujemy end_date w RentalHistory (przedłużenie wypożyczenia)
-            if actual_return_date > rental.end_date:
-                print(f"Przedłużam wypożyczenie z {rental.end_date} do {actual_return_date}")
-                rental.end_date = actual_return_date
-
-                # Aktualizujemy całkowity koszt (bez rabatów, bo to dodatkowe dni)
-                base_days = (rental.end_date - rental.start_date).days + 1  # liczymy dni od początku do nowej daty
-                new_total_cost = base_days * vehicle.cash_per_day
-                rental.total_cost = new_total_cost
-
-                # Aktualizujemy fakturę powiązaną z rezerwacją (Invoice)
-                invoice = rental.invoice
-                if invoice:
-                    invoice.amount = new_total_cost
-                    print(f"Zaktualizowano kwotę faktury do: {invoice.amount:.2f} zł")
-                else:
-                    print("Brak faktury powiązanej z tą rezerwacją, nie można zaktualizować kwoty.")
-
-            # Aktualizacja pojazdu - zwrot i czyszczenie danych
-            vehicle.is_available = True
-            vehicle.borrower_id = None
-            vehicle.return_date = None
-
-            session.commit()
-            print(f"Pojazd {vehicle.vehicle_model} został zwrócony i jest dostępny.")
-
-        else:
-            print("Pojazd nadal wypożyczony, sprawdzimy go ponownie jutro.")
-
-    print("\n=== Koniec sprawdzania przeterminowanych zwrotów ===\n")
-
 def return_vehicle(user: User):
     with Session() as session:
 
@@ -713,28 +516,6 @@ def return_vehicle(user: User):
         else:
             print("Funkcja dostępna tylko dla klientów, sprzedawców i administratorów.")
 
-def get_available_vehicles():
-    with Session() as session:
-        today = date.today()
-
-        # Krok 1: Wszystkie pojazdy oznaczone jako dostępne
-        available_vehicles = session.query(Vehicle).filter(Vehicle.is_available == True).all()
-
-        truly_available = []
-        for vehicle in available_vehicles:
-            # Krok 2: Sprawdzenie czy pojazd nie ma aktywnego wypożyczenia na dzisiaj
-            active_rental = session.query(RentalHistory).filter(
-                RentalHistory.vehicle_id == vehicle.vehicle_id,
-                RentalHistory.start_date <= today,
-                RentalHistory.end_date >= today
-            ).first()
-
-            if not active_rental:
-                truly_available.append(vehicle)
-
-        return truly_available
-
-
 def repair_vehicle():
     with SessionLocal() as session:
         available_vehicles = get_available_vehicles()
@@ -766,23 +547,22 @@ def repair_vehicle():
         for idx, w in enumerate(workshops, 1):
             print(f"{idx}. {w.first_name} {w.last_name} ({w.login})")
 
-        try:
-            workshop_choice = int(input("Wybierz numer warsztatu: ")) - 1
-            selected_workshop = workshops[workshop_choice]
-        except (IndexError, ValueError):
-            print("Nieprawidłowy wybór.")
-            return
 
-        try:
-            repair_days = int(input("Podaj liczbę dni naprawy: "))
-            return_date = datetime.today().date() + timedelta(days=repair_days)
-        except ValueError:
-            print("Błędna liczba dni.")
-            return
+        workshop_choice = get_positive_int("Wybierz numer warsztatu: ") - 1
+        selected_workshop = workshops[workshop_choice]
+
+        repair_days = get_positive_int("Podaj liczbę dni naprawy: ")
+        return_date = datetime.today().date() + timedelta(days=repair_days)
+
+        repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy; ")
+        repair_cost = repair_cost_per_day * repair_days
+
+        description = input("\nKrótko opisz zakres naprawy: ")
 
         while True:
             confirm = input(
                 f"\nPotwierdź oddanie do naprawy pojazdu:\n {vehicle}"
+                f"\nKoszt naprawy {repair_cost} zł"
                 f"\nWybierz (tak/nie): "
             ).strip().lower()
             if confirm not in ("tak", "t", "yes", "y"):
@@ -790,16 +570,18 @@ def repair_vehicle():
                 return
 
             # Historia naprawy
-            reservation_id = generate_reservation_id()
+            repair_id = generate_repair_id()
 
-            history = RentalHistory(
-                reservation_id=reservation_id,
-                user_id=selected_workshop.id,
+            repair = RepairHistory(
+                repair_id=repair_id,
                 vehicle_id=vehicle.id,
+                mechanic_id=selected_workshop.id,
                 start_date=datetime.today().date(),
                 end_date=return_date,
+                cost=repair_cost,
+                description=description
             )
-            session.add(history)
+            session.add(repair)
 
             # Aktualizacja pojazdu
             vehicle.is_available = False
@@ -807,5 +589,8 @@ def repair_vehicle():
             vehicle.return_date = return_date
 
             session.commit()
-            print(f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} przekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {return_date}.")
-
+            print(
+                f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
+                f"\nprzekazany do warsztatu: {selected_workshop.first_name}: {selected_workshop.last_name} do dnia {return_date}."
+            )
+            return

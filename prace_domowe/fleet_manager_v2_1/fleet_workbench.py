@@ -1,4 +1,4 @@
-from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, Promotion
+from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, RepairHistory, Invoice, Promotion
 from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select
 from sqlalchemy.exc import IntegrityError
 from fleet_database import Session, SessionLocal
@@ -8,41 +8,47 @@ from fleet_manager_user import get_clients, get_users_by_role
 
 
 with Session() as session:
-    un_available = session.query(Vehicle).filter(Vehicle.is_available == False).all()
-    for u in un_available:
-        print(u)
-        print(u.id)
+    today = date.today()
+    unavailable_vehs = session.query(Vehicle).filter(Vehicle.is_available == False).all()
+    for v in unavailable_vehs:
+        # print(v)
+        print(v.id)
 
-    rented = session.query(Vehicle).filter(Vehicle.is_available == False).first()
-    print("\n", rented)
-    print(f"\n {rented.id}")
+    unavailable_veh_ids = [veh.id for veh in unavailable_vehs]
+    for veh_id in unavailable_veh_ids:
+        print(veh_id)
+        print(type(veh_id))
 
-
-    today_test = date.today()
-    print(f"\nDzisiaj: {today_test}  {type(today_test)}")
-
-
-    vehicle_start = session.query(RentalHistory).filter(RentalHistory.start_date).first()
-
-    vehicle_end = session.query(RentalHistory).filter(RentalHistory.end_date).first()
-
-    print(
-        f"\nPoczątek: {vehicle_start.start_date} - {type(vehicle_start.start_date)}"
-    )
-
-    print(
-        f"\nKoniec: {vehicle_end.end_date} - {type(vehicle_end.end_date)}"
-    )
-
-    test_pojazdu = session.query(RentalHistory).filter(RentalHistory.vehicle_id == rented.id)
-    print(test_pojazdu, type(test_pojazdu))
-
-    test_daty = session.query(RentalHistory).filter(
+    rentals = session.query(RentalHistory).filter(
         and_(
-            RentalHistory.start_date <= today_test,
-            today_test <= RentalHistory.end_date)).all()
-    for v in test_daty:
-        print(v)
+            RentalHistory.vehicle_id.in_(unavailable_veh_ids),
+            RentalHistory.start_date <= today,
+            today <= RentalHistory.end_date)
+    ).all()
+
+    for rental in rentals:
+        print(rental.vehicle_id)
+
+    print(111 * "2")
+
+    repaireds = session.query(RepairHistory).filter(
+        and_(RepairHistory.vehicle_id.in_(unavailable_veh_ids),
+            RepairHistory.start_date <= today,
+            today <= RepairHistory.end_date)
+    ).all()
+
+    for repaired in repaireds:
+        print(repaired.vehicle_id)
+
+    print(111 * '#')
+
+    unavailable_vehs = rentals + repaireds
+
+    for unaval in unavailable_vehs:
+        print(unaval.vehicle_id)
+
+
+
 
 
 # #def rent_vehicle():
