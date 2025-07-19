@@ -20,7 +20,7 @@ class Vehicle(Base):
 
     borrower = relationship("User", back_populates="vehicles")
     rental_history = relationship("RentalHistory", back_populates="vehicle")
-    repair = relationship("RepairHistory", back_populates="vehicle")
+    repairs = relationship("RepairHistory", back_populates="vehicle")
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -72,7 +72,7 @@ class Scooter(Vehicle):
 
 
 class Bike(Vehicle):
-    __tablename__ = 'scooters'
+    __tablename__ = 'bikes'
     id = Column(Integer, ForeignKey('vehicles.id'), primary_key=True)
     bike_type = Column(String)
     is_electric = Column(Boolean)
@@ -108,7 +108,7 @@ class User(Base):
 
     vehicles = relationship("Vehicle", back_populates="borrower")
     rental_history = relationship("RentalHistory", back_populates="user")
-    repair_done = relationship("RepairHistory", back_populates="mechanic", foreign_keys="RepairHistory.mechanic.id")
+    repairs_done = relationship("RepairHistory", back_populates="mechanic", foreign_keys="RepairHistory.mechanic_id")
 
     def __repr__(self):
         return (f"    Klient: [ID={self.id}]\n"
@@ -153,7 +153,7 @@ class RepairHistory(Base):
     vehicle = relationship("Vehicle", back_populates="repairs")
 
     def __repr__(self):
-        return f"<RepairHistory {self.repair_id} Mechanik:{self.mechanic} Vehicle:{self.vehicle_id}>"
+        return f"<RepairHistory {self.repair_id} Mechanik:{self.mechanic.first_name} {self.mechanic.last_name} Vehicle:{self.vehicle_id}>"
 
 
 class Invoice(Base):

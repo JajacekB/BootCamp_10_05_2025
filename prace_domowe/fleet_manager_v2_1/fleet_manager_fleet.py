@@ -1,18 +1,37 @@
-from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, Promotion
+from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, Promotion, RepairHistory
 from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select
 from sqlalchemy.exc import IntegrityError
 from fleet_database import Session, SessionLocal
 from datetime import date, datetime, timedelta
 from collections import defaultdict
-from fleet_manager_user import get_clients, get_users_by_role
+from fleet_manager_user import get_users_by_role
 
 
 def generate_reservation_id():
     with Session() as session:
         last = session.query(RentalHistory).order_by(RentalHistory.id.desc()).first()
-        last_num = int(last.reservation_id[1:]) if last else 0
+        if last and last.reservation_id and len(last.reservation_id) > 1 and last.reservation_id[1:].isdigit():
+            last_num = int(last.reservation_id[1:])
+        else:
+            last_num = 0
         new_num = last_num + 1
-        return f"R{new_num:04d}"
+
+        # Określamy długość cyfr - minimalnie 4, albo więcej jeśli liczba jest większa
+        digits = max(4, len(str(new_num)))
+        return f"R{new_num:0{digits}d}"
+
+def generate_repair_id():
+    with Session() as session:
+        last = session.query(RepairHistory).order_by(RepairHistory.id.desc()).first()
+        if last and last.repair_id and len(last.repair_id) > 1 and last.repair_id[1:].isdigit():
+            last_num = int(last.repair_id[1:])
+        else:
+            last_num = 0
+        new_num = last_num + 1
+
+        # Określamy długość cyfr - minimalnie 4, albo więcej jeśli liczba jest większa
+        digits = max(4, len(str(new_num)))
+        return f"N{new_num:0{digits}d}"
 
 def calculate_rental_cost(user, daily_rate, days):
     with Session() as session:
@@ -233,7 +252,7 @@ def add_vehicles_batch():
 
                     if vehicle_type == "car":
                         new_size = input(f"Rozmiar ({specific_fields['size']}): ").strip()
-                        new_fuel = input(f"Paliwo ({specific_fields["fuel_type"]}): ").strip()
+                        new_fuel = input(f"Paliwo ({specific_fields['fuel_type']}): ").strip()
                         if new_size: specific_fields['size'] = new_size.capitalize()
                         if new_fuel: specific_fields['fuel_type'] = new_fuel
 
@@ -766,23 +785,22 @@ def repair_vehicle():
         for idx, w in enumerate(workshops, 1):
             print(f"{idx}. {w.first_name} {w.last_name} ({w.login})")
 
-        try:
-            workshop_choice = int(input("Wybierz numer warsztatu: ")) - 1
-            selected_workshop = workshops[workshop_choice]
-        except (IndexError, ValueError):
-            print("Nieprawidłowy wybór.")
-            return
 
-        try:
-            repair_days = int(input("Podaj liczbę dni naprawy: "))
-            return_date = datetime.today().date() + timedelta(days=repair_days)
-        except ValueError:
-            print("Błędna liczba dni.")
-            return
+        workshop_choice = get_positive_int("Wybierz numer warsztatu: ") - 1
+        selected_workshop = workshops[workshop_choice]
+
+        repair_days = get_positive_int("Podaj liczbę dni naprawy: ")
+        return_date = datetime.today().date() + timedelta(days=repair_days)
+
+        repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy; ")
+        repair_cost = repair_cost_per_day * repair_days
+
+        description = input("\nKrótko opisz zakres naprawy: ")
 
         while True:
             confirm = input(
                 f"\nPotwierdź oddanie do naprawy pojazdu:\n {vehicle}"
+                f"\nKoszt naprawy {repair_cost} zł"
                 f"\nWybierz (tak/nie): "
             ).strip().lower()
             if confirm not in ("tak", "t", "yes", "y"):
@@ -790,16 +808,18 @@ def repair_vehicle():
                 return
 
             # Historia naprawy
-            reservation_id = generate_reservation_id()
+            repair_id = generate_repair_id()
 
-            history = RentalHistory(
-                reservation_id=reservation_id,
-                user_id=selected_workshop.id,
+            repair = RepairHistory(
+                repair_id=repair_id,
                 vehicle_id=vehicle.id,
+                mechanic_id=selected_workshop.id,
                 start_date=datetime.today().date(),
                 end_date=return_date,
+                cost=repair_cost,
+                description=description
             )
-            session.add(history)
+            session.add(repair)
 
             # Aktualizacja pojazdu
             vehicle.is_available = False
@@ -807,5 +827,10 @@ def repair_vehicle():
             vehicle.return_date = return_date
 
             session.commit()
-            print(f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} przekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {return_date}.")
+            print(
+                f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
+                f"\nprzekazany do warsztatu: {selected_workshop.first_name}: {selected_workshop.last_name} do dnia {return_date}."
+            )
+            return
+
 
