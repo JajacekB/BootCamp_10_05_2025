@@ -6,8 +6,9 @@ from fleet_manager_user import (
 from fleet_manager_fleet import (
     get_vehicle, rent_vehicle, return_vehicle,
     add_vehicles_batch, remove_vehicle, rent_vehicle_for_client,
-    check_overdue_vehicles, repair_vehicle
+    repair_vehicle
 )
+from fleet_overdue_db import check_overdue_vehicles
 session = SessionLocal()
 
 
