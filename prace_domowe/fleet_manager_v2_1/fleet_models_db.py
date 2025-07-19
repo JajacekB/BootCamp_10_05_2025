@@ -16,6 +16,7 @@ class Vehicle(Base):
     borrower_id = Column(Integer, ForeignKey('users.id'), nullable=True)
     return_date = Column(Date, nullable=True)
     individual_id = Column(String, unique=True, nullable=False)
+    purchase_date = Column(Date, default=date.today)
     type = Column(String)  # 'car', 'scooter', 'bike'
 
     borrower = relationship("User", back_populates="vehicles")
@@ -105,6 +106,7 @@ class User(Base):
     email = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False)
     address = Column(String, nullable=True)
+    registration_day = Column(Date, default=date.today)
 
     vehicles = relationship("Vehicle", back_populates="borrower")
     rental_history = relationship("RentalHistory", back_populates="user")

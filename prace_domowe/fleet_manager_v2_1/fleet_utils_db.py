@@ -79,24 +79,33 @@ def generate_invoice_number(end_date):
         invoice_number = f"FV/{year}/{month:02d}/{sequence:04d}"
         return invoice_number
 
-def generate_vehicle_id( prefix: str) -> str:
-    with Session() as session:
-        prefix_len = len(prefix)
-        prefix_upper = prefix.upper()
-        max_number = session.query(
-            func.max(
-                cast(func.substr(Vehicle.vehicle_id, prefix_len + 1), Integer)
-            )
-        ).filter(
-            Vehicle.vehicle_id.ilike(f"{prefix_upper}%")
-        ).scalar()
+def generate_vehicle_id(prefix: str, session) -> str:
+    prefix = prefix.upper()
+    prefix_len = len(prefix)
 
-        if max_number is None:
-            max_number = 0
+    # Szukamy najwyższego numeru w bazie danych
+    max_number_db = session.query(
+        func.max(
+            cast(func.substr(Vehicle.vehicle_id, prefix_len + 1), Integer)
+        )
+    ).filter(
+        Vehicle.vehicle_id.ilike(f"{prefix}%")
+    ).scalar() or 0
 
-        next_number = max_number + 1
-        new_vehicle_id = f"{prefix_upper}{next_number:03d}"
-        return new_vehicle_id
+    # Szukamy najwyższego numeru w obiektach dodanych do sesji (tymczasowych)
+    max_number_pending = 0
+    for obj in session.new:
+        if isinstance(obj, Vehicle) and obj.vehicle_id and obj.vehicle_id.startswith(prefix):
+            try:
+                number = int(obj.vehicle_id[prefix_len:])
+                if number > max_number_pending:
+                    max_number_pending = number
+            except ValueError:
+                continue
+
+    # Bierzemy najwyższy z obu
+    next_number = max(max_number_db, max_number_pending) + 1
+    return f"{prefix}{next_number:03d}"
 
 def calculate_rental_cost(user, daily_rate, days):
     with Session() as session:

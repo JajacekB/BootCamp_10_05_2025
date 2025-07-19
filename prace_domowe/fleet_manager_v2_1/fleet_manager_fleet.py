@@ -50,7 +50,7 @@ def add_vehicles_batch():
     with Session() as session:
         for i in range(count):
             print(f"\n--- POJAZD #{i + 1} ---")
-            vehicle_id = generate_vehicle_id(prefix)
+            vehicle_id = generate_vehicle_id(prefix, session)
             while True:
                 individual_id = input(
                     "Wpisz unikalny identyfikator pojazdu 😊\n"
@@ -181,6 +181,7 @@ def add_vehicles_batch():
             for v in vehicles:
                 session.add(v)
             session.commit()
+            session.flush()
             print(f"\n✅ Dodano {len(vehicles)} pojazdów do bazy.")
         except IntegrityError as e:
             session.rollback()
@@ -230,9 +231,6 @@ def get_vehicle(only_available: bool = False):
         print("\n❌ Zły wybór typu pojazdu, spróbuj jeszcze raz.")
         return
 
-    today = date.today()
-
-    today = date.today()
 
     with Session() as session:
 

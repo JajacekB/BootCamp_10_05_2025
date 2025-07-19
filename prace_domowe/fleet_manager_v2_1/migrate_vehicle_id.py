@@ -1,44 +1,30 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from fleet_models_db import Vehicle, RentalHistory  # Załaduj swoje modele
-from fleet_database import Base  # jeśli potrzebne
 
-# Podstawowa konfiguracja bazy
-engine = create_engine("sqlite:///fleet.db")  # zmień ścieżkę do swojej bazy
-Session = sessionmaker(bind=engine)
 
-def migrate_vehicle_id_in_rental_history():
-    session = Session()
+from sqlalchemy import text
+from datetime import date
+from fleet_database import engine, Session
+from fleet_manager_user import User
+
+# --- Dodajemy kolumny do istniejących tabel ---
+with engine.connect() as conn:
+    try:
+        conn.execute(text("ALTER TABLE vehicles ADD COLUMN purchase_date DATE"))
+        print("✅ Dodano kolumnę purchase_date do vehicles.")
+    except Exception as e:
+        print(f"(INFO) purchase_date już istnieje lub błąd: {e}")
 
     try:
-        # 1. Pobierz mapę vehicle_id_string -> id_int
-        vehicles = session.query(Vehicle).all()
-        mapping = {v.vehicle_id: v.id for v in vehicles}
-
-        print(f"Znaleziono {len(mapping)} pojazdów do mapowania.")
-
-        # 2. Pobierz wszystkie wpisy w rental_history
-        rentals = session.query(RentalHistory).all()
-        print(f"Przetwarzam {len(rentals)} wpisów w historii wypożyczeń...")
-
-        count_updated = 0
-        for rental in rentals:
-            if rental.vehicle_id in mapping:
-                old_value = rental.vehicle_id
-                rental.vehicle_id = mapping[old_value]
-                count_updated += 1
-            else:
-                print(f"⚠️ Nie znaleziono pojazdu o vehicle_id='{rental.vehicle_id}' w tabeli vehicles!")
-
-        session.commit()
-        print(f"✅ Zaktualizowano {count_updated} rekordów w rental_history.")
-
+        conn.execute(text("ALTER TABLE users ADD COLUMN registration_day DATE"))
+        print("✅ Dodano kolumnę registration_day do users.")
     except Exception as e:
-        session.rollback()
-        print(f"❌ Wystąpił błąd: {e}")
+        print(f"(INFO) registration_day już istnieje lub błąd: {e}")
 
-    finally:
-        session.close()
-
-if __name__ == "__main__":
-    migrate_vehicle_id_in_rental_history()
+# --- Opcjonalnie: ustawiamy datę rejestracji adminowi ---
+with Session() as session:
+    admin = session.query(User).filter_by(role='Admin').first()
+    if admin:
+        admin.registration_day = date.today()
+        session.commit()
+        print("✅ Zaktualizowano datę rejestracji admina.")
+    else:
+        print("⚠️ Nie znaleziono admina w bazie.")
