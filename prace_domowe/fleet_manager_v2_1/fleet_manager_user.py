@@ -62,7 +62,7 @@ def register_user(role="client", auto=False):
             count = session.query(User).filter_by(role="seller").count()
             seller_number = str(count + 1).zfill(2)
             login = f"seller{seller_number}"
-            raw_password = login  # np. seller01
+            raw_password = login
             password_hash = bcrypt.hashpw(raw_password.encode(), bcrypt.gensalt()).decode()
             print(f"\nUtworzono login: {login} | hasło: {raw_password}")
     else:
@@ -117,36 +117,44 @@ def remove_user(role="client"):
             for user in users:
                 print(f" - ID: {user.id}, Login: {user.login}, Imię: {user.first_name} {user.last_name}")
 
-        user_input = input(f"\nPodaj login albo ID użytkownika o roli '{role}', którego chcesz usunąć: ").strip()
+        while True:
+            user_input = input(
+                f"\n🧑 Wpisz login lub ID użytkownika o roli '{role}' do usunięcia."
+                f"\n🔙 Wpisz 'Anuluj', aby wrócić: "
+            ).strip()
 
-        with Session() as session:
-            query = session.query(User).filter(
-                or_(
-                    User.login == user_input,
-                    User.id == int(user_input) if user_input.isdigit() else -1
-                )
-            ).first()
+            if user_input.lower() in ("anuluj", "a", "no", "n", "exit", "e", "out", "o"):
+                return
 
-            if not query:
-                print("\n❌ Nie znaleziono użytkownika o podanym loginie lub ID.")
-            elif query.role == "admin":
-                print("\n❌ Nie można usunąć użytkownika o roli 'admin'.")
-            elif query.role != role:
-                print(f"\n❌ Użytkownik {query.login} ma rolę '{query.role}', a nie '{role}'.")
-            else:
-                active_rentals = session.query(Vehicle).filter_by(
-                    borrower_id=query.id, is_available=False).count()
-                if active_rentals > 0:
-                    print(f"\n🚫 Nie można usunąć użytkownika {query.login}, ponieważ ma aktywne wypożyczenie.")
+            with Session() as session:
+                user_id = int(user_input) if user_input.isdigit() else -1
+                query = session.query(User).filter(
+                    or_(
+                        User.login == user_input,
+                        User.id == user_input
+                    )
+                ).first()
+
+                if not query:
+                    print("\n❌ Nie znaleziono użytkownika o podanym loginie lub ID.")
+                elif query.role == "admin":
+                    print("\n❌ Nie można usunąć użytkownika o roli 'admin'.")
+                elif query.role != role:
+                    print(f"\n❌ Użytkownik {query.login} ma rolę '{query.role}', a nie '{role}'.")
                 else:
-                    confirm = input(f"\n✅ Znaleziono użytkownika: \n{query}\n"
-                                    f"Czy chcesz go usunąć? (TAK/NIE)? ").strip().lower()
-                    if confirm in ("tak", "t", "yes", "y"):
-                        session.delete(query)
-                        session.commit()
-                        print(f"\n✅ Użytkownik {query.login} został usunięty z bazy.")
+                    active_rentals = session.query(Vehicle).filter_by(
+                        borrower_id=query.id, is_available=False).count()
+                    if active_rentals > 0:
+                        print(f"\n🚫 Nie można usunąć użytkownika {query.login}, ponieważ ma aktywne wypożyczenie.")
                     else:
-                        print("\n❌ Anulowano usunięcie użytkownika.")
+                        confirm = input(f"\n✅ Znaleziono użytkownika: \n{query}\n"
+                                        f"Czy chcesz go usunąć? (TAK/NIE)? ").strip().lower()
+                        if confirm in ("tak", "t", "yes", "y"):
+                            session.delete(query)
+                            session.commit()
+                            print(f"\n✅ Użytkownik {query.login} został usunięty z bazy.")
+                        else:
+                            print("\n❌ Anulowano usunięcie użytkownika.")
 
         # Pytanie o kolejne usunięcie
         while True:
@@ -183,7 +191,7 @@ def get_clients():
             for client in clients:
                 print(client, "\n")
 
-        elif client_status in ("t", "tak", "z", "z wypożyczeniem"):
+        elif client_status in ("t", "tak", "z", "z wypożyczeniem","w"):
             borrower_ids = (
                 session.query(Vehicle.borrower_id)
                 .filter(Vehicle.is_available == False, Vehicle.borrower_id != None)

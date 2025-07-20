@@ -1,7 +1,7 @@
 from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, Promotion, RepairHistory
 from fleet_database import Session, SessionLocal
 from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 
 def get_positive_int(prompt, allow_empty=False):
@@ -172,7 +172,7 @@ def get_available_vehicles():
         # 4. Łączymy ID pojazdów niedostępnych
         unavailable_ids = set(rented_ids + repaired_ids)
 
-        # 5. Finalnie wybieramy pojazdy dostępne i **nie** w wypożyczeniu ani naprawie
+        # 5. Finalnie wybieramy pojazdy dostępne i nie w wypożyczeniu ani w naprawie
         truly_available = session.query(Vehicle).filter(
             Vehicle.is_available == True,
             Vehicle.id.notin_(unavailable_ids)

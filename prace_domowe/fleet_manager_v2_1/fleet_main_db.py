@@ -13,13 +13,13 @@ from fleet_overdue_db import check_overdue_vehicles
 
 
 def logoff_user():
-    """Wylogowanie i ponowne logowanie z przekierowaniem do odpowiedniego menu."""
+    # Wylogowanie i ponowne logowanie z przekierowaniem do odpowiedniego menu.
     print("\n🔒 Wylogowano.")
     main()
 
 
 def handle_choice(options: dict):
-    """Obsługuje wybór użytkownika z mapy opcji."""
+    # Obsługuje wybór użytkownika z mapy opcji.
     choice = input("Wybierz opcję: ").strip()
     action = options.get(choice)
     if callable(action):
@@ -128,7 +128,7 @@ def menu_admin(user, session):
             "1": add_seller,
             "2": lambda: remove_user(role="seller"),
             "3": add_client,
-            "4": lambda: remove_user(role="client"),
+            "4": lambda: remove_user(),
             "5": get_clients,
             "6": add_vehicles_batch,
             "7": remove_vehicle,
