@@ -1,6 +1,7 @@
-from fleet_database import Session
+from fleet_validation import (get_valid_phone, get_valid_email, is_valid_phone,
+                            is_valid_email, validate_and_change_password)
 from fleet_models_db import User, Vehicle
-from fleet_validation import get_valid_phone, get_valid_email
+from fleet_database import Session
 from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy import or_, not_
 import bcrypt
@@ -62,10 +63,12 @@ def register_user(role="client", auto=False):
         with Session() as session:
             count = session.query(User).filter_by(role="seller").count()
             seller_number = str(count + 1).zfill(2)
-            login = f"seller{seller_number}"
+            login = f"Seller{seller_number}"
             raw_password = login
             password_hash = bcrypt.hashpw(raw_password.encode(), bcrypt.gensalt()).decode()
             print(f"\nUtworzono login: {login} | hasło: {raw_password}")
+
+
     else:
         login = input("Login: ").strip()
         while True:
@@ -73,8 +76,12 @@ def register_user(role="client", auto=False):
             password_confirm = input("Potwierdź hasło: ").strip()
             if password != password_confirm:
                 print("\n❌ Hasła nie są takie same. Spróbuj ponownie.")
-            else:
-                break
+                continue
+            if not is_valid_password_format(password):
+                print("\n❌ Hasło musi mieć co najmniej 6 znaków, zawierać 1 wielką literę i 1 cyfrę.")
+                continue
+            break  # wszystko OK
+
         password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
     new_user = User(
@@ -264,6 +271,16 @@ def get_clients():
             for client in clients:
                 print(client, "\n")
 
+def prompt_update_with_validation(field_name, current_value, validation_func):
+    while True:
+        val = input(f"{field_name} [{current_value}]: ").strip()
+        if not val:
+            return current_value  # ENTER = zostaje stara wartość
+        if validation_func(val):
+            return val
+        else:
+            print(f"❌ Niepoprawny {field_name.lower()}, spróbuj ponownie.")
+
 def update_profile(user: User):
     while True:
         print(
@@ -292,8 +309,8 @@ def update_profile(user: User):
 
                 new_first_name = prompt_update("Imię:", db_user.first_name).strip().capitalize()
                 new_last_name = prompt_update("Nazwisko:", db_user.last_name).strip().capitalize()
-                new_phone = prompt_update("Telefon:", db_user.phone).strip()
-                new_email = prompt_update("Email:", db_user.email).strip()
+                new_phone = prompt_update_with_validation("Telefon", db_user.phone, is_valid_phone)
+                new_email = prompt_update_with_validation("Email", db_user.email, is_valid_email)
                 new_address = prompt_update("Adres:", db_user.address).strip()
 
                 print(
@@ -325,37 +342,20 @@ def update_profile(user: User):
                         print("❌ Podany email lub telefon jest już zajęty przez innego użytkownika.")
                 else:
                     print("❌ Anulowano aktualizację danych.")
-
         elif choice == "2":
             with Session() as session:
                 db_user = session.query(User).filter(User.id == user.id).first()
                 if not db_user:
-                    print("❌ Nie znaleziono użytkownika w bazie.")
+                    print("❌ Nie znaleziono użytkownika.")
                     return
 
-                current_pw = input("\nPodaj obecne hasło: ").strip()
-                if not bcrypt.checkpw(current_pw.encode(), db_user.password_hash.encode()):
-                    continue
-
-                while True:
-                    new_pw = input("\nPodaj nowe hasło: ")
-                    new_pw_confirm = input("Potwierdź nowe hasło: ")
-                    if new_pw != new_pw_confirm:
-                        print("❌ Hasła nie są takie same. Spróbuj ponownie.")
-                        continue
-                    elif len(new_pw) < 6:
-                        print("❌ Hasło musi mieć co najmniej 6 znaków. Spróbuj jeszcze raz.")
-                        continue
-                    new_hash = bcrypt.checkpw(new_pw.encode(), bcrypt.gensalt()).decode()
-                    db_user.password_hash = new_hash
+                if validate_and_change_password(db_user):
                     try:
                         session.commit()
                         print("✅ Hasło zostało zmienione.")
-                        break
                     except Exception as e:
                         session.rollback()
-                        print("❌ Wystąpił błąd podczas zapisywania hasła:", e)
-                        break
+                        print("❌ Błąd podczas zapisywania hasła:", e)
 
         elif choice == "3":
             print("🔙 Powrót bez zmian.")
