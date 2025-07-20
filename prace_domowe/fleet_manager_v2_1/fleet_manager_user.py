@@ -1,5 +1,6 @@
 from fleet_database import Session
 from fleet_models_db import User, Vehicle
+from fleet_validation import get_valid_phone, get_valid_email
 from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy import or_, not_
 import bcrypt
@@ -51,11 +52,11 @@ def register_user(role="client", auto=False):
     print(f"\n=== REJESTRACJA NOWEGO {'SPRZEDAWCY' if role == 'seller' else 'KLIENTA'} ===")
 
     print("\nPodaj dane potrzebne do rejestracji")
-    first_name = input("Imię: ").strip().capitalize()
-    last_name = input("Nazwisko: ").strip().capitalize()
-    phone = input("Nr telefonu: ").strip()
-    email = input("Email: ").strip()
-    address = input("Adres zamieszkania: ").strip()
+    first_name = input("🧑 Imię: ").strip().capitalize()
+    last_name = input("👤 Nazwisko: ").strip().capitalize()
+    phone = get_valid_phone()
+    email = get_valid_email()
+    address = input("🏠 Adres zamieszkania: ").strip()
 
     if auto and role == "seller":
         with Session() as session:
