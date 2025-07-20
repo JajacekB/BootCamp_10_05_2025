@@ -28,9 +28,11 @@ def get_valid_email() -> str:
         print("✅ Poprawny e-mail i domena działa.")
         return email
 
+
 def is_valid_email_format(email: str) -> bool:
     pattern = re.compile(r"^[\w\.-]+@[\w\.-]+\.\w+$")
     return bool(pattern.match(email))
+
 
 def domain_has_mx_record(domain: str) -> bool:
     try:
