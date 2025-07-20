@@ -1,5 +1,5 @@
-from fleet_validation import (get_valid_phone, get_valid_email, is_valid_phone,
-                            is_valid_email, validate_and_change_password)
+from fleet_validation import (get_valid_phone, get_valid_email, is_valid_phone, is_valid_email,
+                            validate_and_change_password, is_valid_password_format, is_valid_email_format)
 from fleet_models_db import User, Vehicle
 from fleet_database import Session
 from sqlalchemy.exc import NoResultFound, IntegrityError
