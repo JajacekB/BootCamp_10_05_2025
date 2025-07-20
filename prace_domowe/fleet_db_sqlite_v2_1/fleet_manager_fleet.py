@@ -237,7 +237,7 @@ def get_vehicle(only_available: bool = False):
         if status == "available":
             vehicles = get_available_vehicles(session)
         elif status == "rented":
-            unavailable_ids = get_vehicles_unavailable_today()
+            unavailable_ids = get_vehicles_unavailable_today(session)
             if not unavailable_ids:
                 print("\n🚫 Brak niedostępnych pojazdów na dziś.")
                 return
