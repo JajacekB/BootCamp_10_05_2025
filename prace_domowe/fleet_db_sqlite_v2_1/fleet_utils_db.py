@@ -239,7 +239,7 @@ def show_vehicles_rented_today(session):
         user = session.query(User).filter_by(id=rental.user_id).first()
 
         print(
-            f" [ID: {vehicle.id}]  {vehicle.brand} {vehicle.model}"
+            f" [ID: {vehicle.id}]  {vehicle.brand} {vehicle.vehicle_model}"
             f"   ❌ Wypożyczony w terminie: {rental.start_date} → {rental.planned_return_date}"
             f"   👤 Klient ID {user.id}: {user.first_name} {user.last_name}\n"
         )

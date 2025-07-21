@@ -8,7 +8,8 @@ from fleet_manager_user import get_users_by_role
 from fleet_utils_db import (
     get_positive_int, get_positive_float,generate_repair_id,
     generate_vehicle_id, generate_reservation_id, generate_invoice_number,
-    calculate_rental_cost, get_available_vehicles, get_vehicles_unavailable_today
+    calculate_rental_cost, get_available_vehicles, get_vehicles_unavailable_today,
+    show_vehicles_rented_today
 )
 
 def add_vehicles_batch():
@@ -481,12 +482,30 @@ def return_vehicle(user: User):
             print(f"\nPojazd do zwrotu: {vehicle.brand} {vehicle.vehicle_model} (ID: {vehicle.vehicle_id})")
             print(f"Planowany termin zwrotu: {rental.planned_return_date}")
 
-            actual_return_str = input("Podaj datę faktycznego zwrotu (DD-MM-YYYY): ").strip()
+            input_return_str = input(
+                "Podaj datę faktycznego zwrotu (DD-MM-YYYY), lub naciśnij ENTER, aby przyjąć dzisiejszą datę: "
+            ).strip()
+
+            if not input_return_str:
+                actual_return_date = date.today()
+                return actual_return_date
+
             try:
-                actual_return_date = datetime.strptime(actual_return_str, "%d-%m-%Y").date()
+                actual_return_date = datetime.strptime(input_return_str, "%d-%m-%Y").date()
+
             except ValueError:
                 print("Niepoprawny format daty. Zwrot pominięty.")
                 return False
+
+            choice = input(
+                f"\nCzy na pewno chcesz zwrócić pojazd:\n"
+                f"{rental.vehicle}\n"
+                f"Odpowiedz (tak/nie): "
+            ).strip().lower()
+
+            if choice in ("nie", "n", "no"):
+                print("\nZwrot anulowany.")
+                return
 
             update_costs_and_invoice(rental, vehicle, actual_return_date)
 
@@ -520,9 +539,10 @@ def return_vehicle(user: User):
 
         elif user.role in ("seller", "admin"):
             while True:
+                show_vehicles_rented_today(session)
                 # Najpierw opcjonalnie wyświetl wypożyczone pojazdy dla danego użytkownika - albo od razu pytaj o ID pojazdu
                 vehicle_id_str = input("\nPodaj ID pojazdu do zwrotu (lub wpisz 'koniec' aby wyjść): ").strip()
-                if vehicle_id_str.lower() == "koniec":
+                if vehicle_id_str.lower() in ("koniec", "k"):
                     break
 
                 try:
