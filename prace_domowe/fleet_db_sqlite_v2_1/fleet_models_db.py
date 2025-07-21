@@ -47,7 +47,7 @@ class Car(Vehicle):
             f"{self.size}, {self.fuel_type}\n"
             f"Numer rejestracyjny: {self.individual_id}\n"
             f"{self.cash_per_day}zł za dzień\n"
-            f"{'Dostępny' if self.is_available else 'Niedostępny'}"
+            f"{'Dostępny' if self.is_available else 'Niedostępny w terminie od {self.start_date} do {planned_return_date}'}"
         )
 
 
@@ -128,7 +128,7 @@ class RentalHistory(Base):
     vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=False)
 
     start_date = Column(Date, nullable=False)
-    planned_return_date = Column(Date, nullable=False)  # dawniej: end_date
+    planned_return_date = Column(Date, nullable=False)
     actual_return_date = Column(Date, nullable=True)
 
     base_cost = Column(Float, nullable=True)

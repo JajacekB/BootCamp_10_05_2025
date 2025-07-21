@@ -479,7 +479,7 @@ def return_vehicle(user: User):
                 return False
 
             print(f"\nPojazd do zwrotu: {vehicle.brand} {vehicle.vehicle_model} (ID: {vehicle.vehicle_id})")
-            print(f"Planowany termin zwrotu: {rental.end_date}")
+            print(f"Planowany termin zwrotu: {rental.planned_return_date}")
 
             actual_return_str = input("Podaj datę faktycznego zwrotu (DD-MM-YYYY): ").strip()
             try:

@@ -55,16 +55,16 @@ def generate_repair_id():
         digits = max(4, len(str(new_num)))
         return f"N{new_num:0{digits}d}"
 
-def generate_invoice_number(end_date):
+def generate_invoice_number(planned_return_date):
     """
                 Generuje numer faktury w formacie FV/YYYY/MM/NNNN
                 - session: aktywna sesja SQLAlchemy
-                - end_date: data zakończenia wypożyczenia (datetime.date)
+                - planned_return_date: data zakończenia wypożyczenia (datetime.date)
                 """
     with Session() as session:
 
-        year = end_date.year
-        month = end_date.month
+        year = planned_return_date.year
+        month = planned_return_date.month
 
         # Policz faktury wystawione w danym roku i miesiącu
         count = session.query(Invoice).filter(
@@ -154,7 +154,7 @@ def get_available_vehicles(session):
         and_(
             RentalHistory.vehicle_id.in_(available_ids),
             RentalHistory.start_date <= today,
-            today <= RentalHistory.end_date
+            today <= RentalHistory.planned_return_date
         )
     ).all()
     rented_ids = [r[0] for r in rented_today]
@@ -164,7 +164,7 @@ def get_available_vehicles(session):
         and_(
             RepairHistory.vehicle_id.in_(available_ids),
             RepairHistory.start_date <= today,
-            today <= RepairHistory.end_date
+            today <= RepairHistory.planned_return_date
         )
     ).all()
     repaired_ids = [r[0] for r in repaired_today]
@@ -199,15 +199,14 @@ def get_vehicles_unavailable_today(session):
         and_(
             RentalHistory.vehicle_id.in_(unavailable_veh_ids),
             RentalHistory.start_date <= today,
-            today <= RentalHistory.end_date
-        )
+            today <= RentalHistory.planned_return_date        )
     ).all()
 
     # Sprawdzanie, które z nich są w naprawie dzisiaj
     repaired_today = session.query(RepairHistory).filter(
         and_(RepairHistory.vehicle_id.in_(unavailable_veh_ids),
             RepairHistory.start_date <= today,
-            today <= RepairHistory.end_date
+            today <= RepairHistory.planned_return_date
             )
     ).all()
 
@@ -216,3 +215,31 @@ def get_vehicles_unavailable_today(session):
     repaired_ids = [vid.vehicle_id for vid in repaired_today]
 
     return list(set(rented_ids + repaired_ids))
+
+
+def show_vehicles_rented_today(session):
+    today = date.today()
+
+    # Wyszukaj wszystkie wypożyczenia trwające dziś
+    rentals_today = session.query(RentalHistory).filter(
+        and_(
+            RentalHistory.start_date <= today,
+            today <= RentalHistory.planned_return_date
+        )
+    ).all()
+
+    if not rentals_today:
+        print("\n✅ Dziś żaden pojazd nie jest wypożyczony.")
+        return
+
+    print("\n🚘 Pojazdy wypożyczone dziś:\n")
+
+    for rental in rentals_today:
+        vehicle = session.query(Vehicle).filter_by(id=rental.vehicle_id).first()
+        user = session.query(User).filter_by(id=rental.user_id).first()
+
+        print(
+            f" [ID: {vehicle.id}]  {vehicle.brand} {vehicle.model}"
+            f"   ❌ Wypożyczony w terminie: {rental.start_date} → {rental.planned_return_date}"
+            f"   👤 Klient ID {user.id}: {user.first_name} {user.last_name}\n"
+        )
