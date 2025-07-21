@@ -308,23 +308,27 @@ def rent_vehicle_for_client(user: User):
 def rent_vehicle(user: User, session=None):
     if session is None:
         with Session() as session:
-            return rent_vehicle(user, session=session)  # rekurencja z właściwą sesją
+            return rent_vehicle(user, session=session)
+
     print("\n=== WYPOŻYCZENIE POJAZDU ===\n")
     vehicle_type = input("Wybierz typ pojazdu (bike, car, scooter): ").strip().lower()
     start_date_str = input("\nData rozpoczęcia (DD-MM-YYYY): ").strip()
     end_date_str = input("Data zakończenia (DD-MM-YYYY): ").strip()
 
-    start_date = datetime.strptime(start_date_str, "%d-%m-%Y").date()
-    end_date = datetime.strptime(end_date_str, "%d-%m-%Y").date()
+    try:
+        start_date = datetime.strptime(start_date_str, "%d-%m-%Y").date()
+        planned_return_date = datetime.strptime(end_date_str, "%d-%m-%Y").date()
+    except ValueError:
+        print("❌ Niepoprawny format daty.")
+        return
 
     # Krok 1: Znajdź dostępne pojazdy
-
     available_vehicles = (
         session.query(Vehicle)
         .filter(Vehicle.type == vehicle_type)
         .filter(~Vehicle.rental_history.any(
-            (RentalHistory.start_date <= end_date) &
-            (RentalHistory.end_date >= start_date)
+            (RentalHistory.start_date <= planned_return_date) &
+            (RentalHistory.planned_return_date >= start_date)
         ))
         .filter(Vehicle.is_available == True)
         .order_by(Vehicle.cash_per_day, Vehicle.brand, Vehicle.vehicle_model)
@@ -332,7 +336,7 @@ def rent_vehicle(user: User, session=None):
     )
 
     if not available_vehicles:
-        print("|\n🚫 Brak dostępnych pojazdów w tym okresie.")
+        print("\n🚫 Brak dostępnych pojazdów w tym okresie.")
         return
 
     # Krok 2: Grupuj pojazdy
@@ -341,115 +345,126 @@ def rent_vehicle(user: User, session=None):
         key = (v.brand, v.vehicle_model, v.cash_per_day)
         grouped[key].append(v)
 
-    print("\n Dostępne grupy pojazdów:\n")
+    print("\nDostępne grupy pojazdów:\n")
     for (brand, model, price), vehicles in grouped.items():
         print(f"{brand} | {model} | {price} zł/dzień | Dostępnych: {len(vehicles)}")
 
     # Krok 3: Wybór modelu
     while True:
-        choosen_model = input("\nPodaj model pojazdu do wypożyczenia: ").strip()
-        choosen_vehicle = next(
-            (v for v in available_vehicles if v.vehicle_model.lower() == choosen_model.lower()),
+        chosen_model = input("\nPodaj model pojazdu do wypożyczenia: ").strip()
+        chosen_vehicle = next(
+            (v for v in available_vehicles if v.vehicle_model.lower() == chosen_model.lower()),
             None
         )
 
-        if not choosen_vehicle:
-            print("\n🚫 Nie znaleziono pojazdu o podanym medelu. Wybierz ponownie")
-            continue
-
+        if not chosen_vehicle:
+            print("🚫 Nie znaleziono pojazdu o podanym modelu. Wybierz ponownie.")
         else:
             break
 
-    # Krok 4: Oblicz koszty i rabaty.
-    days = (end_date - start_date).days
-    base_cost = days * choosen_vehicle.cash_per_day
-    total_cost, discount_value, discount_type = calculate_rental_cost(user, choosen_vehicle.cash_per_day, days)
+    # Krok 4: Oblicz koszty i rabaty
+    days = (planned_return_date - start_date).days
+    base_cost = days * chosen_vehicle.cash_per_day
+    total_cost, discount_value, discount_type = calculate_rental_cost(
+        user, chosen_vehicle.cash_per_day, days
+    )
 
-    # Krok 5. Potwierdzenie
-
+    # Krok 5: Potwierdzenie
     print(f"\nKoszt podstawowy: {base_cost} zł")
     confirm = input(
-        f"\nCałkowity koszt wypozyczenia po naliczeniu rabatów to: {total_cost:.2f} zł.\n"
-        f"Czy akceptujesz? (Tak/Nie): "
+        f"Całkowity koszt wypożyczenia po rabatach: {total_cost:.2f} zł.\n"
+        f"Czy potwierdzasz? (Tak/Nie): "
     ).strip().lower()
     if confirm not in ("tak", "t", "yes", "y"):
-        print("\n🚫 Anulowano rezerwację")
+        print("\n🚫 Anulowano rezerwację.")
         return
 
-    # Krok 6. Zapis danych do bazy
-
-    # Generowanie numerów do rezerwacji i faktury
+    # Krok 6: Zapis danych do bazy
     reservation_id = generate_reservation_id()
-    invoice_number = generate_invoice_number(end_date)
+    invoice_number = generate_invoice_number(planned_return_date)
 
-    # Aktualizowanie wypożyczonego pojazdu
-    choosen_vehicle.is_available = False
-    choosen_vehicle.return_date = end_date
-    choosen_vehicle.borrower_id = user.id
+    # Aktualizacja pojazdu
+    chosen_vehicle.is_available = False
+    chosen_vehicle.borrower_id = user.id
+    session.add(chosen_vehicle)
 
-    session.add(choosen_vehicle)
-
-    # Aktualizacja historii wypożyczeń
+    # Historia wypożyczeń
     rental = RentalHistory(
         reservation_id=reservation_id,
         user_id=user.id,
-        vehicle_id=choosen_vehicle.id,
+        vehicle_id=chosen_vehicle.id,
         start_date=start_date,
-        end_date=end_date,
+        planned_return_date=planned_return_date,
+        base_cost=base_cost,
         total_cost=total_cost
     )
 
-    # Dane do faktury
+    # Faktura
     invoice = Invoice(
         invoice_number=invoice_number,
         rental_id=reservation_id,
         amount=total_cost,
-        issue_date=end_date
+        issue_date=planned_return_date
     )
 
     session.add_all([rental, invoice])
     session.commit()
 
     print(
-        f"\n✅ Zarezerwowałeś {choosen_vehicle.brand} {choosen_vehicle.vehicle_model}\n"
-        f"W terminie od {start_date} do {end_date}.\n"
-        f" Miłej jazdy!")
+        f"\n✅ Zarezerwowałeś {chosen_vehicle.brand} {chosen_vehicle.vehicle_model} "
+        f"od {start_date} do {planned_return_date}.\nMiłej jazdy!"
+    )
 
 
 def return_vehicle(user: User):
     with Session() as session:
 
         def update_costs_and_invoice(rental, vehicle, actual_return_date):
-            # Oblicz liczbę dni wynajmu od startu do faktycznego zwrotu
-            rental_days = (actual_return_date - rental.start_date).days + 1
+            #from fleet_utils_db import calculate_discounted_cost  # funkcja uwzględniająca rabaty
+            from datetime import date
+
+            start_date = rental.start_date
+            planned_return = rental.planned_return_date
+            planned_days = (planned_return - start_date).days + 1
+
+            rental.actual_return_date = actual_return_date
+            rental_days = (actual_return_date - start_date).days + 1
             if rental_days < 1:
-                rental_days = 1  # minimum 1 dzień
+                rental_days = 1
 
-            planned_days = (rental.end_date - rental.start_date).days + 1
+            if actual_return_date < planned_return:
+                # Zwrot wcześniej
+                base_cost = calculate_rental_cost(vehicle.cash_per_day, rental_days)
+                late_fee = 0
+                print(f"Zwrot wcześniej – nowy koszt na {rental_days} dni: {base_cost:.2f} zł")
 
-            # Czy zwrot jest przed terminem?
-            if actual_return_date < rental.end_date:
-                # Skrócenie wypożyczenia - zmniejszamy koszt i anulujemy rabaty
-                rental.end_date = actual_return_date
-                rental.total_cost = rental_days * vehicle.cash_per_day  # bez rabatów
-                print(f"Zwrot przed terminem. Nowa kwota do zapłaty: {rental.total_cost:.2f} zł (brak rabatów)")
-            elif actual_return_date > rental.end_date:
-                # Przeterminowanie - doliczamy opłatę 100% ceny za każdy dzień opóźnienia
-                delay_days = (actual_return_date - rental.end_date).days
-                base_cost = planned_days * vehicle.cash_per_day
-                additional_fee = delay_days * vehicle.cash_per_day
-                rental.end_date = actual_return_date
-                rental.total_cost = base_cost + additional_fee
-                print(f"Przeterminowanie o {delay_days} dni. Kwota do zapłaty: {rental.total_cost:.2f} zł (w tym opłata za opóźnienie {additional_fee:.2f} zł)")
+            elif actual_return_date > planned_return:
+                # Zwrot po terminie
+                base_cost = calculate_rental_cost(vehicle.cash_per_day, planned_days)
+                delay_days = (actual_return_date - planned_return).days
+                late_fee = delay_days * vehicle.cash_per_day
+                print(f"Zwrot po terminie o {delay_days} dni. Kara: {late_fee:.2f} zł")
+
             else:
-                # Zwrot dokładnie w terminie
-                rental.total_cost = planned_days * vehicle.cash_per_day
-                print(f"Zwrot w terminie. Kwota do zapłaty: {rental.total_cost:.2f} zł")
+                # Zwrot w terminie
+                actual_return_date = planned_return
+                rental.actual_return_date = actual_return_date
+                base_cost = calculate_rental_cost(vehicle.cash_per_day, planned_days)
+                late_fee = 0
+                print(f"Zwrot w terminie. Koszt: {base_cost:.2f} zł")
 
-            # Aktualizuj fakturę powiązaną z wypożyczeniem
+            total_cost = base_cost + late_fee
+            rental.total_cost = total_cost
+
+            # Aktualizacja faktury
             if rental.invoice:
-                rental.invoice.amount = rental.total_cost
-                print(f"Zaktualizowano fakturę: {rental.invoice.invoice_number}, kwota: {rental.invoice.amount:.2f} zł")
+                rental.invoice.amount = total_cost
+                rental.invoice.issue_date = actual_return_date
+
+            # Aktualizacja pojazdu
+            vehicle.is_available = True
+            vehicle.borrower_id = None
+            vehicle.return_date = None
 
         def process_return_for_vehicle(vehicle):
 
@@ -561,14 +576,13 @@ def repair_vehicle():
         for idx, w in enumerate(workshops, 1):
             print(f"{idx}. {w.first_name} {w.last_name} ({w.login})")
 
-
         workshop_choice = get_positive_int("Wybierz numer warsztatu: ") - 1
         selected_workshop = workshops[workshop_choice]
 
         repair_days = get_positive_int("Podaj liczbę dni naprawy: ")
-        return_date = datetime.today().date() + timedelta(days=repair_days)
+        planed_return_date = datetime.today().date() + timedelta(days=repair_days)
 
-        repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy; ")
+        repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy: ")
         repair_cost = repair_cost_per_day * repair_days
 
         description = input("\nKrótko opisz zakres naprawy: ")
@@ -591,7 +605,8 @@ def repair_vehicle():
                 vehicle_id=vehicle.id,
                 mechanic_id=selected_workshop.id,
                 start_date=datetime.today().date(),
-                end_date=return_date,
+                planed_return_date=planed_return_date,
+                actual_return_date=None,  # Domyślnie brak
                 cost=repair_cost,
                 description=description
             )
@@ -600,11 +615,11 @@ def repair_vehicle():
             # Aktualizacja pojazdu
             vehicle.is_available = False
             vehicle.borrower_id = selected_workshop.id
-            vehicle.return_date = return_date
+            vehicle.return_date = planed_return_date  # Jeśli jeszcze używasz tej kolumny w Vehicle
 
             session.commit()
             print(
                 f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
-                f"\nprzekazany do warsztatu: {selected_workshop.first_name}: {selected_workshop.last_name} do dnia {return_date}."
+                f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planed_return_date}."
             )
             return
