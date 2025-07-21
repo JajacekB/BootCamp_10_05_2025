@@ -123,10 +123,16 @@ class RentalHistory(Base):
 
     id = Column(Integer, primary_key=True)
     reservation_id = Column(String, unique=True, nullable=False, index=True)
+
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     vehicle_id = Column(Integer, ForeignKey('vehicles.id'), nullable=False)
+
     start_date = Column(Date, nullable=False)
-    end_date = Column(Date, nullable=False)
+    planned_return_date = Column(Date, nullable=False)  # dawniej: end_date
+    actual_return_date = Column(Date, nullable=True)
+
+    base_cost = Column(Float, nullable=True)
+    late_fee = Column(Float, nullable=True)
     total_cost = Column(Float, nullable=False)
 
     user = relationship("User", back_populates="rental_history")
@@ -147,7 +153,9 @@ class RepairHistory(Base):
     mechanic_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
     start_date = Column(Date, nullable=False)
-    end_date = Column(Date, nullable=False)
+    planned_end_date = Column(Date, nullable=False)  # dawniej end_date
+    actual_return_date = Column(Date, nullable=True)  # nowa kolumna
+
     cost = Column(Float, nullable=True)
     description = Column(String, nullable=True)
 

@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, Date, ForeignKey
 from sqlalchemy.orm import relationship
-from fleet_database import Base
+from database_base import Base
 from datetime import datetime, date, timedelta
 
 
