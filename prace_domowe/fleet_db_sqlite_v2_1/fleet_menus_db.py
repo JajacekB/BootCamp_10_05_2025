@@ -53,7 +53,7 @@ def start_menu():
                 return user
         elif choice == "0":
             print("Do widzenia!")
-            exit(0)
+            exit()
         else:
             print("❌ Niepoprawny wybór, spróbuj ponownie.")
 

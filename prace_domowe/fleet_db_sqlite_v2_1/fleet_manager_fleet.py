@@ -1,5 +1,4 @@
-from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, Promotion, RepairHistory
-from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select
+from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, RepairHistory
 from sqlalchemy.exc import IntegrityError
 from fleet_database import Session, SessionLocal
 from datetime import date, datetime, timedelta
@@ -14,15 +13,22 @@ from fleet_utils_db import (
 
 def add_vehicles_batch():
     # Krok 1. Wybór typu pojazdu
+    vehicle_type_map = {
+        "samochód": "car",
+        "skuter": "scooter",
+        "rower": "bike"
+    }
     type_prefix_map = {
-        "car": "C",
-        "scooter": "S",
-        "bike": "B"
+        "samochód": "C",
+        "skuter": "S",
+        "rower": "B"
     }
     while True:
-        vehicle_type = input("\nPodaj typ pojazdu (car, scooter, bike): ").strip().lower()
-        if vehicle_type in type_prefix_map:
-            prefix = type_prefix_map[vehicle_type]
+        vehicle_type_input = input("\nPodaj typ pojazdu (samochód, skuter, rower): ").strip().lower()
+
+        if vehicle_type_input in vehicle_type_map:
+            vehicle_type = vehicle_type_map[vehicle_type_input]
+            prefix = type_prefix_map[vehicle_type_input]
             break
 
         print("\nNiepoprawny typ pojazdu. Spróbuj jeszcze raz")
@@ -56,7 +62,7 @@ def add_vehicles_batch():
                 individual_id = input(
                     "Wpisz unikalny identyfikator pojazdu 😊\n"
                     "➡ Dla samochodu i skutera będzie to numer rejestracyjny,\n"
-                    "➡ Dla roweru – numer seryjny (zazwyczaj znajdziesz go na ramie, blisko suportu):"
+                    "➡ Dla roweru – numer seryjny (zazwyczaj znajdziesz go na ramie, okolice suportu):"
                     "?  "
                 ).strip()
                 if any(v.individual_id == individual_id for v in vehicles):
@@ -116,11 +122,11 @@ def add_vehicles_batch():
                 option = input(
                     f"\nWybierz sposób edycji:"
                     f"\n👉 Numer pojazdu ➡ tylko ten jeden"
-                    f"\n👉 'all' ➡ zastosuj zmiany do wszystkich"
+                    f"\n👉 'Wszystko' ➡ zastosuj zmiany do wszystkich"
                     f"\nPodaj odpowiedź: "
                 ).strip().lower()
-                if option == "all":
-                    print("\n--- Popraw dane wspólne (ENTER = brak zmian) ---")
+                if option == "wszystko":
+                    print("\n--- Popraw wspólne dane (ENTER = brak zmian) ---")
                     new_brand = input(f"Producent ({brand}): ").strip()
                     new_model = input(f"Model ({model}): ").strip()
                     new_cash = input(f"Cena za dobę ({cash_per_day}): ").strip()
@@ -222,15 +228,53 @@ def get_vehicle(only_available: bool = False):
     if only_available:
         status = "available"
     else:
+        status_map = {
+            "w": "all",
+            "d": "available",
+            "n": "rented"
+        }
+
         while True:
-            status = input("\nKtóre pojazdy chcesz przejrzeć (all, available, rented): ").strip().lower()
-            if status in ("all", "available", "rented"):
+            status_input = input(
+                "\nKtóre pojazdy chcesz przejrzeć:"
+                "\n (W) - wszystkie lub naciśnij Enter"
+                "\n (D) - dostępne"
+                "\n (N) - niedostępne"
+                "\nWybierz [W/D/N]: "
+            ).strip().lower()
+
+            if status_input == "":
+                status = "all"
+                break
+
+            if status_input in status_map:
+                status = status_map[status_input]
                 break
             print("\n❌ Zły wybór statusu pojazdu, spróbuj jeszcze raz.")
 
+    vehicle_type_map = {
+        "wszystkie": "all",
+        "samochód": "car",
+        "skuter": "scooter",
+        "rower": "bike"
+    }
+
     while True:
-        vehicle_type = input("\nJakiego typu pojazdy chcesz zobaczyć? (all, car, scooter, bike): ").strip().lower()
-        if vehicle_type in ("all", "car", "scooter", "bike"):
+        vehicle_type_input = input(
+            "\nJakiego typu pojazdy chcesz zobaczyć:"
+            "\nWszystkie lub naciśnij Enetr"
+            "\nSamochód"
+            "\nSkuter"
+            "\nRower"
+            ""
+        ).strip().lower()
+
+        if vehicle_type_input == "":
+            vehicle_type = "all"
+            break
+
+        if vehicle_type_input in vehicle_type_map:
+            vehicle_type = vehicle_type_map[vehicle_type_input]
             break
         print("\n❌ Zły wybór typu pojazdu, spróbuj jeszcze raz.")
 
@@ -307,23 +351,56 @@ def rent_vehicle_for_client(user: User):
 
 
 def rent_vehicle(user: User, session=None):
+    # Ustalenie roli
     if session is None:
         with Session() as session:
             return rent_vehicle(user, session=session)
 
     print("\n=== WYPOŻYCZENIE POJAZDU ===\n")
-    vehicle_type = input("Wybierz typ pojazdu (bike, car, scooter): ").strip().lower()
-    start_date_str = input("\nData rozpoczęcia (DD-MM-YYYY): ").strip()
-    end_date_str = input("Data zakończenia (DD-MM-YYYY): ").strip()
 
-    try:
-        start_date = datetime.strptime(start_date_str, "%d-%m-%Y").date()
-        planned_return_date = datetime.strptime(end_date_str, "%d-%m-%Y").date()
-    except ValueError:
-        print("❌ Niepoprawny format daty.")
-        return
+    # Wprowadzenie danych wyporzyczenia (typ pojazdu i okres wypożyczenia
+    vehicle_type_map = {
+        "samochód": "car",
+        "skuter": "scooter",
+        "rower": "bike"
+    }
+
+    while True:
+        vehicle_type_input = input(
+            "\nWybierz typ pojazdu (Samochód, Skuter, Rower): "
+        ).strip().lower()
+
+        if vehicle_type_input in vehicle_type_map:
+            vehicle_type = vehicle_type_map[vehicle_type_input]
+            break
+
+        else:
+            print("\nZły wybór. Spróbuj jeszcz raz")
+            continue
+
+    while True:
+
+        start_date_str = input(
+            "\nData rozpoczęcia (DD-MM-YYYY) Enter = dziś: "
+        ).strip()
+        end_date_str = input("\nData zakończenia (DD-MM-YYYY): ").strip()
+
+        try:
+
+            if start_date_str:
+                start_date = datetime.strptime(start_date_str, "%d-%m-%Y").date()
+            else:
+                start_date = date.today()
+
+            planned_return_date = datetime.strptime(end_date_str, "%d-%m-%Y").date()
+            break
+
+        except ValueError:
+            print("❌ Niepoprawny format daty.")
+            continue
 
     # Krok 1: Znajdź dostępne pojazdy
+    # available_vehicles = get_available_vehicles(session, start_date, planned_return_date, vehicle_type)
     available_vehicles = (
         session.query(Vehicle)
         .filter(Vehicle.type == vehicle_type)
@@ -346,9 +423,17 @@ def rent_vehicle(user: User, session=None):
         key = (v.brand, v.vehicle_model, v.cash_per_day)
         grouped[key].append(v)
 
+    tabele_width = 67
+
     print("\nDostępne grupy pojazdów:\n")
+    print(f"| {'Marka':<16}| {'Model':<19}| {'Cena za dzień':>13} | Dostępnych |")
+    print(tabele_width * "_")
+
     for (brand, model, price), vehicles in grouped.items():
-        print(f"{brand} | {model} | {price} zł/dzień | Dostępnych: {len(vehicles)}")
+        formated_price = f"{price:.2f}zł"
+        print(
+            f"| {brand:<16}| {model:<19}| {f'{price:.2f} zł':>13} |     {len(vehicles)}      |"
+        )
 
     # Krok 3: Wybór modelu
     while True:
@@ -421,8 +506,6 @@ def return_vehicle(user: User):
     with Session() as session:
 
         def update_costs_and_invoice(rental, vehicle, actual_return_date):
-            #from fleet_utils_db import calculate_discounted_cost  # funkcja uwzględniająca rabaty
-            from datetime import date
 
             start_date = rental.start_date
             planned_return = rental.planned_return_date
