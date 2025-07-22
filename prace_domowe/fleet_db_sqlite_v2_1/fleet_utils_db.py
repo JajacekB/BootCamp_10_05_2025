@@ -159,11 +159,12 @@ def get_unavailable_vehicle(session, start_date = None, planned_return_date = No
     repaired_today = session.query(RepairHistory).join(Vehicle).filter(
         *filters,
                 RepairHistory.start_date <= planned_return_date,
-                RepairHistory.planned_return_date >= start_date
+                RepairHistory.planned_end_date >= start_date
         ).all()
     repaired_ids = [r.vehicle_id for r in repaired_today]
 
-    unavailable_ids =  list(set(rented_ids + repaired_ids))
+    unavailable_ids = list(set(rented_ids + repaired_ids))
+    return unavailable_ids
 
 def get_available_vehicles(session, start_date=None, planned_return_date=None, vehicle_type="all"):
     unavailable_ids = get_unavailable_vehicle(session, start_date, planned_return_date, vehicle_type)
