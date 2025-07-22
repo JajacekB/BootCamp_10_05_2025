@@ -7,7 +7,7 @@ from fleet_manager_user import get_users_by_role
 from fleet_utils_db import (
     get_positive_int, get_positive_float,generate_repair_id,
     generate_vehicle_id, generate_reservation_id, generate_invoice_number,
-    calculate_rental_cost, get_available_vehicles, get_vehicles_unavailable_today,
+    calculate_rental_cost, get_available_vehicles, get_unavailable_vehicle,
     show_vehicles_rented_today
 )
 
@@ -280,18 +280,14 @@ def get_vehicle(only_available: bool = False):
 
     with Session() as session:
         if status == "available":
-            vehicles = get_available_vehicles(session)
+            vehicles = get_available_vehicles(session, vehicle_type)
         elif status == "rented":
-            unavailable_ids = get_vehicles_unavailable_today(session)
+            unavailable_ids = get_unavailable_vehicle(session, vehicle_type)
             if not unavailable_ids:
                 print("\n🚫 Brak niedostępnych pojazdów na dziś.")
                 return
-            vehicles = session.query(Vehicle).filter(Vehicle.id.in_(unavailable_ids)).all()
         else:
             vehicles = session.query(Vehicle).all()
-
-        if vehicle_type != "all":
-            vehicles = [v for v in vehicles if v.type == vehicle_type]
 
         if not vehicles:
             print("🚫 Brak pojazdów spełniających podane kryteria.")
@@ -351,7 +347,6 @@ def rent_vehicle_for_client(user: User):
 
 
 def rent_vehicle(user: User, session=None):
-    # Ustalenie roli
     if session is None:
         with Session() as session:
             return rent_vehicle(user, session=session)
@@ -400,18 +395,7 @@ def rent_vehicle(user: User, session=None):
             continue
 
     # Krok 1: Znajdź dostępne pojazdy
-    # available_vehicles = get_available_vehicles(session, start_date, planned_return_date, vehicle_type)
-    available_vehicles = (
-        session.query(Vehicle)
-        .filter(Vehicle.type == vehicle_type)
-        .filter(~Vehicle.rental_history.any(
-            (RentalHistory.start_date <= planned_return_date) &
-            (RentalHistory.planned_return_date >= start_date)
-        ))
-        .filter(Vehicle.is_available == True)
-        .order_by(Vehicle.cash_per_day, Vehicle.brand, Vehicle.vehicle_model)
-        .all()
-    )
+    available_vehicles = get_available_vehicles(session, start_date, planned_return_date, vehicle_type)
 
     if not available_vehicles:
         print("\n🚫 Brak dostępnych pojazdów w tym okresie.")

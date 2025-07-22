@@ -139,83 +139,44 @@ def calculate_rental_cost(user, daily_rate, days):
             "lojalność" if loyalty_discount_days else (
             "czasowy" if discount > 0 else "brak"))
 
-def get_available_vehicles(session):
+def get_unavailable_vehicle(session, start_date = None, planned_return_date = None, vehicle_type = "all"):
     today = date.today()
+    if start_date is None or planned_return_date is None:
+        start_date = planned_return_date = date.today()
 
-    # 1. Wszystkie dostępne pojazdy (flaga)
-    available_vehs = session.query(Vehicle).filter(Vehicle.is_available == True).all()
-    available_ids = [v.id for v in available_vehs]
+    filters = [Vehicle.is_available == True]
+    if vehicle_type != "all":
+        filters.append(Vehicle.type == vehicle_type)
 
-    if not available_ids:
-        return []
-
-    # 2. Pojazdy wypożyczone dzisiaj
-    rented_today = session.query(RentalHistory.vehicle_id).filter(
-        and_(
-            RentalHistory.vehicle_id.in_(available_ids),
-            RentalHistory.start_date <= today,
-            today <= RentalHistory.planned_return_date
-        )
-    ).all()
-    rented_ids = [r[0] for r in rented_today]
+    rented_vehicles = session.query(RentalHistory).join(Vehicle).filter(
+        *filters,
+            RentalHistory.start_date <= planned_return_date,
+            RentalHistory.planned_return_date >= start_date
+        ).all()
+    rented_ids = [r.vehicle_id for r in rented_vehicles]
 
     # 3. Pojazdy w naprawie dzisiaj
-    repaired_today = session.query(RepairHistory.vehicle_id).filter(
-        and_(
-            RepairHistory.vehicle_id.in_(available_ids),
-            RepairHistory.start_date <= today,
-            today <= RepairHistory.planned_return_date
-        )
-    ).all()
-    repaired_ids = [r[0] for r in repaired_today]
+    repaired_today = session.query(RepairHistory).join(Vehicle).filter(
+        *filters,
+                RepairHistory.start_date <= planned_return_date,
+                RepairHistory.planned_return_date >= start_date
+        ).all()
+    repaired_ids = [r.vehicle_id for r in repaired_today]
 
-    # 4. Łączymy ID pojazdów niedostępnych
-    unavailable_ids = set(rented_ids + repaired_ids)
+    unavailable_ids =  list(set(rented_ids + repaired_ids))
 
-    # 5. Finalnie wybieramy pojazdy dostępne i nie w wypożyczeniu ani w naprawie
-    truly_available = session.query(Vehicle).filter(
+def get_available_vehicles(session, start_date=None, planned_return_date=None, vehicle_type="all"):
+    unavailable_ids = get_unavailable_vehicle(session, start_date, planned_return_date, vehicle_type)
+
+    filters = [
         Vehicle.is_available == True,
-        Vehicle.id.notin_(unavailable_ids)
-    ).all()
+        ~Vehicle.id.in_(unavailable_ids)  # przeciwieństwo
+    ]
+    if vehicle_type != "all":
+        filters.append(Vehicle.type == vehicle_type)
 
+    truly_available = session.query(Vehicle).filter(*filters).all()
     return truly_available
-
-def get_vehicles_unavailable_today(session):
-    today = date.today()
-
-    # Pobranie pojazdów oznaczonych jako niedostępne
-    unavailable_vehs = session.query(Vehicle).filter(
-        Vehicle.is_available == False
-    ).all()
-
-    # Zmiana wyniku na listę ID
-    unavailable_veh_ids = [veh.id for veh in unavailable_vehs]
-
-    if not unavailable_veh_ids:
-        return []
-
-    # Sprawdzanie, które sa wypożyczone dzisiaj
-    rented_today = session.query(RentalHistory).filter(
-        and_(
-            RentalHistory.vehicle_id.in_(unavailable_veh_ids),
-            RentalHistory.start_date <= today,
-            today <= RentalHistory.planned_return_date        )
-    ).all()
-
-    # Sprawdzanie, które z nich są w naprawie dzisiaj
-    repaired_today = session.query(RepairHistory).filter(
-        and_(RepairHistory.vehicle_id.in_(unavailable_veh_ids),
-            RepairHistory.start_date <= today,
-            today <= RepairHistory.planned_return_date
-            )
-    ).all()
-
-    # Łączenie i zwracanie wyniku
-    rented_ids = [vid.vehicle_id for vid in rented_today]
-    repaired_ids = [vid.vehicle_id for vid in repaired_today]
-
-    return list(set(rented_ids + repaired_ids))
-
 
 def show_vehicles_rented_today(session):
     today = date.today()
