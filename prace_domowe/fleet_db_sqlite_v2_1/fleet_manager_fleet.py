@@ -261,12 +261,12 @@ def get_vehicle(only_available: bool = False):
 
     while True:
         vehicle_type_input = input(
-            "\nJakiego typu pojazdy chcesz zobaczyć:"
-            "\nWszystkie lub naciśnij Enetr"
-            "\nSamochód"
-            "\nSkuter"
-            "\nRower"
-            ""
+            "\nJakiego typu pojazdy chcesz zobaczyć:\n"
+            "\n(Wszystkie) lub naciśnij Enetr"
+            "\n(Samochód)"
+            "\n(Skuter)"
+            "\n(Rower)"
+            "\nWybierz typ: "
         ).strip().lower()
 
         if vehicle_type_input == "":
@@ -279,13 +279,19 @@ def get_vehicle(only_available: bool = False):
         print("\n❌ Zły wybór typu pojazdu, spróbuj jeszcze raz.")
 
     with Session() as session:
+        vehicles = []
+
         if status == "available":
             vehicles = get_available_vehicles(session, vehicle_type)
+
         elif status == "rented":
             unavailable_ids = get_unavailable_vehicle(session, vehicle_type)
             if not unavailable_ids:
                 print("\n🚫 Brak niedostępnych pojazdów na dziś.")
                 return
+
+            vehicles = session.query(Vehicle).filter(Vehicle.id.in_(unavailable_ids)).all()
+
         else:
             vehicles = session.query(Vehicle).all()
 
@@ -433,10 +439,10 @@ def rent_vehicle(user: User, session=None):
             break
 
     # Krok 4: Oblicz koszty i rabaty
-    days = (planned_return_date - start_date).days
-    base_cost = days * chosen_vehicle.cash_per_day
+    rent_days = (planned_return_date - start_date).days
+    base_cost = rent_days * chosen_vehicle.cash_per_day
     total_cost, discount_value, discount_type = calculate_rental_cost(
-        user, chosen_vehicle.cash_per_day, days
+        user, chosen_vehicle.cash_per_day, rent_days
     )
 
     # Krok 5: Potwierdzenie
@@ -634,7 +640,7 @@ def return_vehicle(user: User):
 
 def repair_vehicle():
     with SessionLocal() as session:
-        available_vehicles = get_available_vehicles()
+        available_vehicles = get_available_vehicles(session)
         if not available_vehicles:
             print("Brak dostępnych pojazdów do naprawy.")
             return
@@ -667,7 +673,7 @@ def repair_vehicle():
         selected_workshop = workshops[workshop_choice]
 
         repair_days = get_positive_int("Podaj liczbę dni naprawy: ")
-        planed_return_date = datetime.today().date() + timedelta(days=repair_days)
+        planed_end_date = datetime.today().date() + timedelta(days=repair_days)
 
         repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy: ")
         repair_cost = repair_cost_per_day * repair_days
@@ -692,7 +698,7 @@ def repair_vehicle():
                 vehicle_id=vehicle.id,
                 mechanic_id=selected_workshop.id,
                 start_date=datetime.today().date(),
-                planed_return_date=planed_return_date,
+                planed_end_date=planed_end_date,
                 actual_return_date=None,  # Domyślnie brak
                 cost=repair_cost,
                 description=description
@@ -702,11 +708,11 @@ def repair_vehicle():
             # Aktualizacja pojazdu
             vehicle.is_available = False
             vehicle.borrower_id = selected_workshop.id
-            vehicle.return_date = planed_return_date  # Jeśli jeszcze używasz tej kolumny w Vehicle
+            vehicle.return_date = planed_end_date  # Jeśli jeszcze używasz tej kolumny w Vehicle
 
             session.commit()
             print(
                 f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
-                f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planed_return_date}."
+                f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planed_end_date}."
             )
             return

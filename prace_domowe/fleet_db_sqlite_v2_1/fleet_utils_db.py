@@ -107,7 +107,7 @@ def generate_vehicle_id(prefix: str, session) -> str:
     next_number = max(max_number_db, max_number_pending) + 1
     return f"{prefix}{next_number:03d}"
 
-def calculate_rental_cost(user, daily_rate, days):
+def calculate_rental_cost(user, daily_rate, rental_days):
     with Session() as session:
         """
         Zwraca koszt z uwzględnieniem rabatu czasowego i lojalnościowego.
@@ -126,13 +126,13 @@ def calculate_rental_cost(user, daily_rate, days):
 
         discount = 0.0
         for promo in time_promos:
-            if days >= promo.min_days:
+            if rental_days >= promo.min_days:
                 discount = promo.discount_percent / 100.0
                 print(f"\n✅ Przyznano rabat {int(promo.discount_percent)}% ({promo.description})")
                 break
 
         # Cena po uwzględnieniu rabatu i 1 dnia gratis (jeśli przysługuje)
-        paid_days = max(days - loyalty_discount_days, 0)
+        paid_days = max(rental_days - loyalty_discount_days, 0)
         price = paid_days * daily_rate * (1 - discount)
 
         return round(price, 2), discount * 100, "lojalność + czasowy" if discount > 0 and loyalty_discount_days else (
@@ -144,26 +144,36 @@ def get_unavailable_vehicle(session, start_date = None, planned_return_date = No
     if start_date is None or planned_return_date is None:
         start_date = planned_return_date = date.today()
 
-    filters = [Vehicle.is_available == True]
-    if vehicle_type != "all":
-        filters.append(Vehicle.type == vehicle_type)
+    query = session.query(Vehicle).filter(Vehicle.is_available != True)
 
-    rented_vehicles = session.query(RentalHistory).join(Vehicle).filter(
-        *filters,
+    if vehicle_type != "all":
+        query = query.filter(Vehicle.type == vehicle_type)
+
+    potentially_unavailable = query.all()
+
+    candidate_ids = [v.id for v in potentially_unavailable]
+
+    rented_ids = []
+    repaired_ids = []
+    if candidate_ids:
+
+        rented_vehicles = session.query(RentalHistory).filter(
+            RentalHistory.vehicle_id.in_(candidate_ids),
             RentalHistory.start_date <= planned_return_date,
             RentalHistory.planned_return_date >= start_date
         ).all()
-    rented_ids = [r.vehicle_id for r in rented_vehicles]
+        rented_ids = [r.vehicle_id for r in rented_vehicles]
 
     # 3. Pojazdy w naprawie dzisiaj
-    repaired_today = session.query(RepairHistory).join(Vehicle).filter(
-        *filters,
-                RepairHistory.start_date <= planned_return_date,
-                RepairHistory.planned_end_date >= start_date
+        repaired_today = session.query(RepairHistory).filter(
+            RepairHistory.vehicle_id.in_(candidate_ids),
+            RepairHistory.start_date <= planned_return_date,
+            RepairHistory.planned_end_date >= start_date
         ).all()
-    repaired_ids = [r.vehicle_id for r in repaired_today]
+        repaired_ids = [r.vehicle_id for r in repaired_today]
 
     unavailable_ids = list(set(rented_ids + repaired_ids))
+
     return unavailable_ids
 
 def get_available_vehicles(session, start_date=None, planned_return_date=None, vehicle_type="all"):
@@ -171,7 +181,7 @@ def get_available_vehicles(session, start_date=None, planned_return_date=None, v
 
     filters = [
         Vehicle.is_available == True,
-        ~Vehicle.id.in_(unavailable_ids)  # przeciwieństwo
+        ~Vehicle.id.in_(unavailable_ids)
     ]
     if vehicle_type != "all":
         filters.append(Vehicle.type == vehicle_type)
@@ -182,7 +192,6 @@ def get_available_vehicles(session, start_date=None, planned_return_date=None, v
 def show_vehicles_rented_today(session):
     today = date.today()
 
-    # Wyszukaj wszystkie wypożyczenia trwające dziś
     rentals_today = session.query(RentalHistory).filter(
         and_(
             RentalHistory.start_date <= today,
