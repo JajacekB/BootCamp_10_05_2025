@@ -414,7 +414,7 @@ def rent_vehicle(user: User, session=None):
             key = (v.brand, v.vehicle_model, v.cash_per_day, v.size, v.fuel_type)
             grouped[key].append(v)
 
-        tabele_width = 97
+        tabele_width = 98
 
         print("\nDostępne grupy pojazdów:\n")
 
@@ -434,19 +434,19 @@ def rent_vehicle(user: User, session=None):
             key = (v.brand, v.vehicle_model, v.cash_per_day, v.max_speed)
             grouped[key].append(v)
 
-        tabele_width = 84
+        tabele_width = 86
 
         print("\nDostępne grupy pojazdów:\n")
 
         print(
-            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'prędkość maX':<19}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
+            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}|{'prędkość maX':>13} |{'Cena za dzień':>15} |{'Dostępnych':^12}|")
         print(tabele_width * "_")
 
         for index, ((brand, model, price, max_speed), scooter) in enumerate(grouped.items(), start=1):
             formated_price = f"{price:.2f} zł"
 
             print(
-                f"|{index:>4} | {brand:<15}| {model:<15}| {max_speed:<19} {formated_price:>15} |{len(scooter):^12}|"
+                f"|{index:>4} | {brand:<15}| {model:<15}|{max_speed:>13} | {formated_price:>14} |{len(scooter):^11}|"
             )
 
     elif vehicle_type == "bike":
@@ -460,7 +460,7 @@ def rent_vehicle(user: User, session=None):
         print("\nDostępne grupy pojazdów:\n")
 
         print(
-            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj roweru':<21}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
+            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj roweru':<21}|{'Cena za dzień':>16} |{'Dostępnych':^12}|")
         print(tabele_width * "_")
 
         for index, ((brand, model, price, bike_type, is_electric), bike) in enumerate(grouped.items(), start=1):
