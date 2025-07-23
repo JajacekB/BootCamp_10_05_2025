@@ -685,7 +685,7 @@ def return_vehicle(user: User):
                 process_return_for_vehicle(vehicle)
 
         else:
-            print("Funkcja dostępna tylko dla klientów, sprzedawców i administratorów.")
+            print("Funkcja dostępna tylko dla klientów i sprzedawców.")
 
 def repair_vehicle():
     with SessionLocal() as session:

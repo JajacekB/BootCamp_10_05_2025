@@ -7,7 +7,7 @@ from sqlalchemy import or_, not_
 import bcrypt
 import getpass
 
-def get_users_by_role(role_name: str, session):
+def get_users_by_role(session, role_name: str):
     """Zwraca listę użytkowników o podanej roli."""
     return session.query(User).filter_by(role=role_name).all()
 
@@ -35,10 +35,10 @@ def login_user():
                 f"2. Zarejestrować się.\n"
                 f"3. Anulować logowanie."
         )
-        choise = input("\nWybierz opcje (1 - 3): ").strip()
-        if choise == "1":
+        choice = input("\nWybierz opcje (1 - 3): ").strip()
+        if choice == "1":
             continue
-        elif choise == "2":
+        elif choice == "2":
             return register_user()
         else:
             print("\nAnulowano logowanie.")
