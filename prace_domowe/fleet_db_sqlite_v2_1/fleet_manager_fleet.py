@@ -409,20 +409,20 @@ def rent_vehicle(user: User, session=None):
 
     # Krok 2: Grupuj pojazdy
     grouped = defaultdict(list)
-    for v in available_vehicles:
+    for v in (available_vehicles):
         key = (v.brand, v.vehicle_model, v.cash_per_day)
         grouped[key].append(v)
 
-    tabele_width = 67
+    tabele_width = 75
 
     print("\nDostępne grupy pojazdów:\n")
-    print(f"| {'Marka':<16}| {'Model':<19}| {'Cena za dzień':>13} | Dostępnych |")
+    print(f"|{'L.p.':>5}| {'Marka':<16}| {'Model':<19}| {'Cena za dzień':>13} |{'Dostępnych':^12}|")
     print(tabele_width * "_")
 
-    for (brand, model, price), vehicles in grouped.items():
-        formated_price = f"{price:.2f}zł"
+    for index, ((brand, model, price), vehicles) in enumerate(grouped.items(), start=1):
+        formated_price = f"{price:.2f} zł"
         print(
-            f"| {brand:<16}| {model:<19}| {f'{price:.2f} zł':>13} |     {len(vehicles)}      |"
+            f"|{index:>4} | {brand:<16}| {model:<19}| {formated_price}:>13 |{len(vehicles):^12}|"
         )
 
     # Krok 3: Wybór modelu
@@ -673,7 +673,7 @@ def repair_vehicle():
         selected_workshop = workshops[workshop_choice]
 
         repair_days = get_positive_int("Podaj liczbę dni naprawy: ")
-        planed_end_date = datetime.today().date() + timedelta(days=repair_days)
+        planned_end_date = datetime.today().date() + timedelta(days=repair_days)
 
         repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy: ")
         repair_cost = repair_cost_per_day * repair_days
@@ -698,7 +698,7 @@ def repair_vehicle():
                 vehicle_id=vehicle.id,
                 mechanic_id=selected_workshop.id,
                 start_date=datetime.today().date(),
-                planed_end_date=planed_end_date,
+                planned_end_date=planned_end_date,
                 actual_return_date=None,  # Domyślnie brak
                 cost=repair_cost,
                 description=description
@@ -708,11 +708,11 @@ def repair_vehicle():
             # Aktualizacja pojazdu
             vehicle.is_available = False
             vehicle.borrower_id = selected_workshop.id
-            vehicle.return_date = planed_end_date  # Jeśli jeszcze używasz tej kolumny w Vehicle
+            vehicle.return_date = planned_end_date  # Jeśli jeszcze używasz tej kolumny w Vehicle
 
             session.commit()
             print(
                 f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
-                f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planed_end_date}."
+                f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planned_end_date}."
             )
             return

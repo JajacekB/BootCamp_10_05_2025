@@ -186,7 +186,7 @@ def get_available_vehicles(session, start_date=None, planned_return_date=None, v
     if vehicle_type != "all":
         filters.append(Vehicle.type == vehicle_type)
 
-    truly_available = session.query(Vehicle).filter(*filters).all()
+    truly_available = session.query(Vehicle).filter(*filters).order_by(Vehicle.cash_per_day).all()
     return truly_available
 
 def show_vehicles_rented_today(session):
