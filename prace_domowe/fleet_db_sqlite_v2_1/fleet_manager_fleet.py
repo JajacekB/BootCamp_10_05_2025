@@ -408,22 +408,71 @@ def rent_vehicle(user: User, session=None):
         return
 
     # Krok 2: Grupuj pojazdy
-    grouped = defaultdict(list)
-    for v in (available_vehicles):
-        key = (v.brand, v.vehicle_model, v.cash_per_day)
-        grouped[key].append(v)
+    if vehicle_type == "car":
+        grouped = defaultdict(list)
+        for v in (available_vehicles):
+            key = (v.brand, v.vehicle_model, v.cash_per_day, v.size, v.fuel_type)
+            grouped[key].append(v)
 
-    tabele_width = 75
+        tabele_width = 97
 
-    print("\nDostępne grupy pojazdów:\n")
-    print(f"|{'L.p.':>5}| {'Marka':<16}| {'Model':<19}| {'Cena za dzień':>13} |{'Dostępnych':^12}|")
-    print(tabele_width * "_")
+        print("\nDostępne grupy pojazdów:\n")
 
-    for index, ((brand, model, price), vehicles) in enumerate(grouped.items(), start=1):
-        formated_price = f"{price:.2f} zł"
+        print(f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj':<11}| {'Paliw':<11}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
+        print(tabele_width * "_")
+
+        for index, ((brand, model, price, size, fuel_type), cars) in enumerate(grouped.items(), start=1):
+            formated_price = f"{price:.2f} zł"
+
+            print(
+                f"|{index:>4} | {brand:<15}| {model:<15}| {size:<11}| {fuel_type:<11}| {formated_price:>15} |{len(cars):^12}|"
+            )
+
+    elif vehicle_type == "scooter":
+        grouped = defaultdict(list)
+        for v in (available_vehicles):
+            key = (v.brand, v.vehicle_model, v.cash_per_day, v.max_speed)
+            grouped[key].append(v)
+
+        tabele_width = 84
+
+        print("\nDostępne grupy pojazdów:\n")
+
         print(
-            f"|{index:>4} | {brand:<16}| {model:<19}| {formated_price}:>13 |{len(vehicles):^12}|"
-        )
+            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Wielkość':<11}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
+        print(tabele_width * "_")
+
+        for index, ((brand, model, price, max_speed), scooter) in enumerate(grouped.items(), start=1):
+            formated_price = f"{price:.2f} zł"
+
+            print(
+                f"|{index:>4} | {brand:<15}| {model:<15}| {max_speed:<11} {formated_price:>15} |{len(scooter):^12}|"
+            )
+
+    elif vehicle_type == "bike":
+        grouped = defaultdict(list)
+        for v in (available_vehicles):
+            key = (v.brand, v.vehicle_model, v.cash_per_day, v.bike_type, v.is_electric)
+            grouped[key].append(v)
+
+        tabele_width = 97
+
+        print("\nDostępne grupy pojazdów:\n")
+
+        print(
+            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj roweru':<11}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
+        print(tabele_width * "_")
+
+        for index, ((brand, model, price, bike_type, is_electric), bike) in enumerate(grouped.items(), start=1):
+            formated_price = f"{price:.2f} zł"
+            if is_electric:
+                bike_variety = f"{bike_type} - elektryczny"
+            else:
+                bike_variety = f"{bike_type} - klasyczny"
+
+            print(
+                f"|{index:>4} | {brand:<15}| {model:<15}| {bike_variety:<21}| {formated_price:>15} |{len(bike):^12}|"
+            )
 
     # Krok 3: Wybór modelu
     while True:
