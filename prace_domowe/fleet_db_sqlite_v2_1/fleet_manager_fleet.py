@@ -541,152 +541,73 @@ def rent_vehicle(user: User, session=None):
         f"od {start_date} do {planned_return_date}.\nMiłej jazdy!"
     )
 
-
-def return_vehicle(user: User):
+def return_vehicle_production():
     with Session() as session:
 
-        def update_costs_and_invoice(rental, vehicle, actual_return_date):
+        unavailable_veh = session.query(Vehicle).filter(Vehicle.is_available != True).all()
+        unavailable_veh_ids = [v.id for v in unavailable_veh]
 
-            start_date = rental.start_date
-            planned_return = rental.planned_return_date
-            planned_days = (planned_return - start_date).days + 1
-
-            rental.actual_return_date = actual_return_date
-            rental_days = (actual_return_date - start_date).days + 1
-            if rental_days < 1:
-                rental_days = 1
-
-            if actual_return_date < planned_return:
-                # Zwrot wcześniej
-                base_cost = calculate_rental_cost(vehicle.cash_per_day, rental_days)
-                late_fee = 0
-                print(f"Zwrot wcześniej – nowy koszt na {rental_days} dni: {base_cost:.2f} zł")
-
-            elif actual_return_date > planned_return:
-                # Zwrot po terminie
-                base_cost = calculate_rental_cost(vehicle.cash_per_day, planned_days)
-                delay_days = (actual_return_date - planned_return).days
-                late_fee = delay_days * vehicle.cash_per_day
-                print(f"Zwrot po terminie o {delay_days} dni. Kara: {late_fee:.2f} zł")
-
-            else:
-                # Zwrot w terminie
-                actual_return_date = planned_return
-                rental.actual_return_date = actual_return_date
-                base_cost = calculate_rental_cost(vehicle.cash_per_day, planned_days)
-                late_fee = 0
-                print(f"Zwrot w terminie. Koszt: {base_cost:.2f} zł")
-
-            total_cost = base_cost + late_fee
-            rental.total_cost = total_cost
-
-            # Aktualizacja faktury
-            if rental.invoice:
-                rental.invoice.amount = total_cost
-                rental.invoice.issue_date = actual_return_date
-
-            # Aktualizacja pojazdu
-            vehicle.is_available = True
-            vehicle.borrower_id = None
-            vehicle.return_date = None
-
-        def process_return_for_vehicle(vehicle):
-
-            # Znajdź aktywne wypożyczenie (związane z pojazdem i użytkownikiem)
-            rental = session.query(RentalHistory).filter_by(
-                vehicle_id=vehicle.id,
-                user_id=vehicle.borrower_id
-            ).order_by(RentalHistory.start_date.desc()).first()
-
-            if not rental:
-                print(f"Nie znaleziono historii wypożyczenia pojazdu {vehicle.vehicle_model}. Pomijam.")
-                return False
-
-            print(f"\nPojazd do zwrotu: {vehicle.brand} {vehicle.vehicle_model} (ID: {vehicle.vehicle_id})")
-            print(f"📅 Planowany termin zwrotu: {rental.planned_return_date}\n")
-
-            input_return_str = input(
-                "Podaj datę faktycznego zwrotu (DD-MM-YYYY), lub naciśnij ENTER, aby przyjąć dzisiejszą datę: "
-            ).strip()
-
-            if not input_return_str:
-                actual_return_date = date.today()
-                return actual_return_date
-
-            try:
-                actual_return_date = datetime.strptime(input_return_str, "%d-%m-%Y").date()
-
-            except ValueError:
-                print("Niepoprawny format daty. Zwrot pominięty.")
-                return False
-
-            choice = input(
-                f"\nCzy na pewno chcesz zwrócić pojazd:\n"
-                f"{rental.vehicle}\n"
-                f"Odpowiedz (tak/nie): "
-            ).strip().lower()
-
-            if choice in ("nie", "n", "no"):
-                print("\nZwrot anulowany.")
-                return
-
-            update_costs_and_invoice(rental, vehicle, actual_return_date)
-
-            # Aktualizacja pojazdu - zwrot
-            vehicle.is_available = True
-            vehicle.borrower_id = None
-            vehicle.return_date = None
-
-            session.commit()
-            print(f"Pojazd {vehicle.vehicle_model} został zwrócony i jest dostępny.")
-            return True
-
-        if user.role == "client":
-            # Pobierz pojazdy wypożyczone przez klienta
-            rented_vehicles = session.query(Vehicle).filter(
-                Vehicle.borrower_id == user.id,
-                Vehicle.is_available == False
-            ).all()
-
-            if not rented_vehicles:
-                print("Nie masz obecnie wypożyczonych pojazdów.")
-                return
-
-            for vehicle in rented_vehicles:
-                print("\nCzy chcesz zwrócić ten pojazd?")
-                print(f"{vehicle.brand} {vehicle.vehicle_model} (ID: {vehicle.vehicle_id})")
-                answer = input("(tak/nie): ").strip().lower()
-                if answer not in ("tak", "t", "yes", "y"):
-                    continue
-                process_return_for_vehicle(vehicle)
-
-        elif user.role in ("seller", "admin"):
-            while True:
-                show_vehicles_rented_today(session)
-                # Najpierw opcjonalnie wyświetl wypożyczone pojazdy dla danego użytkownika - albo od razu pytaj o ID pojazdu
-                vehicle_id_str = input("\nPodaj ID pojazdu do zwrotu (lub wpisz 'koniec' aby wyjść): ").strip()
-                if vehicle_id_str.lower() in ("koniec", "k"):
-                    break
-
-                try:
-                    vehicle_id = int(vehicle_id_str)
-                except ValueError:
-                    print("Niepoprawne ID pojazdu.")
-                    continue
-
-                vehicle = session.query(Vehicle).filter_by(id=vehicle_id).first()
-                if not vehicle:
-                    print("Nie znaleziono pojazdu o podanym ID.")
-                    continue
-
-                if vehicle.is_available:
-                    print("Ten pojazd jest już dostępny, nie jest wypożyczony.")
-                    continue
-
-                process_return_for_vehicle(vehicle)
+        if not unavailable_veh:
+            print("\nBrak wynajętych pojazdów")
+            return
 
         else:
-            print("Funkcja dostępna tylko dla klientów i sprzedawców.")
+
+            # lista wynajętych pojazdów
+            rented_vehs = session.query(RentalHistory).filter(
+                RentalHistory.vehicle_id.in_(unavailable_veh_ids)
+            ).order_by(RentalHistory.planned_return_date.asc()).all()
+
+            rented_ids = [r.vehicle_id for r in rented_vehs]
+
+            vehicles = session.query(Vehicle).filter(Vehicle.id.in_(rented_ids)).all()
+
+            table_wide = 91
+            month_pl = {
+                1: "styczeń",
+                2: "luty",
+                3: "marzec",
+                4: "kwiecień",
+                5: "maj",
+                6: "czerwiec",
+                7: "lipiec",
+                8: "sierpień",
+                9: "wrzesień",
+                10: "październik",
+                11: "listopad",
+                12: "grudzień"
+            }
+
+            print(f"\nLista wynajętych pojazdów:\n")
+            print(
+                f"|{'ID.':>5}|{'Data zwrotu':>21} | {'Marka':^14} | {'Model':^14} |{'Nr rejestracyjny/seryjny':>25} |"
+            )
+            print(table_wide * "_")
+            for p, q in zip(vehicles, rented_vehs):
+                date_obj = q.planned_return_date
+                day = date_obj.day
+                month_name = month_pl[date_obj.month]
+                year = date_obj.year
+                date_str = f"{day}-{month_name}_{year}"
+
+                print(
+                    f"|{p.id:>4} |{date_str:>21} |{p.brand:>15} |{p.vehicle_model:>15} | {p.individual_id:>24} |"
+                )
+
+            # Wybór pojazdu do zwrotu
+            choice = get_positive_int(
+                f"\nKtóry pojazd chcesz zwrócić?"
+                f"\nPodaj nr ID lub Enter jeśli chcesz anulować: "
+            )
+            if not choice:
+                print("\nZwrot pojazdu anulowany.")
+                return
+
+            else:
+                vehicle = session.query(Vehicle).filter(Vehicle.id == choice).all()
+                print(
+                    f"\n{vehicle}"
+                )
 
 def repair_vehicle():
     with SessionLocal() as session:

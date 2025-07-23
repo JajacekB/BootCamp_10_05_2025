@@ -70,6 +70,7 @@ def return_vehicle_production():
             )
             if not choice:
                 print("\nZwrot pojazdu anulowany.")
+                return
 
             else:
                 vehicle = session.query(Vehicle).filter(Vehicle.id == choice).all()
