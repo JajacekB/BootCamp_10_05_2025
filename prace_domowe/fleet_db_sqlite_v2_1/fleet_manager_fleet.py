@@ -418,7 +418,7 @@ def rent_vehicle(user: User, session=None):
 
         print("\nDostępne grupy pojazdów:\n")
 
-        print(f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj':<11}| {'Paliw':<11}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
+        print(f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj':<11}| {'Paliw':<11}|{'Cena za dzień':>16} |{'Dostępnych':^12}|")
         print(tabele_width * "_")
 
         for index, ((brand, model, price, size, fuel_type), cars) in enumerate(grouped.items(), start=1):
@@ -439,14 +439,14 @@ def rent_vehicle(user: User, session=None):
         print("\nDostępne grupy pojazdów:\n")
 
         print(
-            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Wielkość':<11}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
+            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'prędkość maX':<19}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
         print(tabele_width * "_")
 
         for index, ((brand, model, price, max_speed), scooter) in enumerate(grouped.items(), start=1):
             formated_price = f"{price:.2f} zł"
 
             print(
-                f"|{index:>4} | {brand:<15}| {model:<15}| {max_speed:<11} {formated_price:>15} |{len(scooter):^12}|"
+                f"|{index:>4} | {brand:<15}| {model:<15}| {max_speed:<19} {formated_price:>15} |{len(scooter):^12}|"
             )
 
     elif vehicle_type == "bike":
@@ -455,12 +455,12 @@ def rent_vehicle(user: User, session=None):
             key = (v.brand, v.vehicle_model, v.cash_per_day, v.bike_type, v.is_electric)
             grouped[key].append(v)
 
-        tabele_width = 97
+        tabele_width = 95
 
         print("\nDostępne grupy pojazdów:\n")
 
         print(
-            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj roweru':<11}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
+            f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj roweru':<21}|{'Cena za dzień':>15} |{'Dostępnych':^12}|")
         print(tabele_width * "_")
 
         for index, ((brand, model, price, bike_type, is_electric), bike) in enumerate(grouped.items(), start=1):
