@@ -144,7 +144,7 @@ def get_unavailable_vehicle(session, start_date = None, planned_return_date = No
     if start_date is None or planned_return_date is None:
         start_date = planned_return_date = date.today()
 
-    query = session.query(Vehicle).filter(Vehicle.is_available != True)
+    query = session.query(Vehicle).filter(Vehicle.is_available != True).all()
 
     if vehicle_type != "all":
         query = query.filter(Vehicle.type == vehicle_type)

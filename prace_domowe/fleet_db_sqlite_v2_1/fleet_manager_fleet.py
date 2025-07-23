@@ -511,6 +511,7 @@ def rent_vehicle(user: User, session=None):
     # Aktualizacja pojazdu
     chosen_vehicle.is_available = False
     chosen_vehicle.borrower_id = user.id
+    chosen_vehicle.return_date = planned_return_date
     session.add(chosen_vehicle)
 
     # Historia wypożyczeń

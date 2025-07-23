@@ -1,3 +1,5 @@
+from docutils.parsers.rst.directives import choice
+
 from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, RepairHistory, Invoice, Promotion
 from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select
 from sqlalchemy.exc import IntegrityError
@@ -5,47 +7,132 @@ from fleet_database import Session, SessionLocal
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from fleet_manager_user import get_clients, get_users_by_role
+from fleet_utils_db import get_positive_int
 
 
-with Session() as session:
-    today = date.today()
-    unavailable_vehs = session.query(Vehicle).filter(Vehicle.is_available == False).all()
-    for v in unavailable_vehs:
-        # print(v)
-        print(v.id)
+def return_vehicle_production():
+    with Session() as session:
 
-    unavailable_veh_ids = [veh.id for veh in unavailable_vehs]
-    for veh_id in unavailable_veh_ids:
-        print(veh_id)
-        print(type(veh_id))
+        unavailable_veh = session.query(Vehicle).filter(Vehicle.is_available != True).all()
+        unavailable_veh_ids = [v.id for v in unavailable_veh]
 
-    rentals = session.query(RentalHistory).filter(
-        and_(
-            RentalHistory.vehicle_id.in_(unavailable_veh_ids),
-            RentalHistory.start_date <= today,
-            today <= RentalHistory.end_date)
-    ).all()
+        if not unavailable_veh:
+            print("\nBrak wynajętych pojazdów")
+            return
 
-    for rental in rentals:
-        print(rental.vehicle_id)
+        else:
 
-    print(111 * "2")
+            # lista wynajętych pojazdów
+            rented_vehs = session.query(RentalHistory).filter(
+                RentalHistory.vehicle_id.in_(unavailable_veh_ids)
+            ).order_by(RentalHistory.planned_return_date.asc()).all()
 
-    repaireds = session.query(RepairHistory).filter(
-        and_(RepairHistory.vehicle_id.in_(unavailable_veh_ids),
-            RepairHistory.start_date <= today,
-            today <= RepairHistory.end_date)
-    ).all()
+            rented_ids = [r.vehicle_id for r in rented_vehs]
 
-    for repaired in repaireds:
-        print(repaired.vehicle_id)
+            vehicles = session.query(Vehicle).filter(Vehicle.id.in_(rented_ids)).all()
 
-    print(111 * '#')
+            table_wide = 91
+            month_pl = {
+                1: "styczeń",
+                2: "luty",
+                3: "marzec",
+                4: "kwiecień",
+                5: "maj",
+                6: "czerwiec",
+                7: "lipiec",
+                8: "sierpień",
+                9: "wrzesień",
+                10: "październik",
+                11: "listopad",
+                12: "grudzień"
+            }
 
-    unavailable_vehs = rentals + repaireds
+            print(f"\nLista wynajętych pojazdów:\n")
+            print(
+                f"|{'ID.':>5}|{'Data zwrotu':>21} | {'Marka':^14} | {'Model':^14} |{'Nr rejestracyjny/seryjny':>25} |"
+            )
+            print(table_wide * "_")
+            for p, q in zip(vehicles, rented_vehs):
+                date_obj = q.planned_return_date
+                day = date_obj.day
+                month_name = month_pl[date_obj.month]
+                year = date_obj.year
+                date_str = f"{day}-{month_name}_{year}"
 
-    for unaval in unavailable_vehs:
-        print(unaval.vehicle_id)
+                print(
+                    f"|{p.id:>4} |{date_str:>21} |{p.brand:>15} |{p.vehicle_model:>15} | {p.individual_id:>24} |"
+                )
+
+            # Wybór pojazdu do zwrotu
+            choice = get_positive_int(
+                f"\nKtóry pojazd chcesz zwrócić?"
+                f"\nPodaj nr ID lub Enter jeśli chcesz anulować: "
+            )
+            if not choice:
+                print("\nZwrot pojazdu anulowany.")
+
+            else:
+                vehicle = session.query(Vehicle).filter(Vehicle.id == choice).all()
+                print(
+                    f"\n{vehicle}"
+                )
+
+
+
+
+
+return_vehicle_production()
+
+
+
+
+
+
+
+
+
+
+
+
+# with Session() as session:
+#     today = date.today()
+#     unavailable_vehs = session.query(Vehicle).filter(Vehicle.is_available == False).all()
+#     for v in unavailable_vehs:
+#         # print(v)
+#         print(v.id)
+#
+#     unavailable_veh_ids = [veh.id for veh in unavailable_vehs]
+#     for veh_id in unavailable_veh_ids:
+#         print(veh_id)
+#         print(type(veh_id))
+#
+#     rentals = session.query(RentalHistory).filter(
+#         and_(
+#             RentalHistory.vehicle_id.in_(unavailable_veh_ids),
+#             RentalHistory.start_date <= today,
+#             today <= RentalHistory.end_date)
+#     ).all()
+#
+#     for rental in rentals:
+#         print(rental.vehicle_id)
+#
+#     print(111 * "2")
+#
+#     repaireds = session.query(RepairHistory).filter(
+#         and_(RepairHistory.vehicle_id.in_(unavailable_veh_ids),
+#             RepairHistory.start_date <= today,
+#             today <= RepairHistory.end_date)
+#     ).all()
+#
+#     for repaired in repaireds:
+#         print(repaired.vehicle_id)
+#
+#     print(111 * '#')
+#
+#     unavailable_vehs = rentals + repaireds
+#
+#     for unaval in unavailable_vehs:
+#         print(unaval.vehicle_id)
 
 
 
