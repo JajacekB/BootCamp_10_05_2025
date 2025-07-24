@@ -359,7 +359,7 @@ def rent_vehicle(user: User, session=None):
 
     print("\n=== WYPOŻYCZENIE POJAZDU ===\n")
 
-    # Wprowadzenie danych wyporzyczenia (typ pojazdu i okres wypożyczenia
+    # Wprowadzenie danych wyporzyczenia (typ pojazdu i okres wypożyczenia)
     vehicle_type_map = {
         "samochód": "car",
         "skuter": "scooter",
@@ -541,7 +541,7 @@ def rent_vehicle(user: User, session=None):
         f"od {start_date} do {planned_return_date}.\nMiłej jazdy!"
     )
 
-def return_vehicle_production():
+def return_vehicle():
     with Session() as session:
 
         unavailable_veh = session.query(Vehicle).filter(Vehicle.is_available != True).all()
@@ -552,12 +552,10 @@ def return_vehicle_production():
             return
 
         else:
-
             # lista wynajętych pojazdów
             rented_vehs = session.query(RentalHistory).filter(
                 RentalHistory.vehicle_id.in_(unavailable_veh_ids)
             ).order_by(RentalHistory.planned_return_date.asc()).all()
-
             rented_ids = [r.vehicle_id for r in rented_vehs]
 
             vehicles = session.query(Vehicle).filter(Vehicle.id.in_(rented_ids)).all()
