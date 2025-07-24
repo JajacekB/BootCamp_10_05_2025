@@ -1,16 +1,16 @@
-from docutils.parsers.rst.directives import choice
-
 from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, RepairHistory, Invoice, Promotion
-from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select
+from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select, desc, asc
 from sqlalchemy.exc import IntegrityError
 from fleet_database import Session, SessionLocal
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from fleet_manager_user import get_clients, get_users_by_role
-from fleet_utils_db import get_positive_int
+from fleet_utils_db import get_positive_int, calculate_rental_cost, recalculate_cost
 
 
-def return_vehicle_production():
+def return_vehicle():
+    # user = get_users_by_role()
+    # Pobieranie aktywnie wynajętych i zarejestrowanych pojazdów
     with Session() as session:
 
         unavailable_veh = session.query(Vehicle).filter(Vehicle.is_available != True).all()
@@ -23,11 +23,11 @@ def return_vehicle_production():
         # lista wynajętych pojazdów
         rented_vehs = session.query(RentalHistory).filter(
             RentalHistory.vehicle_id.in_(unavailable_veh_ids)
-        ).order_by(RentalHistory.vehicle_id.asc()).all()
+        ).order_by(RentalHistory.planned_return_date.asc()).all()
 
         rented_ids = [r.vehicle_id for r in rented_vehs]
 
-        vehicles = session.query(Vehicle).filter(Vehicle.id.in_(rented_ids)).all()
+        vehicles = session.query(Vehicle).filter(Vehicle.id.in_(rented_ids)).order_by(Vehicle.return_date).all()
 
         table_wide = 91
         month_pl = {
@@ -46,27 +46,27 @@ def return_vehicle_production():
         }
 
         veh_ids =[z.id for z in vehicles]
-        print(f"\n(DEBUG) baza vehicles: {veh_ids}")
-        print(f"\n(DEBUG) rented_ids: {rented_ids}")
+        print(f"\n[DEBUG] baza vehicles: {veh_ids}")
+        print(f"\n[DEBUG] rented_ids: {rented_ids}")
 
         print(f"\nLista wynajętych pojazdów:\n")
         print(
-            f"|{'ID.':>5}|{'Data zwrotu':>21} | {'Marka':^14} | {'Model':^14} |{'Nr rejestracyjny/seryjny':>25} | ID pojazdu wg. rented"
+            f"|{'ID.':>5}|{'Data zwrotu':>21} | {'Marka':^14} | {'Model':^14} |{'Nr rejestracyjny/seryjny':>25} |"
         )
         print(table_wide * "_")
-        for p, q in zip(vehicles, rented_vehs):
-            date_obj = q.planned_return_date
+        for p in vehicles:
+            date_obj = p.return_date
             day = date_obj.day
             month_name = month_pl[date_obj.month]
             year = date_obj.year
             date_str = f"{day}-{month_name}_{year}"
 
             print(
-                f"|{p.id:>4} |{date_str:>21} |{p.brand:>15} |{p.vehicle_model:>15} | {p.individual_id:>24} | {q.vehicle_id}"
+                f"|{p.id:>4} |{date_str:>21} |{p.brand:>15} |{p.vehicle_model:>15} | {p.individual_id:>24} |"
             ) # po wyczyszczeniu tabeli vehicles z braku dat zmienić na vehicle
 
 
-        # Wybór pojazdu do zwrotu
+        # Wybór pojazdu do zwrotu i potwierdzenie chęci anulowania wynajmu lub rezerwacji
         choice = get_positive_int(
             f"\nKtóry pojazd chcesz zwrócić?"
             f"\nPodaj nr ID: "
@@ -109,13 +109,69 @@ def get_return_date_from_user(session) -> date:
     return return_date_input
 
 def recalculate_cost(session, vehicle: Vehicle, return_date: date):
-    """
+    # Rozdzielenie przypadków; przed czasem, aktualny, przeterminowany
 
-    :param session:
-    :param vehicle:
-    :param return_date:
-    :return:
-    """
+    planned_return_date = session.query(RentalHistory.planned_return_date).filter(
+        RentalHistory.vehicle_id == vehicle.id
+    ).order_by(RentalHistory.planned_return_date.desc()).scalar()
+
+    start_date = session.query(RentalHistory.start_date).filter(
+        RentalHistory.vehicle_id == vehicle.id
+    ).order_by(RentalHistory.planned_return_date.desc()).scalar()
+
+    base_cost = session.query(RentalHistory.base_cost).filter(RentalHistory.vehicle_id == vehicle.id).scalar()
+    cash_per_day = session.query(Vehicle.cash_per_day).filter(Vehicle.id == vehicle.id).scalar()
+
+    # user = session.query(RentalHistory.user_id).filter(RentalHistory.vehicle_id == vehicle.id).first()
+
+    if return_date > planned_return_date:
+        extra_days = (return_date - planned_return_date).days
+        total_cost = base_cost + extra_days * cash_per_day
+        overdue_fee_text = f"\n{base_cost} zł opłata bazowa + {extra_days * cash_per_day} zł kara za przeterminowanie.)"
+    elif return_date == planned_return_date:
+        total_cost = base_cost
+        overdue_fee_text = " (zwrot terminowy)"
+    else:
+        new_period = (planned_return_date - start_date).days
+        total_cost = calculate_rental_cost(user, cash_per_day, new_period)
+        overdue_fee_text = " (zwrot przed terminem, naliczono koszt zgodnie z czasem użytkowania)"
+
+    print(
+        f"\n💸 — KKW (Rzeczywisty Koszt Wynajmu) wynosi: {total_cost} zł.{overdue_fee_text}"
+    )
+    print(
+        f"\nCzy na pewno chcesz zwrócić pojazd: "
+        f"\n{vehicle}"
+    )
+    choice = input(
+        f"Wybierz (tak/nie): "
+    ).strip().lower()
+
+    if choice in ("nie", "n", "no"):
+        print("\nZwrot pojazdu anulowany.")
+        return
+
+    elif choice in ("tak", "t", "yes", "y"):
+        update_database(session, vehicle, return_date, total_cost)
+
+def update_database(session, vehicle: Vehicle, return_date: date, total_cost: float):
+
+    vehicle.is_available = True
+    vehicle.borrower_id = None
+    vehicle.return_date = None
+
+    rental = RentalHistory(
+        actual_return_date=return_date,
+        total_cost=total_cost
+    )
+
+    invoice = Invoice(
+        amount=total_cost
+    )
+
+    session.add_all([vehicle, rental, invoice])
+    session.commit()
+    return
 
 
 
@@ -124,7 +180,7 @@ def recalculate_cost(session, vehicle: Vehicle, return_date: date):
 
 
 
-return_vehicle_production()
+
 
 
 
