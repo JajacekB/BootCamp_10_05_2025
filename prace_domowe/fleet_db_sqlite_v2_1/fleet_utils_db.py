@@ -188,12 +188,21 @@ def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, r
 def update_database(session, vehicle: Vehicle, return_date: date, total_cost: float, reservation_id: str):
 
     rental = session.query(RentalHistory).filter(RentalHistory.reservation_id == reservation_id).first()
-    invoice = session.query(Invoice).filter(Invoice.rental_id == reservation_id).first()
+
+    if not rental:
+        print("Nie ma wypozycznie o podanym numerze id.")
+        return
+
+    rental_id = rental.id
+
+    invoice = session.query(Invoice).filter(Invoice.rental_id == rental_id).first()
+
+    if not invoice:
+        print("Nie ma faktury o podanym numerze id.")
 
     vehicle.is_available = True
     vehicle.borrower_id = None
     vehicle.return_date = None
-
 
     rental.actual_return_date = return_date
     rental.total_cost=total_cost

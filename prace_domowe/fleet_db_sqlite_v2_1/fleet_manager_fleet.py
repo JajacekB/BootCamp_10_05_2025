@@ -1,5 +1,6 @@
 from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, Invoice, RepairHistory
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func
 from fleet_database import Session, SessionLocal
 from datetime import date, datetime, timedelta
 from collections import defaultdict
@@ -477,10 +478,33 @@ def rent_vehicle(user: User, session=None):
     # Krok 3: Wybór modelu
     while True:
         chosen_model = input("\nPodaj model pojazdu do wypożyczenia: ").strip()
-        chosen_vehicle = next(
-            (v for v in available_vehicles if v.vehicle_model.lower() == chosen_model.lower()),
-            None
-        )
+        matching_vehicles = [v for v in available_vehicles if v.vehicle_model.lower() == chosen_model.lower()]
+
+        if not matching_vehicles:
+            print("🚫 Nie znaleziono pojazdu o podanym modelu. Wybierz ponownie.")
+            continue
+
+        # Szukaj najmniej wypożyczanego w bazie
+
+        # Lista ID dostępnych pojazdów danego modelu
+        matching_ids = [v.id for v in matching_vehicles]
+
+        result = session.query(
+            Vehicle,
+            func.count(RentalHistory.id).label("rental_count")
+        ).outerjoin(RentalHistory).filter(
+            Vehicle.id.in_(matching_ids)
+        ).group_by(Vehicle.id).order_by("rental_count").first()
+
+        if result:
+            chosen_vehicle, rental_count = result
+        else:
+            # fallback — pierwszy dostępny z listy
+            chosen_vehicle = matching_vehicles[0]
+            rental_count = 0
+        print(
+            f"\n✅ Wybrano pojazd: {chosen_vehicle.brand} {chosen_vehicle.vehicle_model}"
+            f" (ID: {chosen_vehicle.id}) — wypożyczany {rental_count or 0} razy.")
 
         if not chosen_vehicle:
             print("🚫 Nie znaleziono pojazdu o podanym modelu. Wybierz ponownie.")
@@ -524,16 +548,18 @@ def rent_vehicle(user: User, session=None):
         base_cost=base_cost,
         total_cost=total_cost
     )
+    session.add(rental)
+    session.flush()
 
     # Faktura
     invoice = Invoice(
         invoice_number=invoice_number,
-        rental_id=reservation_id,
+        rental_id=rental.id,
         amount=total_cost,
         issue_date=planned_return_date
     )
 
-    session.add_all([rental, invoice])
+    session.add_all([invoice])
     session.commit()
 
     print(

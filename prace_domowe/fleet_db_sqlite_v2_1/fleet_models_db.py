@@ -140,7 +140,7 @@ class RentalHistory(Base):
     invoice = relationship("Invoice", back_populates="rental", uselist=False)
 
     def __repr__(self):
-        return f"<RentalHistory {self.reservation_id} User:{self.user_id} Vehicle:{self.vehicle_id}>"
+        return f"<RentalHistory ID:{self.id} Nr rezerwacji:{self.reservation_id} User:{self.user_id} Vehicle:{self.vehicle_id}>"
 
 
 class RepairHistory(Base):
@@ -178,7 +178,7 @@ class Invoice(Base):
     rental = relationship("RentalHistory", back_populates="invoice")
 
     def __repr__(self):
-        return f"<Invoice {self.invoice_number} Amount:{self.amount}>"
+        return f"<Invoice {self.id} {self.rental_id} {self.invoice_number} Amount:{self.amount}>"
 
 class Promotion(Base):
     __tablename__ = "promotions"
