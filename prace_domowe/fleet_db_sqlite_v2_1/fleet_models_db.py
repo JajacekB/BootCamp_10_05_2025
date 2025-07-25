@@ -41,12 +41,11 @@ class Car(Vehicle):
 
     def __repr__(self):
         return(
-            f"\nid: [{self.id}]\n"
-            f"Numer ewidencyjny: [{self.vehicle_id}]\n"
-            f"{self.brand}, {self.vehicle_model}\n"
-            f"{self.size}, {self.fuel_type}\n"
-            f"Numer rejestracyjny: {self.individual_id}\n"
-            f"{self.cash_per_day}zł za dzień\n"
+            f"\nNumer ewidencyjny: [{self.vehicle_id} ]"
+            f"{self.brand} {self.vehicle_model} "
+            f"{self.size} - {self.fuel_type}\n"
+            f"Numer rejestracyjny: {self.individual_id}"
+            f"{self.cash_per_day}zł za dzień"
             f"{'Dostępny' if self.is_available else f'Niedostępny do {self.return_date}'}\n"
         )
 
@@ -62,12 +61,11 @@ class Scooter(Vehicle):
 
     def __repr__(self):
         return (
-            f"\nid: [{self.id}]\n"
-            f"Numer ewidencyjny: [{self.vehicle_id}]\n"
-            f"{self.brand}, {self.vehicle_model}\n"
+            f"Numer ewidencyjny: [{self.vehicle_id} ] "
+            f"{self.brand} {self.vehicle_model} "
             f"Maks. prędkość: {self.max_speed}km/h\n"
-            f"Numer rejestracyjny: {self.individual_id}\n"
-            f"{self.cash_per_day}zł za dzień\n"
+            f"Numer rejestracyjny: {self.individual_id} "
+            f"{self.cash_per_day}zł za dzień "
             f"{'Dostępny' if self.is_available else f'Niedostępny do {self.return_date}'}\n"
         )
 
@@ -84,12 +82,11 @@ class Bike(Vehicle):
 
     def __repr__(self):
         return (
-            f"\nid: [{self.id}]\n"
-            f"Numer ewidencyjny: [{self.vehicle_id}]\n"
-            f"{self.brand}, {self.vehicle_model}\n"
-            f"{self.bike_type}, {'elektryczny' if self.is_electric else 'zwykły'}\n"
-            f"Numer seryjny: {self.individual_id}\n"
-            f"{self.cash_per_day}zł za dzień\n"
+            f"Numer ewidencyjny: [{self.vehicle_id}] "
+            f"{self.brand} {self.vehicle_model} "
+            f"{self.bike_type} - {'elektryczny' if self.is_electric else 'zwykły'}\n"
+            f"Numer seryjny: {self.individual_id} "
+            f"{self.cash_per_day}zł za dzień "
             f"{'Dostępny' if self.is_available else f'Niedostępny do {self.return_date}'}\n"
         )
 

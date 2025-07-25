@@ -9,7 +9,8 @@ from fleet_utils_db import (
     get_positive_int, get_positive_float,generate_repair_id,
     generate_vehicle_id, generate_reservation_id, generate_invoice_number,
     calculate_rental_cost, get_available_vehicles, get_unavailable_vehicle,
-    show_vehicles_rented_today, recalculate_cost, get_return_date_from_user
+    update_database, recalculate_cost, get_return_date_from_user,
+    show_vehicles_rented_today
 )
 
 def add_vehicles_batch():
@@ -283,10 +284,10 @@ def get_vehicle(only_available: bool = False):
         vehicles = []
 
         if status == "available":
-            vehicles = get_available_vehicles(session, vehicle_type)
+            vehicles = get_available_vehicles(session, vehicle_type=vehicle_type)
 
         elif status == "rented":
-            unavailable_ids = get_unavailable_vehicle(session, vehicle_type)
+            unavailable_ids = get_unavailable_vehicle(session, vehicle_type=vehicle_type)
             if not unavailable_ids:
                 print("\n🚫 Brak niedostępnych pojazdów na dziś.")
                 return
@@ -648,32 +649,59 @@ def return_vehicle(user):
             f"\nCzy na pewno chcesz zwrócić pojazd: "
             f"\n{vehicle}"
         )
-        choice = input(
-            f"Wybierz (tak/nie): "
-        ).strip().lower()
+        while True:
+            choice = input(
+                f"Wybierz (tak/nie): "
+            ).strip().lower()
 
-        if choice in ("nie", "n", "no"):
-            print("\nZwrot pojazdu anulowany.")
-            return
-
-        elif choice in ("tak", "t", "yes", "y"):
-
-            actual_return_date_input = get_return_date_from_user(session)
-
-            # Znajdź odpowiednią rezerwację (reservation_id) dla wybranego pojazdu i użytkownika
-            selected_rental = None
-            for rental in rented_vehs:
-                if rental.vehicle_id == vehicle.id and rental.user_id == user.id:
-                    selected_rental = rental
-                    break
-
-            if selected_rental is None:
-                print("Nie znaleziono rezerwacji odpowiadającej wybranemu pojazdowi.")
+            if choice in ("nie", "n", "no"):
+                print("\nZwrot pojazdu anulowany.")
                 return
 
-            new_cost = recalculate_cost(
-                session, user, vehicle, actual_return_date_input, selected_rental.reservation_id
-            )
+            elif choice in ("tak", "t", "yes", "y"):
+
+                actual_return_date_input = get_return_date_from_user(session)
+
+                # Znajdź odpowiednią rezerwację (reservation_id) dla wybranego pojazdu i użytkownika
+                selected_rental = None
+                for rental in rented_vehs:
+                    if rental.vehicle_id == vehicle.id and rental.user_id == vehicle.borrower_id:
+                        selected_rental = rental
+                        break
+
+                if selected_rental is None:
+                    print("Nie znaleziono rezerwacji odpowiadającej wybranemu pojazdowi.")
+                    return
+
+                total_cost, overdue_fee_text = recalculate_cost(
+                    session, user, vehicle, actual_return_date_input, selected_rental.reservation_id
+                )
+
+                print(
+                    f"\n💸 — KKW (Rzeczywisty Koszt Wynajmu) wynosi: {total_cost} zł.{overdue_fee_text}"
+                )
+                print(
+                    f"\nCzy na pewno chcesz zwrócić pojazd: "
+                    f"\n{vehicle}"
+                )
+                choice = input(
+                    f"Wybierz (tak/nie): "
+                ).strip().lower()
+
+                while True:
+                    if choice in ("nie", "n", "no"):
+                        print("\nZwrot pojazdu anulowany.")
+                        return
+
+                    elif choice in ("tak", "t", "yes", "y"):
+                        update_database(session, vehicle, actual_return_date_input, total_cost, selected_rental.reservation_id)
+
+                    print(
+                        f"\nPojazd {vehicle} został pomyślnie zwrócony."
+                        f"\nKoszty rozliczone."
+                        f"\nTranzakcja zakończona"
+                    )
+        return True
 
 def repair_vehicle(user):
     with SessionLocal() as session:

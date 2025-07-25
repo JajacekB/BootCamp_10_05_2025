@@ -167,23 +167,8 @@ def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, r
         total_cost = calculate_rental_cost(user, cash_per_day_cal, new_period)
         overdue_fee_text = " (zwrot przed terminem, naliczono koszt zgodnie z czasem użytkowania)"
 
-    print(
-        f"\n💸 — KKW (Rzeczywisty Koszt Wynajmu) wynosi: {total_cost} zł.{overdue_fee_text}"
-    )
-    print(
-        f"\nCzy na pewno chcesz zwrócić pojazd: "
-        f"\n{vehicle}"
-    )
-    choice = input(
-        f"Wybierz (tak/nie): "
-    ).strip().lower()
+        return total_cost, overdue_fee_text
 
-    if choice in ("nie", "n", "no"):
-        print("\nZwrot pojazdu anulowany.")
-        return
-
-    elif choice in ("tak", "t", "yes", "y"):
-        update_database(session, vehicle, return_date, total_cost, reservation_id)
 
 def update_database(session, vehicle: Vehicle, return_date: date, total_cost: float, reservation_id: str):
 
@@ -211,7 +196,7 @@ def update_database(session, vehicle: Vehicle, return_date: date, total_cost: fl
 
     session.add_all([vehicle, rental, invoice])
     session.commit()
-    return
+    return True
 
 def get_return_date_from_user(session) -> date:
     while True:
