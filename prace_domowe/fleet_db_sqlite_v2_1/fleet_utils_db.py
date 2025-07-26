@@ -174,32 +174,43 @@ def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, r
 
 
 def update_database(session, vehicle: Vehicle, return_date: date, total_cost: float, reservation_id: str):
+    try:
+        rental = session.query(RentalHistory).filter(
+            RentalHistory.reservation_id == reservation_id
+        ).first()
 
-    rental = session.query(RentalHistory).filter(RentalHistory.reservation_id == reservation_id).first()
+        if not rental:
+            print("Nie ma wypozycznie o podanym numerze id.")
+            return False
 
-    if not rental:
-        print("Nie ma wypozycznie o podanym numerze id.")
-        return
+        rental_id = rental.id
 
-    rental_id = rental.id
+        invoice = session.query(Invoice).filter(
+            Invoice.rental_id == rental_id
+        ).first()
 
-    invoice = session.query(Invoice).filter(Invoice.rental_id == rental_id).first()
+        if not invoice:
+            print("Nie ma faktury o podanym numerze id.")
+            return False
 
-    if not invoice:
-        print("Nie ma faktury o podanym numerze id.")
+        vehicle.is_available = True
+        vehicle.borrower_id = None
+        vehicle.return_date = None
 
-    vehicle.is_available = True
-    vehicle.borrower_id = None
-    vehicle.return_date = None
+        rental.actual_return_date = return_date
+        rental.total_cost=total_cost
+        invoice.amount=total_cost
 
-    rental.actual_return_date = return_date
-    rental.total_cost=total_cost
+        session.add_all([vehicle, rental, invoice])
+        session.commit()
 
-    invoice.amount=total_cost
+        print("✅ Baza danych została pomyślnie zaktualizowana.")
+        return True
 
-    session.add_all([vehicle, rental, invoice])
-    session.commit()
-    return True
+    except Exception as e:
+        session.rollback()
+        print(f"❗ Wystąpił błąd podczas aktualizacji bazy danych: {e}")
+        return False
 
 def get_return_date_from_user(session) -> date:
     while True:

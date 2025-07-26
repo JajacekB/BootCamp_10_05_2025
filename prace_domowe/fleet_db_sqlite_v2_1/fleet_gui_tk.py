@@ -19,11 +19,11 @@ def input_date(title="Wybierz datę") -> date | None:
             self.var.set(str(date.today()))  # Ustawiamy domyślną datę
 
             self.entry = ttk.Entry(self, textvariable=self.var,
-                                   style='Custom.TEntry', width=16)
+                                style='Custom.TEntry', width=16)
             self.entry.pack(side="left", fill='x', expand=True)
 
             self.btn = ttk.Button(self, text="▼", command=self.show_calendar,
-                                  style="Custom.TButton", width=2)
+                                style="Custom.TButton", width=2)
             self.btn.pack(side="left")
 
             self.entry.bind('<Button-1>', lambda e: self.show_calendar())
@@ -42,11 +42,11 @@ def input_date(title="Wybierz datę") -> date | None:
             self.calendar_win.geometry(f'250x220+{x}+{y}')
 
             cal = Calendar(self.calendar_win,
-                           date_pattern='yyyy-mm-dd',
-                           background='#f8f8f8',
-                           foreground='#333333',
-                           selectbackground='#1976d2',
-                           selectforeground='#ffffff')
+                        date_pattern='yyyy-mm-dd',
+                        background='#f8f8f8',
+                        foreground='#333333',
+                        selectbackground='#1976d2',
+                        selectforeground='#ffffff')
 
             # Ustawiamy kalendarz na dzisiejszą datę
             cal.set_date(self.var.get())
@@ -62,7 +62,7 @@ def input_date(title="Wybierz datę") -> date | None:
 
             cal.bind("<<CalendarSelected>>", lambda e: select_date())
             self.calendar_win.protocol("WM_DELETE_WINDOW",
-                                       lambda: self.calendar_win.destroy())
+                                    lambda: self.calendar_win.destroy())
             self.calendar_win.focus_force()
 
         def get_date(self):
