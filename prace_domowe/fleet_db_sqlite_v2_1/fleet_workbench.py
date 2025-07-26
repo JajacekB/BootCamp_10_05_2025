@@ -5,93 +5,184 @@ from fleet_database import Session, SessionLocal
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from fleet_manager_user import get_clients, get_users_by_role
-from fleet_utils_db import get_positive_int, calculate_rental_cost, recalculate_cost
+from fleet_utils_db import (
+    get_positive_int, calculate_rental_cost, recalculate_cost, get_positive_float, get_return_date_from_user,
+    generate_vehicle_id, get_available_vehicles, get_unavailable_vehicle, generate_repair_id)
 import bcrypt
 
 
-def start_test():
-    while True:
-        print("\n=== LOGOWANIE DO SYSTEMU ===")
-        login_or_email = input("\nLogin: ").strip()
-        password = input("Hasło: ").strip()
+def repair_vehicle(user):
+    print(f"\n{ '>>> NAPRAW POJAZDÓW <<<':^30 }")
+    with SessionLocal() as session:
+        # available_vehicles = get_available_vehicles(session)
+        # if not available_vehicles:
+        #     print("Brak dostępnych pojazdów do naprawy.")
+        #     return
+        #
+        # print("\nDostępne pojazdy do naprawy:")
+        # for v in available_vehicles:
+        #     print(f"- {v.vehicle_model} ({v.type}), ID: {v.id}, Numer: {v.individual_id}")
 
-        with Session() as session:
-            user = session.query(User).filter(
-                (User.login == login_or_email) | (User.email == login_or_email)
-            ).first()
-
-            if not user:
-                print("\nNie znaleziono użytkownika.")
-            elif not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
-                print("\nBłędne hasło.")
-            else:
-                print(f"\nZalogowano jako {user.first_name} {user.last_name} ({user.role})")
-            role_test(user, session)
-            return user
-
-def role_test(user: User, session=None):
-    if session is None:
-        with Session() as session:
-            return role_test(user, session=session)
-
-    if user.role == "client":
-        vehicles = session.query(Vehicle).filter(Vehicle.borrower_id == user.id).order_by(Vehicle.return_date.asc()).all()
-
-        print(type(vehicles))
-
-
-    else:
-        print("Lipa")
-        unavailable_veh = session.query(Vehicle).filter(Vehicle.is_available != True).all()
-        unavailable_veh_ids = [v.id for v in unavailable_veh]
-
-        if not unavailable_veh:
-            print("\nBrak wynajętych pojazdów")
+        try:
+            vehicle_id = int(input("Podaj ID pojazdu do przekazania do naprawy: "))
+        except ValueError:
+            print("Błędne ID.")
             return
 
-        # lista wynajętych pojazdów
-        rented_vehs = session.query(RentalHistory).filter(
-            RentalHistory.vehicle_id.in_(unavailable_veh_ids)
-        ).order_by(RentalHistory.planned_return_date.asc()).all()
+        vehicle = session.query(Vehicle).filter_by(id=vehicle_id, is_available=True).first()
+        if not vehicle:
+            print("Nie znaleziono pojazdu.")
+            return
 
-        rented_ids = [r.vehicle_id for r in rented_vehs]
+        workshops = get_users_by_role("workshop", session)
+        if not workshops:
+            print("Brak zdefiniowanych użytkowników warsztatu.")
+            return
 
-        vehicles = session.query(Vehicle).filter(Vehicle.id.in_(rented_ids)).order_by(Vehicle.return_date).all()
+        print("\nDostępne warsztaty:")
+        for idx, w in enumerate(workshops, 1):
+            print(f"{idx}. {w.first_name} {w.last_name} ({w.login})")
+
+        # sprawdzanie czy pjazd jest wynajęty
+        # rekalkulacj kosztów klienta
+        # akceptacja przez klienta
+
+        workshop_choice = get_positive_int("Wybierz numer warsztatu: ") - 1
+        selected_workshop = workshops[workshop_choice]
+
+        repair_days = get_positive_int("Podaj liczbę dni naprawy: ")
+        planned_end_date = datetime.today().date() + timedelta(days=repair_days)
+
+        repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy: ")
+        repair_cost = repair_cost_per_day * repair_days
+
+        description = input("\nKrótko opisz zakres naprawy: ")
+
+        while True:
+            confirm = input(
+                f"\nPotwierdź oddanie do naprawy pojazdu:\n {vehicle}"
+                f"\nKoszt naprawy {repair_cost} zł"
+                f"\nWybierz (tak/nie): "
+            ).strip().lower()
+            if confirm not in ("tak", "t", "yes", "y"):
+                print("\nNaprawa anulowana.")
+                return
+
+            # Historia naprawy
+            repair_id = generate_repair_id()
+
+            repair = RepairHistory(
+                repair_id=repair_id,
+                vehicle_id=vehicle.id,
+                mechanic_id=selected_workshop.id,
+                start_date=datetime.today().date(),
+                planned_end_date=planned_end_date,
+                actual_return_date=None,  # Domyślnie brak
+                cost=repair_cost,
+                description=description
+            )
+            session.add(repair)
+
+            # Aktualizacja pojazdu
+            vehicle.is_available = False
+            vehicle.borrower_id = selected_workshop.id
+            vehicle.return_date = planned_end_date  # Jeśli jeszcze używasz tej kolumny w Vehicle
+
+            session.commit()
+            print(
+                f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
+                f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planned_end_date}."
+            )
+            return
 
 
-    table_wide = 91
-    month_pl = {
-        1: "styczeń",
-        2: "luty",
-        3: "marzec",
-        4: "kwiecień",
-        5: "maj",
-        6: "czerwiec",
-        7: "lipiec",
-        8: "sierpień",
-        9: "wrzesień",
-        10: "październik",
-        11: "listopad",
-        12: "grudzień"
-    }
+def new_client_cost():
 
-    veh_ids = [z.id for z in vehicles]
+    # do usunięcia po wklejeniu wyżej
+    with Session() as session:
+        rented_broken_veh = session.query(Vehicle).filter(
+            Vehicle.is_available == False
+        ).order_by(Vehicle.type, Vehicle.id
+        ).all()
+        available_broken_veh = session.query(Vehicle).filter(
+            Vehicle.is_available == True).filter(
+            Vehicle.is_available == True
+        ).order_by(Vehicle.type, Vehicle.id
+        ).all()
 
-    print(f"\nLista wynajętych pojazdów:\n")
-    print(
-        f"|{'ID.':>5}|{'Data zwrotu':>21} | {'Marka':^14} | {'Model':^14} |{'Nr rejestracyjny/seryjny':>25} |"
-    )
-    print(table_wide * "_")
-    for p in vehicles:
-        date_obj = p.return_date
-        day = date_obj.day
-        month_name = month_pl[date_obj.month]
-        year = date_obj.year
-        date_str = f"{day}-{month_name}_{year}"
-
+        table_wide = 58
         print(
-            f"|{p.id:>4} |{date_str:>21} |{p.brand:>15} |{p.vehicle_model:>15} | {p.individual_id:>24} |"
+            f"\nPojazdy wynajęte:"
+            f"\n|{'ID':>5}| {'Marka':<13}| {'Model':<13}| {'Nr w kartotece':<19}|"
         )
+        print(table_wide * '-')
+        for index, vehicle in enumerate(rented_broken_veh, start=1):
+            print(
+                f"| {vehicle.id:>4}| {vehicle.brand:<13}| {vehicle.vehicle_model:13}| {vehicle.individual_id:<19}|"
+            )
+
+        table_wide = 58
+        print(
+            f"\nPojazdy bez wynajmu:"
+            f"\n|{'ID':>5}| {'Marka':<13}| {'Model':<13}| {'Nr w kartotece':<19}|"
+        )
+        print(table_wide * '-')
+        for index, vehicle in enumerate(available_broken_veh, start=1):
+            print(
+                f"| {vehicle.id:>4}| {vehicle.brand:<13}| {vehicle.vehicle_model:13}| {vehicle.individual_id:<19}|"
+            )
+    # dotąd usunąć
+
+        broken_veh_id = get_positive_int("\nPodaj id pojadu do naprawy: ")
+
+        broken_veh = session.query(Vehicle).filter(Vehicle.id == broken_veh_id).first()
+        if broken_veh.is_available == False:
+            broken_rent = session.query(RentalHistory).filter(RentalHistory.vehicle_id == broken_veh_id).first()
+
+            today = date.today()
+            broken_rental_id = broken_rent.id
+            broken_rental_reservation_id = broken_rent.reservation_id
+            broken_start_date = broken_rent.start_date
+            broken_end_date = broken_rent.planned_return_date
+            broken_veh_user_id = broken_rent.user_id
+            broken_veh_cost_per_day = broken_veh.cash_per_day
+
+            broken_veh_user = session.query(User).filter(User.id == broken_veh_user_id).first()
+
+            if today < broken_end_date:
+
+                approve_new_cost = input(
+                    "\nCzy klient chce kontynuować najem?"
+                    "\nWybierz (tak/nie): "
+                ).strip().lower()
+
+                while True:
+                    if approve_new_cost in ("nie", "n", "no"):
+                        new_client_cost = recalculate_cost(session, broken_veh_user, broken_end_date, broken_rental_reservation_id)
+
+                    elif approve_new_cost in ("tak", "t", "yes", "y"):
+                        nev_veh_for_client = session.query(Vehicle).filter(
+                            Vehicle.cash_per_day == broken_veh_cost_per_day,
+                            Vehicle.is_available == True,
+                        ).first()
+
+                        # Update popsuty pojazd, nowy pojazd
+
+
+                        if not nev_veh_for_client:
+                            """
+                            """
+
+
+
+
+
+
+new_client_cost()
+
+
+
+# repair_vehicle()
 
 
 
@@ -99,8 +190,91 @@ def role_test(user: User, session=None):
 
 
 
-start_test()
 
+
+# def start_test():
+#     while True:
+#         print("\n=== LOGOWANIE DO SYSTEMU ===")
+#         login_or_email = input("\nLogin: ").strip()
+#         password = input("Hasło: ").strip()
+#
+#         with Session() as session:
+#             user = session.query(User).filter(
+#                 (User.login == login_or_email) | (User.email == login_or_email)
+#             ).first()
+#
+#             if not user:
+#                 print("\nNie znaleziono użytkownika.")
+#             elif not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
+#                 print("\nBłędne hasło.")
+#             else:
+#                 print(f"\nZalogowano jako {user.first_name} {user.last_name} ({user.role})")
+#             role_test(user, session)
+#             return user
+#
+# def role_test(user: User, session=None):
+#     if session is None:
+#         with Session() as session:
+#             return role_test(user, session=session)
+#
+#     if user.role == "client":
+#         vehicles = session.query(Vehicle).filter(Vehicle.borrower_id == user.id).order_by(Vehicle.return_date.asc()).all()
+#
+#         print(type(vehicles))
+#
+#
+#     else:
+#         print("Lipa")
+#         unavailable_veh = session.query(Vehicle).filter(Vehicle.is_available != True).all()
+#         unavailable_veh_ids = [v.id for v in unavailable_veh]
+#
+#         if not unavailable_veh:
+#             print("\nBrak wynajętych pojazdów")
+#             return
+#
+#         # lista wynajętych pojazdów
+#         rented_vehs = session.query(RentalHistory).filter(
+#             RentalHistory.vehicle_id.in_(unavailable_veh_ids)
+#         ).order_by(RentalHistory.planned_return_date.asc()).all()
+#
+#         rented_ids = [r.vehicle_id for r in rented_vehs]
+#
+#         vehicles = session.query(Vehicle).filter(Vehicle.id.in_(rented_ids)).order_by(Vehicle.return_date).all()
+#
+#
+#     table_wide = 91
+#     month_pl = {
+#         1: "styczeń",
+#         2: "luty",
+#         3: "marzec",
+#         4: "kwiecień",
+#         5: "maj",
+#         6: "czerwiec",
+#         7: "lipiec",
+#         8: "sierpień",
+#         9: "wrzesień",
+#         10: "październik",
+#         11: "listopad",
+#         12: "grudzień"
+#     }
+#
+#     veh_ids = [z.id for z in vehicles]
+#
+#     print(f"\nLista wynajętych pojazdów:\n")
+#     print(
+#         f"|{'ID.':>5}|{'Data zwrotu':>21} | {'Marka':^14} | {'Model':^14} |{'Nr rejestracyjny/seryjny':>25} |"
+#     )
+#     print(table_wide * "_")
+#     for p in vehicles:
+#         date_obj = p.return_date
+#         day = date_obj.day
+#         month_name = month_pl[date_obj.month]
+#         year = date_obj.year
+#         date_str = f"{day}-{month_name}_{year}"
+#
+#         print(
+#             f"|{p.id:>4} |{date_str:>21} |{p.brand:>15} |{p.vehicle_model:>15} | {p.individual_id:>24} |"
+#         )
 
 
 # def return_vehicle():
@@ -267,22 +441,6 @@ start_test()
 #     session.add_all([vehicle, rental, invoice])
 #     session.commit()
 #     return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

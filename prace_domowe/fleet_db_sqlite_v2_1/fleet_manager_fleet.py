@@ -420,7 +420,7 @@ def rent_vehicle(user: User, session=None):
 
         print("\nDostępne grupy pojazdów:\n")
 
-        print(f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj':<11}| {'Paliw':<11}|{'Cena za dzień':>16} |{'Dostępnych':^12}|")
+        print(f"|{'L.p.':>5}| {'Marka':<15}| {'Model':<15}| {'Rodzaj':<11}| {'Paliwo':<11}|{'Cena za dzień':>16} |{'Dostępnych':^12}|")
         print(tabele_width * "_")
 
         for index, ((brand, model, price, size, fuel_type), cars) in enumerate(grouped.items(), start=1):
@@ -701,7 +701,7 @@ def return_vehicle(user):
                         f"\nKoszty rozliczone."
                         f"\nTranzakcja zakończona"
                     )
-        return True
+                    return True
 
 def repair_vehicle(user):
     with SessionLocal() as session:
