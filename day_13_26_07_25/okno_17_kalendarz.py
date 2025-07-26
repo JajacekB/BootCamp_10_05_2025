@@ -62,6 +62,7 @@ class CustomEntry(ttk.Frame):
 
 root = tk.Tk()
 root.title("Wybór daty")
+root.geometry("260x140+710+355")
 
 date_entry = CustomEntry(root)
 date_entry.pack(padx=10, pady=10)
@@ -79,7 +80,7 @@ def show_result():
         formatted = "Niepoprawna data"
     result_label.config(text=formatted)
 
-action_btn = ttk.Button(root, text="Pokażw Labelce", command=show_result)
+action_btn = ttk.Button(root, text="Pokaż w Labelce", command=show_result)
 action_btn.pack(pady=5)
 
 root.mainloop()

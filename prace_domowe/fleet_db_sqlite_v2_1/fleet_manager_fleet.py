@@ -286,19 +286,21 @@ def get_vehicle(only_available: bool = False):
         if status == "available":
             vehicles = get_available_vehicles(session, vehicle_type=vehicle_type)
 
-        elif status == "rented":
-            unavailable_ids = get_unavailable_vehicle(session, vehicle_type=vehicle_type)
-            if not unavailable_ids:
-                print("\n🚫 Brak niedostępnych pojazdów na dziś.")
+            if not vehicles:
+                print("\n🚫 Brak dostępnych pojazdów na dziś.")
                 return
 
-            vehicles = session.query(Vehicle).filter(Vehicle.id.in_(unavailable_ids)).all()
+        elif status == "rented":
+            vehicles, _ = get_unavailable_vehicle(session, vehicle_type=vehicle_type)
 
+            if not vehicles:
+                print("\n🚫 Brak niedostępnych pojazdów na dziś.")
+                return
         else:
-            vehicles = session.query(Vehicle).all()
+            vehicles = session.query(Vehicle).all
 
         if not vehicles:
-            print("🚫 Brak pojazdów spełniających podane kryteria.")
+            print("🚫 Niestety brak pojazdów w ypożyczalni. Jesteśmy bankrutami. Komornik zają wszystkie pojazdy.")
             return
 
         # Przygotowujemy gotowe stringi WEWNĄTRZ sesji
@@ -409,10 +411,14 @@ def rent_vehicle(user: User, session=None):
         print("\n🚫 Brak dostępnych pojazdów w tym okresie.")
         return
 
-    # Krok 2: Grupuj pojazdy
+    # Krok 2: Sortuj i grupuj pojazdy
     if vehicle_type == "car":
+        vehicles_sorted = sorted(
+            available_vehicles,
+            key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model, v.fuel_type)
+        )
         grouped = defaultdict(list)
-        for v in (available_vehicles):
+        for v in (vehicles_sorted):
             key = (v.brand, v.vehicle_model, v.cash_per_day, v.size, v.fuel_type)
             grouped[key].append(v)
 
@@ -431,8 +437,12 @@ def rent_vehicle(user: User, session=None):
             )
 
     elif vehicle_type == "scooter":
+        vehicles_sorted = sorted(
+            available_vehicles,
+            key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model)
+        )
         grouped = defaultdict(list)
-        for v in (available_vehicles):
+        for v in (vehicles_sorted):
             key = (v.brand, v.vehicle_model, v.cash_per_day, v.max_speed)
             grouped[key].append(v)
 
@@ -452,8 +462,12 @@ def rent_vehicle(user: User, session=None):
             )
 
     elif vehicle_type == "bike":
+        vehicles_sorted = sorted(
+            available_vehicles,
+            key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model)
+        )
         grouped = defaultdict(list)
-        for v in (available_vehicles):
+        for v in (vehicles_sorted):
             key = (v.brand, v.vehicle_model, v.cash_per_day, v.bike_type, v.is_electric)
             grouped[key].append(v)
 

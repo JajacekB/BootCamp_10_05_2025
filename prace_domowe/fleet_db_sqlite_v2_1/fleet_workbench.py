@@ -100,37 +100,38 @@ def new_client_cost():
 
     # do usunięcia po wklejeniu wyżej
     with Session() as session:
-        rented_broken_veh = session.query(Vehicle).filter(
-            Vehicle.is_available == False
-        ).order_by(Vehicle.type, Vehicle.id
-        ).all()
-        available_broken_veh = session.query(Vehicle).filter(
-            Vehicle.is_available == True).filter(
-            Vehicle.is_available == True
-        ).order_by(Vehicle.type, Vehicle.id
-        ).all()
+        rented_broken_vehs, _ = get_unavailable_vehicle(session)
 
-        table_wide = 58
-        print(
-            f"\nPojazdy wynajęte:"
-            f"\n|{'ID':>5}| {'Marka':<13}| {'Model':<13}| {'Nr w kartotece':<19}|"
-        )
-        print(table_wide * '-')
-        for index, vehicle in enumerate(rented_broken_veh, start=1):
-            print(
-                f"| {vehicle.id:>4}| {vehicle.brand:<13}| {vehicle.vehicle_model:13}| {vehicle.individual_id:<19}|"
-            )
+        available_broken_vehs = get_available_vehicles(session)
 
-        table_wide = 58
-        print(
-            f"\nPojazdy bez wynajmu:"
-            f"\n|{'ID':>5}| {'Marka':<13}| {'Model':<13}| {'Nr w kartotece':<19}|"
-        )
-        print(table_wide * '-')
-        for index, vehicle in enumerate(available_broken_veh, start=1):
+        if not rented_broken_vehs:
+            print("\n\n🚫 Brak niedostępnych pojazdów na dziś.")
+
+        else:
+            table_wide = 58
             print(
-                f"| {vehicle.id:>4}| {vehicle.brand:<13}| {vehicle.vehicle_model:13}| {vehicle.individual_id:<19}|"
+                f"\nPojazdy wynajęte:"
+                f"\n|{'ID':>5}| {'Marka':<13}| {'Model':<13}| {'Nr w kartotece':<19}|"
             )
+            print(table_wide * '-')
+            for index, vehicle in enumerate(rented_broken_vehs, start=1):
+                print(
+                    f"| {vehicle.id:>4}| {vehicle.brand:<13}| {vehicle.vehicle_model:13}| {vehicle.individual_id:<19}|"
+                )
+        if not available_broken_vehs:
+            print("\n🚫 Brak dostępnych pojazdów na dziś.")
+
+        else:
+            table_wide = 58
+            print(
+                f"\nPojazdy bez wynajmu:"
+                f"\n|{'ID':>5}| {'Marka':<13}| {'Model':<13}| {'Nr w kartotece':<19}|"
+            )
+            print(table_wide * '-')
+            for index, vehicle in enumerate(available_broken_vehs, start=1):
+                print(
+                    f"| {vehicle.id:>4}| {vehicle.brand:<13}| {vehicle.vehicle_model:13}| {vehicle.individual_id:<19}|"
+                )
     # dotąd usunąć
 
         broken_veh_id = get_positive_int("\nPodaj id pojadu do naprawy: ")

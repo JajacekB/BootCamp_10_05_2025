@@ -149,22 +149,25 @@ def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, r
     if not rental_looked:
         raise ValueError("Nie znaleziono rezerwacji o podanym ID")
 
-    planned_return_date_cal = rental_looked.planned_return_date
-    start_date_cal = rental_looked.start_date
-    base_cost_cal = rental_looked.base_cost
+    planned_return_date = rental_looked.planned_return_date
+    start_date = rental_looked.start_date
+    base_cost = rental_looked.base_cost
 
-    cash_per_day_cal = session.query(Vehicle.cash_per_day).filter(Vehicle.id == vehicle.id).scalar()
+    cash_per_day = vehicle.cash_per_day
 
-    if return_date > planned_return_date_cal:
-        extra_days = (return_date - planned_return_date_cal).days
-        total_cost = base_cost_cal + extra_days * cash_per_day_cal
-        overdue_fee_text = f"\n{base_cost_cal} zł opłata bazowa + {extra_days * cash_per_day_cal} zł kara za przeterminowanie.)"
-    elif return_date == planned_return_date_cal:
-        total_cost = base_cost_cal
+    if return_date < start_date:
+        total_cost = cash_per_day
+        overdue_fee_text = f"(Anulowanie rezerwacji – kara {cash_per_day} zł)"
+    if return_date > planned_return_date:
+        extra_days = (return_date - planned_return_date).days
+        total_cost = base_cost + extra_days * cash_per_day
+        overdue_fee_text = f"\n{base_cost} zł opłata bazowa + {extra_days * cash_per_day} zł kara za przeterminowanie.)"
+    elif return_date == planned_return_date:
+        total_cost = base_cost
         overdue_fee_text = " (zwrot terminowy)"
     else:
-        new_period = (planned_return_date_cal - start_date_cal).days
-        total_cost = calculate_rental_cost(user, cash_per_day_cal, new_period)
+        new_period = (planned_return_date - start_date).days
+        total_cost = calculate_rental_cost(user, cash_per_day, new_period)
         overdue_fee_text = " (zwrot przed terminem, naliczono koszt zgodnie z czasem użytkowania)"
 
         return total_cost, overdue_fee_text
@@ -229,33 +232,33 @@ def get_unavailable_vehicle(session, start_date = None, planned_return_date = No
 
     potentially_unavailable = query.all()
 
+    if not potentially_unavailable:
+        return []
+
     candidate_ids = [v.id for v in potentially_unavailable]
 
-    rented_ids = []
-    repaired_ids = []
-    if candidate_ids:
+    rented_vehicles = session.query(RentalHistory).filter(
+        RentalHistory.vehicle_id.in_(candidate_ids),
+        RentalHistory.start_date <= planned_return_date,
+        RentalHistory.planned_return_date >= start_date
+    ).all()
+    rented_ids = [r.vehicle_id for r in rented_vehicles]
 
-        rented_vehicles = session.query(RentalHistory).filter(
-            RentalHistory.vehicle_id.in_(candidate_ids),
-            RentalHistory.start_date <= planned_return_date,
-            RentalHistory.planned_return_date >= start_date
-        ).all()
-        rented_ids = [r.vehicle_id for r in rented_vehicles]
 
-    # 3. Pojazdy w naprawie dzisiaj
-        repaired_today = session.query(RepairHistory).filter(
-            RepairHistory.vehicle_id.in_(candidate_ids),
-            RepairHistory.start_date <= planned_return_date,
-            RepairHistory.planned_end_date >= start_date
-        ).all()
-        repaired_ids = [r.vehicle_id for r in repaired_today]
+    repaired_today = session.query(RepairHistory).filter(
+        RepairHistory.vehicle_id.in_(candidate_ids),
+        RepairHistory.start_date <= planned_return_date,
+        RepairHistory.planned_end_date >= start_date
+    ).all()
+    repaired_ids = [r.vehicle_id for r in repaired_today]
 
     unavailable_ids = list(set(rented_ids + repaired_ids))
+    truly_unavailable = session.query(Vehicle).filter(Vehicle.id.in_(unavailable_ids)).all()
 
-    return unavailable_ids
+    return truly_unavailable, unavailable_ids
 
 def get_available_vehicles(session, start_date=None, planned_return_date=None, vehicle_type="all"):
-    unavailable_ids = get_unavailable_vehicle(session, start_date, planned_return_date, vehicle_type)
+    _, unavailable_ids = get_unavailable_vehicle(session, start_date, planned_return_date, vehicle_type)
 
     filters = [
         Vehicle.is_available == True,
