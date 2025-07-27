@@ -739,7 +739,7 @@ def repair_vehicle(user):
             print("Nie znaleziono pojazdu lub jest niedostępny.")
             return
 
-        workshops = get_users_by_role("workshop", session)
+        workshops = get_users_by_role(session,"workshop" )
         if not workshops:
             print("Brak zdefiniowanych użytkowników warsztatu.")
             return

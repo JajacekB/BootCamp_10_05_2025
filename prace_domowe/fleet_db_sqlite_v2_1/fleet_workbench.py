@@ -10,6 +10,8 @@ from fleet_utils_db import (
     generate_vehicle_id, get_available_vehicles, get_unavailable_vehicle, generate_repair_id)
 import bcrypt
 
+from prace_domowe.fleet_db_sqlite_v2_1.repair_batch import planed_return_date
+
 
 def repair_vehicle(user):
     print(f"\n{ '>>> NAPRAW POJAZDÓW <<<':^30 }")
@@ -75,7 +77,7 @@ def repair_vehicle(user):
                 repair_id=repair_id,
                 vehicle_id=vehicle.id,
                 mechanic_id=selected_workshop.id,
-                start_date=datetime.today().date(),
+                start_date=date.today(),
                 planned_end_date=planned_end_date,
                 actual_return_date=None,  # Domyślnie brak
                 cost=repair_cost,
@@ -86,7 +88,7 @@ def repair_vehicle(user):
             # Aktualizacja pojazdu
             vehicle.is_available = False
             vehicle.borrower_id = selected_workshop.id
-            vehicle.return_date = planned_end_date  # Jeśli jeszcze używasz tej kolumny w Vehicle
+            vehicle.return_date = planned_end_date
 
             session.commit()
             print(
@@ -97,8 +99,6 @@ def repair_vehicle(user):
 
 
 def new_client_cost():
-
-    # do usunięcia po wklejeniu wyżej
     with Session() as session:
         rented_broken_vehs, _ = get_unavailable_vehicle(session)
 
@@ -132,47 +132,115 @@ def new_client_cost():
                 print(
                     f"| {vehicle.id:>4}| {vehicle.brand:<13}| {vehicle.vehicle_model:13}| {vehicle.individual_id:<19}|"
                 )
-    # dotąd usunąć
 
         broken_veh_id = get_positive_int("\nPodaj id pojadu do naprawy: ")
 
-        broken_veh = session.query(Vehicle).filter(Vehicle.id == broken_veh_id).first()
-        if broken_veh.is_available == False:
-            broken_rent = session.query(RentalHistory).filter(RentalHistory.vehicle_id == broken_veh_id).first()
+        repair_days = get_positive_int(f"Podaj szacunkową ilość dni naprawy: ")
 
-            today = date.today()
-            broken_rental_id = broken_rent.id
-            broken_rental_reservation_id = broken_rent.reservation_id
-            broken_start_date = broken_rent.start_date
-            broken_end_date = broken_rent.planned_return_date
-            broken_veh_user_id = broken_rent.user_id
-            broken_veh_cost_per_day = broken_veh.cash_per_day
+        today = date.today()
+        planned_end_date = datetime.today().date() + timedelta(days=repair_days)
 
-            broken_veh_user = session.query(User).filter(User.id == broken_veh_user_id).first()
+        broken_veh = session.query(Vehicle).filter(
+            Vehicle.id == broken_veh_id
+        ).first()
 
-            if today < broken_end_date:
+        broken_rent = session.query(RentalHistory).filter(
+            RentalHistory.vehicle_id == broken_veh_id,
+            today <= RentalHistory.planned_return_date,
+            RentalHistory.start_date <= planned_end_date
+        ).first()
 
-                approve_new_cost = input(
-                    "\nCzy klient chce kontynuować najem?"
-                    "\nWybierz (tak/nie): "
-                ).strip().lower()
+        if not broken_rent:
+            mark_as_under_repair(session, broken_veh, repair_days)
+            return True
 
-                while True:
-                    if approve_new_cost in ("nie", "n", "no"):
-                        new_client_cost = recalculate_cost(session, broken_veh_user, broken_end_date, broken_rental_reservation_id)
-
-                    elif approve_new_cost in ("tak", "t", "yes", "y"):
-                        nev_veh_for_client = session.query(Vehicle).filter(
-                            Vehicle.cash_per_day == broken_veh_cost_per_day,
-                            Vehicle.is_available == True,
-                        ).first()
-
-                        # Update popsuty pojazd, nowy pojazd
+        process_vehicle_swap_and_recalculate(session, broken_veh, broken_rent, repair_days)
 
 
-                        if not nev_veh_for_client:
-                            """
-                            """
+        exit()
+
+def process_vehicle_swap_and_recalculate(session, vehicle, rental, repair_days):
+
+    broken_rental_id = rental.id
+    broken_reservation_id = rental.reservation_id
+    broken_start_date = rental.start_date
+    broken_end_date = rental.planned_return_date
+    broken_veh_user_id = rental.user_id
+    broken_veh_cost_per_day = vehicle.cash_per_day
+
+
+
+
+    broken_veh_user = session.query(User).filter(User.id == broken_veh_user_id).first()
+
+    if today < broken_end_date:
+
+    approve_new_cost = input(
+        "\nCzy klient chce kontynuować najem?"
+        "\nWybierz (tak/nie): "
+    ).strip().lower()
+
+    while True:
+        if approve_new_cost in ("nie", "n", "no"):
+            new_client_cost = recalculate_cost(session, broken_veh_user, broken_end_date, broken_rental_reservation_
+        elif approve_new_cost in ("tak", "t", "yes", "y"):
+            new_veh_for_client = session.query(Vehicle).filter(
+                Vehicle.cash_per_day == broken_veh_cost_per_day,
+                Vehicle.is_available == True,
+            ).firs
+            # Update popsuty pojazd, nowy poj
+            if not nev_veh_for_client:
+                                """
+                                """
+
+def mark_as_under_repair(session, vehicle, repair_days):
+
+    workshops = get_users_by_role(session,"workshop",)
+    if not workshops:
+        print("Brak zdefiniowanych użytkowników warsztatu.")
+        return
+
+    print("\nDostępne warsztaty:")
+    for idx, w in enumerate(workshops, 1):
+        print(f"{idx}. {w.first_name} {w.last_name} ({w.login})")
+
+    workshop_choice = get_positive_int("Wybierz numer warsztatu: ", max_value=len(workshops)) - 1
+    selected_workshop = workshops[workshop_choice]
+
+    planned_end_date = date.today() + timedelta(days=repair_days)
+
+    repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy: ")
+    repair_cost = repair_cost_per_day * repair_days
+
+    description = input("\nKrótko opisz zakres naprawy: ")
+
+    repair_id = generate_repair_id()
+
+    # Generowanie naprawy
+    repair = RepairHistory(
+        repair_id=repair_id,
+        vehicle_id=vehicle.id,
+        mechanic_id=selected_workshop.id,
+        start_date=date.today(),
+        planned_end_date=planned_end_date,
+        actual_return_date=None,
+        cost=repair_cost,
+        description=description
+    )
+    session.add(repair)
+
+    # Aktualizacja pojazdu
+    vehicle.is_available = False
+    vehicle.borrower_id = selected_workshop.id
+    vehicle.return_date = planned_end_date
+
+    session.commit()
+    print(
+        f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
+        f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planned_end_date}."
+    )
+    return
+
 
 
 

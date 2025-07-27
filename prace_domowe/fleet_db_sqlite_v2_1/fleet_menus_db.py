@@ -136,7 +136,7 @@ def menu_admin(user, session):
             "8": lambda: get_vehicle(),
             "9": lambda: rent_vehicle_for_client(user),
             "10": lambda: return_vehicle(user),
-            "11": repair_vehicle,
+            "11": lambda: repair_vehicle(user),
             "12": lambda: update_profile(user)
         })
 

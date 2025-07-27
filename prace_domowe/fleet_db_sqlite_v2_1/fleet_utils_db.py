@@ -4,30 +4,39 @@ from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select
 from datetime import datetime, date, timedelta
 
 
-def get_positive_int(prompt, allow_empty=False):
+def get_positive_int(prompt, max_value: int | None = None, allow_empty=False):
     while True:
         value = input(prompt).strip()
         if allow_empty and not value:
             return None
         try:
             value = int(value)
-            if value > 0:
-                return value
-            else:
+            if value <= 0:
                 print("❌ Liczba musi być większa od zera.")
+                continue
+            if max_value is not None and value > max_value:
+                print(f"❌ Liczba musi być mniejsza lub równa {max_value}.")
+                continue
+            return value
         except ValueError:
             print("❌ Wprowadź poprawną liczbę całkowitą (np. 25).")
 
-def get_positive_float(prompt):
+def get_positive_float(prompt, max_value: float | None = None, allow_empty=False):
     while True:
+        value = input(prompt).strip()
+        if allow_empty and not value:
+            return None
         try:
-            value = float(input(prompt).strip())
-            if value > 0:
-                return value
-            else:
+            value = float(value)
+            if value <= 0:
                 print("❌ Liczba musi być większa od zera.")
+                continue
+            if max_value is not None and value > max_value:
+                print(f"❌ Liczba musi być mniejsza lub równa {max_value}.")
+                continue
+            return value
         except ValueError:
-            print("❌ Wprowadź poprawną liczbę (np. 25.5).")
+            print("❌ Wprowadź poprawną liczbę całkowitą (np. 25.5).")
 
 def generate_reservation_id():
     with Session() as session:
@@ -272,7 +281,6 @@ def get_available_vehicles(session, start_date=None, planned_return_date=None, v
     _, unavailable_ids = get_unavailable_vehicle(session, start_date, planned_return_date, vehicle_type)
 
     filters = [
-        Vehicle.is_available == True,
         ~Vehicle.id.in_(unavailable_ids)
     ]
     if vehicle_type != "all":
