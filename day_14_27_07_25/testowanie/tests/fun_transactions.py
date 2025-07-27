@@ -28,4 +28,4 @@ def proces_transactions(transactions, transaction_type, currency):
     return total
 
 if __name__ == '__main__':
-    print(proces_transactions(transactions, "expense", "EUR"))
+    print(process_transactions(transactions, "expense", "EUR"))
