@@ -1,4 +1,5 @@
 from fleet_models_db import Vehicle, Car, Scooter, Bike, User, RentalHistory, RepairHistory, Invoice, Promotion
+from fleet_choices_menus import choice_menu, yes_or_not_menu
 from sqlalchemy import func, cast, Integer, extract, and_, or_, exists, select, desc, asc
 from sqlalchemy.exc import IntegrityError
 from fleet_database import Session, SessionLocal
@@ -154,21 +155,47 @@ def new_client_cost():
             mark_as_under_repair(session, broken_veh, repair_days)
             return True
 
-        process_vehicle_swap_and_recalculate(session, broken_veh, broken_rent, repair_days)
+        choice = process_vehicle_swap_and_recalculate(session, broken_veh, broken_rent, repair_days)
+
+        if not choice:
+            mark_as_under_repair(session, broken_veh, repair_days)
+            return True
+
+
 
 
         exit()
 
+
 def process_vehicle_swap_and_recalculate(session, vehicle, rental, repair_days):
 
+    choice = yes_or_not_menu(
+        "Czy klient będzie kontynuował wynajem?"
+    )
+    if not choice:
+        print("Klient kończy wynajem.")
+        return False
+
+    print("Jedziemy dalej")
+
+    start_date = date.today()
+    planned_return_date = start_date + timedelta(repair_days)
+
+    replacement_vehicle_list = get_available_vehicles(session, start_date, planned_return_date, vehicle.type)
+    replacement_vehicle = session.query(Vehicle).filter(Vehicle.cash_per_day).first()
+
+    if replacement_vehicle:
+
+
+
+
+    exit()
     broken_rental_id = rental.id
     broken_reservation_id = rental.reservation_id
     broken_start_date = rental.start_date
     broken_end_date = rental.planned_return_date
     broken_veh_user_id = rental.user_id
     broken_veh_cost_per_day = vehicle.cash_per_day
-
-
 
 
     broken_veh_user = session.query(User).filter(User.id == broken_veh_user_id).first()

@@ -152,3 +152,14 @@ def return_vehicle(user: User):
 
         else:
             print("Funkcja dostępna tylko dla klientów i sprzedawców.")
+
+
+
+from timeit import timeit
+
+text = "tak"
+choices_tuple = ("tak", "t", "yes", "y")
+choices_set = {"tak", "t", "yes", "y"}
+
+print("tuple:", timeit("text in choices_tuple", globals=globals(), number=1_000_000))
+print("set  :", timeit("text in choices_set", globals=globals(), number=1_000_000))
