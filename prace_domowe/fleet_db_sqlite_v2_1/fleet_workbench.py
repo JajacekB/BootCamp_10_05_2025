@@ -11,8 +11,6 @@ from fleet_utils_db import (
     generate_vehicle_id, get_available_vehicles, get_unavailable_vehicle, generate_repair_id)
 import bcrypt
 
-from prace_domowe.fleet_db_sqlite_v2_1.repair_batch import planed_return_date
-
 
 def repair_vehicle(user):
     print(f"\n{ '>>> NAPRAW POJAZDÓW <<<':^30 }")
@@ -146,23 +144,22 @@ def new_client_cost():
             Vehicle.id == broken_veh_id
         ).first()
 
-        # sprawdzenie czy pojazd ma aktywn
+        # sprawdzenie czy pojazd ma aktywny najem
         broken_rent = session.query(RentalHistory).filter(
             RentalHistory.vehicle_id == broken_veh_id,
             today <= RentalHistory.planned_return_date,
             RentalHistory.start_date <= planned_end_date
         ).first()
 
+        # jeśli brak najmu - oddanie do naprawy
         if not broken_rent:
             mark_as_under_repair(session, broken_veh, repair_days)
             return True
 
-        #
-        choice = process_vehicle_swap_and_recalculate(session, broken_veh, broken_rent, repair_days)
+        # jeśli pojazd został uszkodzony podczas najmu uruchomienie procedury wymiany pojazdu i rekalkulacji kosztów
+        process_vehicle_swap_and_recalculate(session, broken_veh, broken_rent, repair_days)
 
-        if not choice:
-            mark_as_under_repair(session, broken_veh, repair_days)
-            return True
+
 
 
 
@@ -170,62 +167,82 @@ def new_client_cost():
         exit()
 
 
-def process_vehicle_swap_and_recalculate(session, vehicle, rental, repair_days):
-
+def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, repair_days):
     choice = yes_or_not_menu(
         "Czy klient będzie kontynuował wynajem?"
     )
     if not choice:
-        print("Klient kończy wynajem.")
+        print("\nKlient kończy najem pojazdu.")
+        # mark_as_under_repair(session, broken_veh, repair_days)
         return False
 
-    print("Jedziemy dalej")
-
+    print("nnKlient kontynuuje najem pojazdu")
     start_date = date.today()
-    planned_return_date = start_date + timedelta(repair_days)
+    planned_return_date = broken_rental.planned_return_date
 
-    replacement_vehicle_list = get_available_vehicles(session, start_date, planned_return_date, vehicle.type)
-    replacement_vehicle = session.query(Vehicle).filter(Vehicle.cash_per_day).first()
+    # wyszukanie pojazdu zastępczego
+    replacement_vehicle_list = get_available_vehicles(session, start_date, planned_return_date, broken_veh.type)
 
+    replacement_vehicle = next(
+        (v for v in replacement_vehicle_list if v.cash_per_day == broken_veh.cash_per_day),
+        None
+    )
+    # jeśli znależiono pojazd zastępczy
     if replacement_vehicle:
 
-
-
+        print(
+            f"\nWydano klientowi pojazd zastępczy: {replacement_vehicle} \n"
+            f"Oddano do naprawy: {broken_veh}"
+        )
+        update_database_after_vehicle_swap(session, broken_veh, replacement_vehicle, broken_rental, repair_days)
+        #mark_as_under_repair(session, broken_veh, repair_days)
 
 
     exit()
-    broken_rental_id = rental.id
-    broken_reservation_id = rental.reservation_id
-    broken_start_date = rental.start_date
-    broken_end_date = rental.planned_return_date
-    broken_veh_user_id = rental.user_id
-    broken_veh_cost_per_day = vehicle.cash_per_day
+
+def update_database_after_vehicle_swap(
+        session, original_vehicle, replacement_vehicle, broken_rental, repair_days):
+    # rozdzielenie kosztów najmu na pojazdy zepsuty i zastępczy
+    old_rental_cost = broken_rental.base_cost
+    old_rental_period = (broken_rental.planned_return_date - broken_rental.start_date).days
+    old_real_rental_period = (date.today() - broken_rental.planned_return_date).days
+
+    broken_veh_cost = old_rental_cost * old_real_rental_period / old_rental_period
+    replacement_veh_cost = old_rental_cost - broken_veh_cost
+
+    # aktualizacja statusu pojazdu zwracanego
+    original_vehicle.is_awaialable = True
+    original_vehicle.borrower_id = None
+    original_vehicle.return_date = None
+
+    # aktualizacja statusu pojazdu wynajmowanego
+    replacement_vehicle.is_available = None
+    replacement_vehicle.borrower_id = broken_rental.user_id
+    replacement_vehicle.return_date = broken_rental.planned_return_date
+
+    # generowanie najmu pojazdu zastępczego
+    replacement_rental = RentalHistory(
+        reservation_id=broken_rental.reservation_id,
+        user_id=broken_rental.user_id,
+        vehicle_id=replacement_vehicle.vehicle_id,
+        start_date=date.today(),
+        planned_return_date=broken_rental.planned_return_date,
+        base_cost=replacement_veh_cost,
+        total_cost=replacement_veh_cost
+    )
+    session.add(replacement_rental)
+    session.commit()
 
 
-    broken_veh_user = session.query(User).filter(User.id == broken_veh_user_id).first()
 
-    if today < broken_end_date:
 
-    approve_new_cost = input(
-        "\nCzy klient chce kontynuować najem?"
-        "\nWybierz (tak/nie): "
-    ).strip().lower()
 
-    while True:
-        if approve_new_cost in ("nie", "n", "no"):
-            new_client_cost = recalculate_cost(session, broken_veh_user, broken_end_date, broken_rental_reservation_
-        elif approve_new_cost in ("tak", "t", "yes", "y"):
-            new_veh_for_client = session.query(Vehicle).filter(
-                Vehicle.cash_per_day == broken_veh_cost_per_day,
-                Vehicle.is_available == True,
-            ).firs
-            # Update popsuty pojazd, nowy poj
-            if not nev_veh_for_client:
-                                """
-                                """
+
+
+
+
 
 def mark_as_under_repair(session, vehicle, repair_days):
-
     workshops = get_users_by_role(session,"workshop",)
     if not workshops:
         print("Brak zdefiniowanych użytkowników warsztatu.")

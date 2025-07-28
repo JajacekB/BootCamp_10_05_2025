@@ -41,11 +41,11 @@ class Car(Vehicle):
 
     def __repr__(self):
         return(
-            f"\nNumer ewidencyjny: [{self.vehicle_id} ]"
-            f"{self.brand} {self.vehicle_model} "
+            f"\nNumer ewidencyjny: [{self.vehicle_id}] "
+            f"{self.brand} {self.vehicle_model}   "
             f"{self.size} - {self.fuel_type}\n"
-            f"Numer rejestracyjny: {self.individual_id}"
-            f"{self.cash_per_day}zł za dzień"
+            f"Numer rejestracyjny: {self.individual_id}   "
+            f"{self.cash_per_day}zł za dzień  "
             f"{'Dostępny' if self.is_available else f'Niedostępny do {self.return_date}'}\n"
         )
 
