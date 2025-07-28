@@ -64,10 +64,10 @@ def repair_vehicle_production():
         if not broken_veh:
             print("❌ Nie znaleziono pojazdu o podanym ID.")
             return False
-
-        if broken_veh.is_under_repair:
-            print("ℹ️ Pojazd już znajduje się w naprawie.")
-            return False
+        #
+        # if broken_veh.is_under_repair:
+        #     print("ℹ️ Pojazd już znajduje się w naprawie.")
+        #     return False
 
         # sprawdzenie czy pojazd ma aktywny najem
         broken_rent = session.query(RentalHistory).filter(
@@ -176,7 +176,7 @@ def finalize_rental_and_repair(session, broken_veh, broken_rental, repair_days):
 
 def update_database_after_vehicle_swap(
         session, original_vehicle, replacement_vehicle, broken_rental, diffrent_price: bool):
-    # liczymy koszt za dodtychczasowy najem
+    # liczymy koszt za dotychczasowy najem
     today = date.today()
 
     old_rental_cost = broken_rental.base_cost
@@ -213,16 +213,29 @@ def update_database_after_vehicle_swap(
     broken_rental.actual_return_date = today
     broken_rental.total_cost = round(broken_veh_cost, 2)
 
-    # Generowanie nowej historii najmu
-    replacement_rental = RentalHistory(
-        reservation_id=broken_rental.reservation_id,
+    # --- 🔁 Nowa rezerwacja dla pojazdu zastępczego ---
+    base_res_id = broken_rental.reservation_id
+    existing = session.query(RentalHistory).filter(
+        RentalHistory.reservation_id.like(f"{base_res_id}%")
+    ).all()
+
+    new_suffix = chr(65 + len(existing))  # 'A', 'B', 'C', ...
+    new_res_id = f"{base_res_id}{new_suffix}"
+
+    broken_rental.actual_return_date = today
+    broken_rental.total_cost = round(broken_veh_cost, 2)
+
+    new_rental = RentalHistory(
+        reservation_id=new_res_id,
         user_id=broken_rental.user_id,
-        vehicle_id=replacement_vehicle.vehicle_id,
+        vehicle_id=replacement_vehicle.id,
         start_date=today,
         planned_return_date=broken_rental.planned_return_date,
+        actual_return_date=None,
         base_cost=round(replacement_veh_cost, 2),
+        total_cost=round(replacement_veh_cost, 2),
     )
-    session.add(replacement_rental)
+    session.add(new_rental)
     session.commit()
     return True
 
@@ -258,7 +271,7 @@ def mark_as_under_repair(session, vehicle, repair_days):
     workshops = get_users_by_role(session,"workshop")
     if not workshops:
         print("Brak zdefiniowanych użytkowników warsztatu.")
-        return
+        return False
 
     print("\nDostępne warsztaty:")
     for idx, w in enumerate(workshops, 1):
