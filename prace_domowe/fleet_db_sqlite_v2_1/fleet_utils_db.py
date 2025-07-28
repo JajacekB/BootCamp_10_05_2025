@@ -169,20 +169,23 @@ def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, r
         overdue_fee_text = f"(Anulowanie rezerwacji – kara {cash_per_day} zł)"
     if return_date > planned_return_date:
         extra_days = (return_date - planned_return_date).days
-        total_cost = base_cost + extra_days * cash_per_day
+        extra_fee = extra_days * cash_per_day
+        total_cost = base_cost + extra_fee
         overdue_fee_text = f"\n{base_cost} zł opłata bazowa + {extra_days * cash_per_day} zł kara za przeterminowanie.)"
     elif return_date == planned_return_date:
+        extra_fee = 0
         total_cost = base_cost
         overdue_fee_text = " (zwrot terminowy)"
     else:
         new_period = (planned_return_date - start_date).days
+        extra_fee = 0
         total_cost = calculate_rental_cost(user, cash_per_day, new_period)
         overdue_fee_text = " (zwrot przed terminem, naliczono koszt zgodnie z czasem użytkowania)"
 
-        return total_cost, overdue_fee_text
+        return total_cost, extra_fee, overdue_fee_text
 
 
-def update_database(session, vehicle: Vehicle, return_date: date, total_cost: float, reservation_id: str):
+def update_database(session, vehicle: Vehicle, return_date: date, total_cost: float, late_fee: float, reservation_id: str):
     try:
         rental = session.query(RentalHistory).filter(
             RentalHistory.reservation_id == reservation_id
@@ -208,6 +211,7 @@ def update_database(session, vehicle: Vehicle, return_date: date, total_cost: fl
 
         rental.actual_return_date = return_date
         rental.total_cost=total_cost
+        rental.late_fee = late_fee
         invoice.amount=total_cost
 
         session.add_all([vehicle, rental, invoice])

@@ -8,7 +8,8 @@ from collections import defaultdict
 from fleet_manager_user import get_clients, get_users_by_role
 from fleet_utils_db import (
     get_positive_int, calculate_rental_cost, recalculate_cost, get_positive_float, get_return_date_from_user,
-    generate_vehicle_id, get_available_vehicles, get_unavailable_vehicle, generate_repair_id)
+    generate_vehicle_id, get_available_vehicles, get_unavailable_vehicle, generate_repair_id, update_database,
+)
 import bcrypt
 
 
@@ -153,7 +154,7 @@ def new_client_cost():
 
         # jeśli brak najmu - oddanie do naprawy
         if not broken_rent:
-            mark_as_under_repair(session, broken_veh, repair_days)
+            # mark_as_under_repair(session, broken_veh, repair_days)
             return True
 
         # jeśli pojazd został uszkodzony podczas najmu uruchomienie procedury wymiany pojazdu i rekalkulacji kosztów
@@ -172,11 +173,26 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
         "Czy klient będzie kontynuował wynajem?"
     )
     if not choice:
+        #klient kończy najem
         print("\nKlient kończy najem pojazdu.")
-        # mark_as_under_repair(session, broken_veh, repair_days)
-        return False
 
-    print("nnKlient kontynuuje najem pojazdu")
+        broken_rental_total_cost, broken_rental_late_fee, _  = recalculate_cost(
+            session, broken_veh.borrower, broken_veh, date.today(), broken_rental.reservation_id
+        )
+
+        print(
+            f"\n💸 — KKW (Rzeczywisty Koszt Wynajmu) wynosi: {broken_rental_total_cost} zł"
+            f" w tym {broken_rental_late_fee} zł za opóźnienie.")
+
+        update_database(
+            session, broken_veh, date.today(), broken_rental_total_cost,
+            broken_rental_late_fee, broken_rental.reservation_id,
+        )
+        mark_as_under_repair(session, broken_veh, repair_days)
+        return True
+
+    #klient kontynuuje najem
+    print("\nKlient kontynuuje najem pojazdu.")
     start_date = date.today()
     planned_return_date = broken_rental.planned_return_date
 
@@ -195,13 +211,95 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
             f"Oddano do naprawy: {broken_veh}"
         )
         update_database_after_vehicle_swap(session, broken_veh, replacement_vehicle, broken_rental, repair_days)
-        #mark_as_under_repair(session, broken_veh, repair_days)
+        mark_as_under_repair(session, broken_veh, repair_days)
+        return True
+
+    # gdy nie ma pojazdu w cenie niesprawnego pojazdu
+    question = {
+        "(D)": "Klient wybrał droższy pojazd jako zastępczy.",
+        "(T)": "Klient wybral tańszy pojazd jako zastępczy.",
+        "(A)": "Klient jednak anuluje wynajem."
+    }
+
+    decision = choice_menu(
+        "Brak pojazdu w tej samej cenie. Czy klient decyduje sie na zmianę na droższy lub tańszy?", question
+    )
+    if decision is "a":
+        # klient kończy najem
+        print("\nKlient kończy najem pojazdu.")
+
+        broken_rental_total_cost, broken_rental_late_fee, _ = recalculate_cost(
+            session, broken_veh.borrower, broken_veh, date.today(), broken_rental.reservation_id
+        )
+
+        print(
+            f"\n💸 — KKW (Rzeczywisty Koszt Wynajmu) wynosi: {broken_rental_total_cost} zł"
+            f" w tym {broken_rental_late_fee} zł za opóźnienie.")
+
+        update_database(
+            session, broken_veh, date.today(), broken_rental_total_cost,
+            broken_rental_late_fee, broken_rental.reservation_id,
+        )
+        mark_as_under_repair(session, broken_veh, repair_days)
+        return True
+
+    elif decision is "t":
+        # wyszukanie tańczego pojazdu:
+        replacement_vehicle = find_replacement_vehicle(session, broken_veh, planned_return_date, True)
 
 
-    exit()
+        cheeper_replacement_veh = (
+            session.query(Vehicle)
+            .filter(
+                Vehicle.type == broken_veh.type,
+                Vehicle.cash_per_day <= broken_veh.cash_per_day
+            )
+            .order_by(desc(Vehicle.cash_per_day))
+            .first()
+            )
+
+        if not cheeper_replacement_veh:
+            choice = yes_or_not_menu(
+                "Czy klient będzie zgadza się na wynajem droższego pojazdu?"
+            )
+
+
+
+
+    else:
+
+
+
+        exit()
+
+
+def find_replacement_vehicle(session, reference_vehicle, planned_return_date, prefer_cheaper: bool):
+    # szukanie pojazdu z flagą preffer_cheeper
+    vehicles = get_available_vehicles(session, date.today(), planned_return_date, reference_vehicle.type)
+
+
+
+    query = session.query(Vehicle).filter(
+        Vehicle.type == broken_vehicle.type,
+        Vehicle.id != broken_vehicle.id,  # żeby nie zwrócić tego samego
+    )
+
+    if prefer_cheaper:
+        query = query.filter(Vehicle.cash_per_day <= broken_vehicle.cash_per_day)
+        query = query.order_by(desc(Vehicle.cash_per_day))  # najdroższy z tańszych
+    else:
+        query = query.filter(Vehicle.cash_per_day >= broken_vehicle.cash_per_day)
+        query = query.order_by(asc(Vehicle.cash_per_day))  # najtańszy z droższych
+
+    return query.first()
+
+
+
+
 
 def update_database_after_vehicle_swap(
         session, original_vehicle, replacement_vehicle, broken_rental, repair_days):
+
     # rozdzielenie kosztów najmu na pojazdy zepsuty i zastępczy
     old_rental_cost = broken_rental.base_cost
     old_rental_period = (broken_rental.planned_return_date - broken_rental.start_date).days
@@ -232,6 +330,7 @@ def update_database_after_vehicle_swap(
     )
     session.add(replacement_rental)
     session.commit()
+
 
 
 

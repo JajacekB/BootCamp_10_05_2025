@@ -687,7 +687,7 @@ def return_vehicle(user):
                     print("Nie znaleziono rezerwacji odpowiadającej wybranemu pojazdowi.")
                     return
 
-                total_cost, overdue_fee_text = recalculate_cost(
+                total_cost, extra_fee, overdue_fee_text = recalculate_cost(
                     session, user, vehicle, actual_return_date_input, selected_rental.reservation_id
                 )
 
@@ -708,7 +708,7 @@ def return_vehicle(user):
                         return
 
                     elif choice in ("tak", "t", "yes", "y"):
-                        update_database(session, vehicle, actual_return_date_input, total_cost, selected_rental.reservation_id)
+                        update_database(session, vehicle, actual_return_date_input, total_cost, extra_fee,selected_rental.reservation_id)
 
                     print(
                         f"\nPojazd {vehicle} został pomyślnie zwrócony."

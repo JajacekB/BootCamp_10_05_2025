@@ -17,7 +17,7 @@ def choice_menu(prompt: str, variable):
         raise TypeError("Variable musi być słownikiem lub listą")
 
     while True:
-        choice = input("Wpisz swoją odpowiedź: ").strip()
+        choice = input("Wpisz swoją odpowiedź: ").strip().lower()
         if choice in valid_inputs:
             return choice
         else:
