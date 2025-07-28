@@ -275,23 +275,26 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
 
 def find_replacement_vehicle(session, reference_vehicle, planned_return_date, prefer_cheaper: bool):
     # szukanie pojazdu z flagą preffer_cheeper
-    vehicles = get_available_vehicles(session, date.today(), planned_return_date, reference_vehicle.type)
-
-
-
-    query = session.query(Vehicle).filter(
-        Vehicle.type == broken_vehicle.type,
-        Vehicle.id != broken_vehicle.id,  # żeby nie zwrócić tego samego
+    available_vehicles = get_available_vehicles(
+        session, date.today(), planned_return_date, reference_vehicle.type
     )
 
     if prefer_cheaper:
-        query = query.filter(Vehicle.cash_per_day <= broken_vehicle.cash_per_day)
-        query = query.order_by(desc(Vehicle.cash_per_day))  # najdroższy z tańszych
+        # Najdroższy z tańszych
+        vehicle = next(
+            (v for v in sorted(available_vehicles, key=lambda v: v.cash_per_day, reverse=True)
+            if v.cash_per_day < reference_vehicle.cash_per_day),
+            None
+        )
     else:
-        query = query.filter(Vehicle.cash_per_day >= broken_vehicle.cash_per_day)
-        query = query.order_by(asc(Vehicle.cash_per_day))  # najtańszy z droższych
+        # Najtańszy z droższych
+        vehicle = next(
+            (v for v in sorted(available_vehicles, key=lambda v: v.cash_per_day)
+            if v.cash_per_day > reference_vehicle.cash_per_day),
+            None
+        )
 
-    return query.first()
+    return vehicle
 
 
 
