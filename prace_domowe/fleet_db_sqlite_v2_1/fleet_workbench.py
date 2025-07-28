@@ -172,6 +172,9 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
 
         if not lower_price_vehicle:
             # klient zgadza się na droższy, wyszukanie droższego
+
+            print("\nBrak tańszego pojazdu zastępczego, Został wydany droższy bez naliczania dodatkowych kosztów.")
+
             higher_price_vehicle = find_replacement_vehicle(
                 session, broken_veh, planned_return_date, False
             )
@@ -184,7 +187,7 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
             )
 
         else:
-            # klient tańszy pojazd następuje
+            # wydanie klientowi samochodu zastępczego i naliczenie kosztów
             update_database_after_vehicle_swap(session, broken_veh, lower_price_vehicle, broken_rental, True)
             mark_as_under_repair(session, broken_veh, repair_days)
             print(
@@ -193,8 +196,50 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
             )
 
     else:
+        # wyszukanie droższego pojazdu.
+        higher_price_vehicle = find_replacement_vehicle(
+            session, broken_veh, planned_return_date, False
+        )
+        if not higher_price_vehicle:
+            decision = yes_or_not_menu(
+                "Brak pojazdów o wyższym standardzie. Czy klient decyduje się na tańszy z rabatem?"
+            )
+
+            if not decision:
+                print("\nKlient kończy najem pojazdu.")
+
+                broken_rental_total_cost, broken_rental_late_fee, _ = recalculate_cost(
+                    session, broken_veh.borrower, broken_veh, date.today(), broken_rental.reservation_id
+                )
+
+                print(
+                    f"\n💸 — KKW (Rzeczywisty Koszt Wynajmu) wynosi: {broken_rental_total_cost} zł"
+                    f" w tym {broken_rental_late_fee} zł za opóźnienie.")
+
+                update_database(
+                    session, broken_veh, date.today(), broken_rental_total_cost,
+                    broken_rental_late_fee, broken_rental.reservation_id,
+                )
+                mark_as_under_repair(session, broken_veh, repair_days)
+
+            else:
+                lower_price_vehicle = find_replacement_vehicle(
+                    session, broken_veh, planned_return_date, True
+                )
+                # wydanie klientowi samochodu zastępczego i naliczenie kosztów
+                update_database_after_vehicle_swap(session, broken_veh, lower_price_vehicle, broken_rental, True)
+                mark_as_under_repair(session, broken_veh, repair_days)
+                print(
+                    f"\nWydano klientowi pojazd zastępczy: {replacement_vehicle} \n"
+                    f"Oddano do naprawy: {broken_veh}"
+                )
+        update_database_after_vehicle_swap(session, broken_veh, lower_price_vehicle, broken_rental, True)
+        mark_as_under_repair(session, broken_veh, repair_days)
+        f"\nWydano klientowi pojazd zastępczy: {replacement_vehicle} \n"
+        f"Oddano do naprawy: {broken_veh}"
 
         exit()
+
 
 def update_database_after_vehicle_swap(
         session, original_vehicle, replacement_vehicle, broken_rental, difrent_price: bool):
@@ -277,7 +322,7 @@ def find_replacement_vehicle(session, reference_vehicle, planned_return_date, pr
 
 
 def mark_as_under_repair(session, vehicle, repair_days):
-    workshops = get_users_by_role(session,"workshop",)
+    workshops = get_users_by_role(session,"workshop")
     if not workshops:
         print("Brak zdefiniowanych użytkowników warsztatu.")
         return
