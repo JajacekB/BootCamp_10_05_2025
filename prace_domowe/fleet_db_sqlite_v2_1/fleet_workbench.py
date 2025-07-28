@@ -101,8 +101,9 @@ def repair_vehicle(user):
 
 def new_client_cost():
     with Session() as session:
-        rented_broken_vehs, _ = get_unavailable_vehicle(session)
 
+        # pobranie i wyświetlenie wszytskich pojazdów z podziałem na wynajęte i wolne
+        rented_broken_vehs, _ = get_unavailable_vehicle(session)
         available_broken_vehs = get_available_vehicles(session)
 
         if not rented_broken_vehs:
@@ -134,8 +135,8 @@ def new_client_cost():
                     f"| {vehicle.id:>4}| {vehicle.brand:<13}| {vehicle.vehicle_model:13}| {vehicle.individual_id:<19}|"
                 )
 
+        # wybór niesprawnego pojazdu
         broken_veh_id = get_positive_int("\nPodaj id pojadu do naprawy: ")
-
         repair_days = get_positive_int(f"Podaj szacunkową ilość dni naprawy: ")
 
         today = date.today()
@@ -145,6 +146,7 @@ def new_client_cost():
             Vehicle.id == broken_veh_id
         ).first()
 
+        # sprawdzenie czy pojazd ma aktywn
         broken_rent = session.query(RentalHistory).filter(
             RentalHistory.vehicle_id == broken_veh_id,
             today <= RentalHistory.planned_return_date,
@@ -155,6 +157,7 @@ def new_client_cost():
             mark_as_under_repair(session, broken_veh, repair_days)
             return True
 
+        #
         choice = process_vehicle_swap_and_recalculate(session, broken_veh, broken_rent, repair_days)
 
         if not choice:
@@ -185,6 +188,7 @@ def process_vehicle_swap_and_recalculate(session, vehicle, rental, repair_days):
     replacement_vehicle = session.query(Vehicle).filter(Vehicle.cash_per_day).first()
 
     if replacement_vehicle:
+
 
 
 
