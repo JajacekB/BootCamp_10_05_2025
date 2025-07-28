@@ -13,92 +13,9 @@ from fleet_utils_db import (
 import bcrypt
 
 
-def repair_vehicle(user):
-    print(f"\n{ '>>> NAPRAW POJAZDÓW <<<':^30 }")
-    with SessionLocal() as session:
-        # available_vehicles = get_available_vehicles(session)
-        # if not available_vehicles:
-        #     print("Brak dostępnych pojazdów do naprawy.")
-        #     return
-        #
-        # print("\nDostępne pojazdy do naprawy:")
-        # for v in available_vehicles:
-        #     print(f"- {v.vehicle_model} ({v.type}), ID: {v.id}, Numer: {v.individual_id}")
-
-        try:
-            vehicle_id = int(input("Podaj ID pojazdu do przekazania do naprawy: "))
-        except ValueError:
-            print("Błędne ID.")
-            return
-
-        vehicle = session.query(Vehicle).filter_by(id=vehicle_id, is_available=True).first()
-        if not vehicle:
-            print("Nie znaleziono pojazdu.")
-            return
-
-        workshops = get_users_by_role("workshop", session)
-        if not workshops:
-            print("Brak zdefiniowanych użytkowników warsztatu.")
-            return
-
-        print("\nDostępne warsztaty:")
-        for idx, w in enumerate(workshops, 1):
-            print(f"{idx}. {w.first_name} {w.last_name} ({w.login})")
-
-        # sprawdzanie czy pjazd jest wynajęty
-        # rekalkulacj kosztów klienta
-        # akceptacja przez klienta
-
-        workshop_choice = get_positive_int("Wybierz numer warsztatu: ") - 1
-        selected_workshop = workshops[workshop_choice]
-
-        repair_days = get_positive_int("Podaj liczbę dni naprawy: ")
-        planned_end_date = datetime.today().date() + timedelta(days=repair_days)
-
-        repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy: ")
-        repair_cost = repair_cost_per_day * repair_days
-
-        description = input("\nKrótko opisz zakres naprawy: ")
-
-        while True:
-            confirm = input(
-                f"\nPotwierdź oddanie do naprawy pojazdu:\n {vehicle}"
-                f"\nKoszt naprawy {repair_cost} zł"
-                f"\nWybierz (tak/nie): "
-            ).strip().lower()
-            if confirm not in ("tak", "t", "yes", "y"):
-                print("\nNaprawa anulowana.")
-                return
-
-            # Historia naprawy
-            repair_id = generate_repair_id()
-
-            repair = RepairHistory(
-                repair_id=repair_id,
-                vehicle_id=vehicle.id,
-                mechanic_id=selected_workshop.id,
-                start_date=date.today(),
-                planned_end_date=planned_end_date,
-                actual_return_date=None,  # Domyślnie brak
-                cost=repair_cost,
-                description=description
-            )
-            session.add(repair)
-
-            # Aktualizacja pojazdu
-            vehicle.is_available = False
-            vehicle.borrower_id = selected_workshop.id
-            vehicle.return_date = planned_end_date
-
-            session.commit()
-            print(
-                f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
-                f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planned_end_date}."
-            )
-            return
 
 
-def new_client_cost():
+def repair_vehicle_production():
     with Session() as session:
 
         # pobranie i wyświetlenie wszytskich pojazdów z podziałem na wynajęte i wolne
@@ -210,8 +127,10 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
             f"\nWydano klientowi pojazd zastępczy: {replacement_vehicle} \n"
             f"Oddano do naprawy: {broken_veh}"
         )
-        update_database_after_vehicle_swap(session, broken_veh, replacement_vehicle, broken_rental, repair_days)
-        mark_as_under_repair(session, broken_veh, repair_days)
+        update_database_after_vehicle_swap(
+            session, broken_veh, replacement_vehicle, broken_rental, repair_days)
+        mark_as_under_repair(
+            session, broken_veh, repair_days)
         return True
 
     # gdy nie ma pojazdu w cenie niesprawnego pojazdu
@@ -245,23 +164,21 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
 
     elif decision is "t":
         # wyszukanie tańczego pojazdu:
-        replacement_vehicle = find_replacement_vehicle(session, broken_veh, planned_return_date, True)
+        lower_price_vehicle = find_replacement_vehicle(
+            session, broken_veh, planned_return_date, True
+        )
 
+        if not lower_price_vehicle:
 
-        cheeper_replacement_veh = (
-            session.query(Vehicle)
-            .filter(
-                Vehicle.type == broken_veh.type,
-                Vehicle.cash_per_day <= broken_veh.cash_per_day
-            )
-            .order_by(desc(Vehicle.cash_per_day))
-            .first()
-            )
-
-        if not cheeper_replacement_veh:
             choice = yes_or_not_menu(
                 "Czy klient będzie zgadza się na wynajem droższego pojazdu?"
             )
+
+            if not choice:
+
+                lower_price_vehicle = find_replacement_vehicle(
+                    session, broken_veh, planned_return_date, True
+                )
 
 
 
