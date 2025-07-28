@@ -129,7 +129,7 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
             f"Oddano do naprawy: {broken_veh}"
         )
         update_database_after_vehicle_swap(
-            session, broken_veh, replacement_vehicle, broken_rental)
+            session, broken_veh, replacement_vehicle, broken_rental, False)
         mark_as_under_repair(
             session, broken_veh, repair_days)
         return True
@@ -175,32 +175,78 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
             higher_price_vehicle = find_replacement_vehicle(
                 session, broken_veh, planned_return_date, False
             )
-            update_database_after_vehicle_swap(session, broken_veh, higher_price_vehicle)
+            update_database_after_vehicle_swap(session, broken_veh, higher_price_vehicle, broken_rental, False)
+            mark_as_under_repair(session, broken_veh, repair_days)
 
+            print(
+                f"\nWydano klientowi pojazd zastępczy: {replacement_vehicle} \n"
+                f"Oddano do naprawy: {broken_veh}"
+            )
 
-
-
-            # wynajmujemy klientowi droższy pojazd.
-            # będzie nowa funkcja.
-            adjusted_rental_cost = adjust_rental_cost(session)
+        else:
+            # klient tańszy pojazd następuje
+            update_database_after_vehicle_swap(session, broken_veh, lower_price_vehicle, broken_rental, True)
+            mark_as_under_repair(session, broken_veh, repair_days)
+            print(
+                f"\nWydano klientowi pojazd zastępczy: {replacement_vehicle} \n"
+                f"Oddano do naprawy: {broken_veh}"
+            )
 
     else:
 
         exit()
 
-
-d
-
-
-def adjust_rental_cost(
-        session, original_vehicle, replacement_vehicle, broken_rental, repair_days):
+def update_database_after_vehicle_swap(
+        session, original_vehicle, replacement_vehicle, broken_rental, difrent_price: bool):
     # liczymy koszt za dodtychczasowy najem
-    old_price = []
+    today = date.today()
 
+    old_rental_cost = broken_rental.base_cost
+    old_rental_period = (broken_rental.planned_return_date - broken_rental.start_date).days
+    real_rental_days_old = (today - broken_rental.start_date).days
+    real_rental_days_new = (broken_rental.planned_return_date - today).days
 
+    if real_rental_days_old < 1:
+        real_rental_days_old = 1  # zabezpieczenie przed dzieleniem przez 0 lub dziwnymi datami
+    if real_rental_days_new < 0:
+        real_rental_days_new = 0  # gdy zwrot tego samego dnia
 
+    # Oblicz koszt pojazdu zepsutego
+    broken_veh_cost = old_rental_cost * real_rental_days_old / old_rental_period
 
+    # Oblicz koszt pojazdu zastępczego
+    if difrent_price:
+        user = session.query(User).filter(User.id == original_vehicle.user_id).first()
+        replacement_veh_cost = calculate_rental_cost(user, replacement_vehicle.cash_per_day, real_rental_days_new)
+    else:
+        replacement_veh_cost = old_rental_cost - broken_veh_cost
 
+    # Aktualizacja statusu pojazdu zwracanego
+    original_vehicle.is_available = True
+    original_vehicle.borrower_id = None
+    original_vehicle.return_date = None
+
+    # Aktualizacja statusu pojazdu zastępczego
+    replacement_vehicle.is_available = False
+    replacement_vehicle.borrower_id = broken_rental.user_id
+    replacement_vehicle.return_date = broken_rental.planned_return_date
+
+    # Korekta historii najmu pojazdu popsutego
+    broken_rental.actual_return_date = today
+    broken_rental.total_cost = round(broken_veh_cost, 2)
+
+    # Generowanie nowej historii najmu
+    replacement_rental = RentalHistory(
+        reservation_id=broken_rental.reservation_id,
+        user_id=broken_rental.user_id,
+        vehicle_id=replacement_vehicle.vehicle_id,
+        start_date=today,
+        planned_return_date=broken_rental.planned_return_date,
+        base_cost=round(replacement_veh_cost, 2),
+    )
+    session.add(replacement_rental)
+    session.commit()
+    return True
 
 
 
@@ -226,55 +272,6 @@ def find_replacement_vehicle(session, reference_vehicle, planned_return_date, pr
         )
 
     return vehicle
-
-
-
-
-
-def update_database_after_vehicle_swap(
-        session, original_vehicle, replacement_vehicle, broken_rental):
-
-    # rozdzielenie kosztów najmu na pojazdy zepsuty i zastępczy
-    old_rental_cost = broken_rental.base_cost
-    old_rental_period = (broken_rental.planned_return_date - broken_rental.start_date).days
-    old_real_rental_period = (date.today() - broken_rental.planned_return_date).days
-
-    broken_veh_cost = old_rental_cost * old_real_rental_period / old_rental_period
-    replacement_veh_cost = old_rental_cost - broken_veh_cost
-
-    # aktualizacja statusu pojazdu zwracanego
-    original_vehicle.is_awaialable = True
-    original_vehicle.borrower_id = None
-    original_vehicle.return_date = None
-
-    # aktualizacja statusu pojazdu wynajmowanego
-    replacement_vehicle.is_available = None
-    replacement_vehicle.borrower_id = broken_rental.user_id
-    replacement_vehicle.return_date = broken_rental.planned_return_date
-
-    # korekta historii najmu pojazdu popsutego
-    broken_rental.actual_return_date = date.today()
-    broken_rental.total_cost = broken_veh_cost
-
-    # generowanie najmu pojazdu zastępczego
-    replacement_rental = RentalHistory(
-        reservation_id=broken_rental.reservation_id,
-        user_id=broken_rental.user_id,
-        vehicle_id=replacement_vehicle.vehicle_id,
-        start_date=date.today(),
-        planned_return_date=broken_rental.planned_return_date,
-        base_cost=replacement_veh_cost,
-        total_cost=replacement_veh_cost
-    )
-    session.add(replacement_rental)
-    session.commit()
-
-
-
-
-
-
-
 
 
 
@@ -324,7 +321,7 @@ def mark_as_under_repair(session, vehicle, repair_days):
         f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
         f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planned_end_date}."
     )
-    return
+    return True
 
 
 
