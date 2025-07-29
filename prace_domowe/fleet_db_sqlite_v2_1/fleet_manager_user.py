@@ -70,7 +70,6 @@ def register_user(role="client", auto=False):
             password_hash = bcrypt.hashpw(raw_password.encode(), bcrypt.gensalt()).decode()
             print(f"\nUtworzono login: {login} | hasło: {raw_password}")
 
-
     else:
         login = input("Login: ").strip()
         while True:

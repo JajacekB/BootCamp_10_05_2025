@@ -10,12 +10,12 @@ from fleet_utils_db import (
     get_positive_int, calculate_rental_cost, recalculate_cost, get_positive_float, get_return_date_from_user,
     generate_vehicle_id, get_available_vehicles, get_unavailable_vehicle, generate_repair_id, update_database,
 )
-import bcrypt
 
 
 
 
-def repair_vehicle_production():
+
+def repair_vehicle():
     with Session() as session:
 
         # pobranie i wyświetlenie wszytskich pojazdów z podziałem na wynajęte i wolne
@@ -320,7 +320,7 @@ def mark_as_under_repair(session, vehicle, repair_days):
 
 
 
-repair_vehicle_production()
+repair_vehicle()
 
 
 

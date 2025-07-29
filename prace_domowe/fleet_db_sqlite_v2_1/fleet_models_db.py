@@ -160,7 +160,7 @@ class RepairHistory(Base):
     vehicle = relationship("Vehicle", back_populates="repairs")
 
     def __repr__(self):
-        return f"<RepairHistory {self.repair_id} Mechanik:{self.mechanic.first_name} {self.mechanic.last_name} Vehicle:{self.vehicle_id}>"
+        return f"RepairHistory {self.repair_id} Mechanik:{self.mechanic.first_name} {self.mechanic.last_name} Vehicle:{self.vehicle_id}"
 
 
 class Invoice(Base):
@@ -175,7 +175,7 @@ class Invoice(Base):
     rental = relationship("RentalHistory", back_populates="invoice")
 
     def __repr__(self):
-        return f"<Invoice {self.id} {self.rental_id} {self.invoice_number} Amount:{self.amount}>"
+        return f"Invoice {self.id} {self.rental_id} {self.invoice_number} Amount:{self.amount}"
 
 class Promotion(Base):
     __tablename__ = "promotions"

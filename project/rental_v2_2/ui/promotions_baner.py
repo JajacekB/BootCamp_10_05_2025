@@ -1,4 +1,8 @@
-from fleet_models_db import Promotion
+# directory: ui
+# file: promotions.py
+
+from models.promotions import Promotion
+
 
 def show_dynamic_promo_banner(session):
     time_promos = session.query(Promotion).filter_by(type='time').order_by(Promotion.min_days).all()
