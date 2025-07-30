@@ -1,7 +1,6 @@
 
 
 from datetime import datetime, date, timedelta
-from database.base import Session
 from models.vehicle import Vehicle
 from models.rental_history import RentalHistory
 from models.repair_history import RepairHistory
@@ -13,8 +12,6 @@ from services.rental_process import recalculate_cost
 from services.rental_swap import find_replacement_vehicle, update_database_after_vehicle_swap
 from services.user_service import get_users_by_role
 from services.id_generators import generate_repair_id
-
-
 
 
 def repair_vehicle(session):
