@@ -31,7 +31,6 @@ def get_unavailable_vehicle(session, start_date = None, planned_return_date = No
     ).all()
     rented_ids = [r.vehicle_id for r in rented_vehicles]
 
-
     repaired_today = session.query(RepairHistory).filter(
         RepairHistory.vehicle_id.in_(candidate_ids),
         RepairHistory.start_date <= planned_return_date,
