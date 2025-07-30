@@ -1,10 +1,10 @@
 from datetime import datetime, date
 
-def get_return_date_from_user(session) -> date:
+
+def get_date_from_user(prompt) -> date:
+    # f"\nPodaj rzeczywistą datę zwrotu (DD-MM-YYYY) Enter = dziś: "  - przykładowy prompt do użycia
     while True:
-        return_date_input_str = input(
-            f"Podaj rzeczywistą datę zwrotu (DD-MM-YYYY) Enter = dziś: "
-        ).strip().lower()
+        return_date_input_str = input(prompt).strip().lower()
 
         try:
 

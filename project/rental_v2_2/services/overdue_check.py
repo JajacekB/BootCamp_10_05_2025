@@ -7,9 +7,10 @@ from database.base import Session
 from models.repair_history import RepairHistory
 from models.rental_history import RentalHistory
 from services.rental_costs import calculate_rental_cost
+from services.user_imput import get_date_from_user
 
 
-def check_overdue_vehicles(user, session: Session):
+def check_overdue_vehicles(session, user):
     if user.role not in ("seller", "admin"):
         return
 
@@ -35,12 +36,7 @@ def check_overdue_vehicles(user, session: Session):
             print("Pojazd nadal wypożyczony, sprawdzimy go ponownie jutro.")
             continue
 
-        actual_return_str = input("Podaj datę zwrotu (DD-MM-YYYY): ").strip()
-        try:
-            actual_return_date = datetime.strptime(actual_return_str, "%d-%m-%Y").date()
-        except ValueError:
-            print("Niepoprawny format daty, pomijam ten pojazd.")
-            continue
+        actual_return_date = get_date_from_user(f"\nPodaj rzeczywistą datę zwrotu (DD-MM-YYYY) Enter = dziś: ")
 
         rental = session.query(RentalHistory).filter_by(
             vehicle_id=vehicle.id,

@@ -86,7 +86,7 @@ def repair_vehicle(session):
     # jeśli pojazd został uszkodzony podczas najmu uruchomienie procedury wymiany pojazdu i rekalkulacji kosztów
     process_vehicle_swap_and_recalculate(session, broken_veh, broken_rent, repair_days)
 
-    exit() # po zaimplementowaniu retur True
+    return True
 
 
 def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, repair_days):
@@ -195,7 +195,7 @@ def mark_as_under_repair(session, vehicle, repair_days):
 
     description = input("\nKrótko opisz zakres naprawy: ")
 
-    repair_id = generate_repair_id()
+    repair_id = generate_repair_id(session)
 
     # Generowanie naprawy
     repair = RepairHistory(
