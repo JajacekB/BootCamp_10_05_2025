@@ -57,5 +57,3 @@ def get_date_from_user(prompt) -> date:
             print("❌ Niepoprawny format daty.")
             continue
     return return_date_input
-
-

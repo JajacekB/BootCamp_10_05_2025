@@ -213,14 +213,12 @@ def remove_user(session, role="client"):
 
 def get_clients(session):
     print(">>> Przeglądanie klientów <<<")
-
-    client_status = choice_menu("\nW jaki sposób chcesz przeglądać klientów?",
-                                {
-                                    "w": "Wszyscy",
-                                    "t": "Tylko z wypożyczeniem",
-                                    "b": "Bez wypożyczenia"
-                                }
-                            )
+    question = {
+        "W": "Wszyscy",
+        "T": "Tylko z wypożyczeniem",
+        "B": "Bez wypożyczenia"
+    }
+    client_status = choice_menu("\nW jaki sposób chcesz przeglądać klientów?", question)
 
     if client_status == "w":
         clients = (
