@@ -1,4 +1,6 @@
-# rental_v2_2/utils/input_helpers.py
+# directory: utils
+# file: input_helpers.py
+
 
 def choice_menu(prompt: str, variable):
     print(f"\n{prompt}\n{'-' * len(prompt)}")
