@@ -3,11 +3,10 @@
 
 from datetime import date, datetime
 from models.vehicle import Vehicle
-from database.base import Session
 from models.repair_history import RepairHistory
 from models.rental_history import RentalHistory
 from services.rental_costs import calculate_rental_cost
-from services.user_imput import get_date_from_user
+from utils.iput_helpers import yes_or_not_menu, choice_menu, get_date_from_user
 
 
 def check_overdue_vehicles(session, user):
@@ -30,9 +29,9 @@ def check_overdue_vehicles(session, user):
     for vehicle in overdue_vehicles:
         print(f"\nPojazd: {vehicle.brand} {vehicle.vehicle_model} (ID: {vehicle.vehicle_id})")
         print(f"Planowany zwrot: {vehicle.return_date}")
-        answer = input("Czy pojazd został zwrócony? (tak/nie): ").strip().lower()
+        answer = yes_or_not_menu("\nCzy pojazd został zwrócony?")
 
-        if answer not in ("tak", "t", "yes", "y"):
+        if not answer:
             print("Pojazd nadal wypożyczony, sprawdzimy go ponownie jutro.")
             continue
 
@@ -50,13 +49,21 @@ def check_overdue_vehicles(session, user):
 
         if rental and repair:
             print(f"\n⚠️ UWAGA! Pojazd ID: {vehicle.id} figuruje jako wypożyczony i w naprawie!")
-            choice = input("\nCzy chcesz: (I) Ignoruj / (N) anuluj Naprawę / (W) anuluj Wypożyczenie: ").strip().lower()
-            if choice == "i": continue
-            elif choice == "n": repair.actual_return_date = date.today()
-            elif choice == "w": rental.actual_return_date = date.today()
-            else:
-                print("Nieprawidłowy wybór.")
+
+            question = {
+                "I": "Ignoruj",
+                "N": "Anuluj Naprawę",
+                "W": "Anuluj Wypożyczenie"
+            }
+
+            choice = choice_menu("\nCo chcesz zrobić?", question)
+            if choice == "i":
                 continue
+            elif choice == "n":
+                repair.actual_return_date = date.today()
+            elif choice == "w":
+                rental.actual_return_date = date.today()
+
             session.commit()
 
         elif repair:
