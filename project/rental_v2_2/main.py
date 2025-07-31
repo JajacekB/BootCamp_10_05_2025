@@ -8,9 +8,6 @@ from services.overdue_check import check_overdue_vehicles
 from database.base import SessionLocal, Session
 from config import DATABASE_URL
 
-print("Ścieżka do bazy danych:", DATABASE_URL)
-
-
 
 def main():
     while True:
