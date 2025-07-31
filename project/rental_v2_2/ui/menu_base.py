@@ -40,7 +40,7 @@ def start_menu():
                 return user
         elif choice == "0":
             print("Do widzenia!")
-
+            exit()
         else:
             print("❌ Niepoprawny wybór, spróbuj ponownie.")
 

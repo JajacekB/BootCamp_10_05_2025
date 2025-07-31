@@ -37,3 +37,20 @@ def login_user(session):
         else:
             print("\nAnulowano logowanie.")
             return None
+
+
+def login_user_gui(session, login_or_email: str, password: str):
+    """
+    GUI-friendly login function. Performs authentication without console interaction.
+    Returns User object on success, None on failure.
+    """
+    user = session.query(User).filter(
+        (User.login == login_or_email) | (User.email == login_or_email)
+    ).first()
+
+    if not user:
+        return None # User not found
+    elif not bcrypt.checkpw(password.encode(), user.password_hash.encode()):
+        return None # Incorrect password
+    else:
+        return user # Login successful

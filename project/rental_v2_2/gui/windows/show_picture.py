@@ -1,41 +1,63 @@
 import sys
-import os
-from PySide6.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout
-from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout, QPushButton, QLayout
+from PySide6.QtGui import QPixmap, QPalette, QColor
 from PySide6.QtCore import Qt
 
-def main():
+def create_simple_widow():
+
     app = QApplication(sys.argv)
-
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    logo_path = os.path.join(base_dir, "logo.png")
-
-    print("Ścieżka do logo:", logo_path)
-
-    pixmap = QPixmap(logo_path)
-    if pixmap.isNull():
-        print("❌ Nie udało się załadować obrazka!")
-    else:
-        print("✅ Logo załadowane poprawnie.")
-
     window = QWidget()
-    window.setWindowTitle("Test ładowania obrazka")
+    window.setWindowTitle("To jest coś fajnego")
+    window.setGeometry(100, 100, 500, 250)
 
-    label = QLabel()
-    if not pixmap.isNull():
-        label.setPixmap(pixmap)
-        label.setAlignment(Qt.AlignCenter)
-    else:
-        label.setText("❌ Nie udało się załadować obrazka!")
+    palette = QPalette()
+    palette.setColor(QPalette.Window, QColor("#2e2e2e"))
+    window.setPalette(palette)
+    window.setAutoFillBackground(True)
 
     layout = QVBoxLayout()
-    layout.addWidget(label)
     window.setLayout(layout)
 
-    window.resize(400, 300)
-    window.show()
+    status_label = QLabel("Stan przycisku: Włączony")
+    status_label.setAlignment(Qt.AlignCenter)
+    status_label.setStyleSheet("color: white; font-size: 16px;")
+    layout.addWidget(status_label)
 
+    button_label = QLabel("Przycisk")
+    button_label.setAlignment(Qt.AlignCenter)
+    button_label.setStyleSheet("color: white; font-size: 14px; margin-bottom: 5px;")
+    layout.addWidget(button_label)
+
+
+
+    toggle_button = QPushButton("Przycisk dwustanowy")
+    toggle_button.setCheckable(True)
+    toggle_button.setFont(toggle_button.font())
+    toggle_button.setStyleSheet(
+        "QPushButton { background-color: #4CAF50; color: white; border-radius: 8px; padding: 10px; }"
+        "QPushButton:checked { background-color: #f44336; }"  # Kolor po włączeniu
+        "QPushButton:hover { background-color: #66BB6A; }"  # Kolor przy najechaniu
+        "QPushButton:checked:hover { background-color: #E57373; }"
+    )
+
+    toggle_button.setFixedSize(200, 50)
+    layout.addWidget(toggle_button, alignment=Qt.AlignCenter)
+
+    def on_button_toggled(checked):
+        if checked:
+            status_label.setText("Stan przycisku 'Właczony'")
+            toggle_button.setText("ON")
+            print("\nPrzycisk bistabilny WŁĄCZONY")
+        else:
+            status_label.setText("Stan przycisku 'Wyłaczony'")
+            toggle_button.setText("OFF")
+            print("Przycisk bistabilny WYŁĄCZONY")
+
+    toggle_button.toggled.connect(on_button_toggled)
+
+
+    window.show()
     sys.exit(app.exec())
 
 if __name__ == "__main__":
-    main()
+    create_simple_widow()
