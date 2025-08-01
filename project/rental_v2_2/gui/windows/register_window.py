@@ -113,6 +113,15 @@ class RegisterWindow(QWidget):
         self.summary_label.setVisible(False)
         main_layout.addWidget(self.summary_label, 7, 0, 1, 2)
 
+        self.cancel_button = QPushButton("Anuluj")
+        self.cancel_button.setFixedSize(150, 45)
+        self.cancel_button.setStyleSheet(
+            "background-color: #F44336; color: white; border-radius: 8px; padding: 10px;"
+        )
+        self.cancel_button.setVisible(False)
+        self.cancel_button.clicked.connect(self._hide_summary)
+        main_layout.addWidget(self.cancel_button, 8, 0, 1, 1, alignment=Qt.AlignLeft)
+
         self.add_user_button = QPushButton("Dodaj użytkownika")
         self.add_user_button.setFixedSize(150, 45)
         self.add_user_button.setStyleSheet(
@@ -123,6 +132,15 @@ class RegisterWindow(QWidget):
         main_layout.addWidget(self.add_user_button, 8, 1, 1, 1, alignment=Qt.AlignRight)
 
         self.setLayout(main_layout)
+
+
+    def _get_full_address(self):
+        return (
+            f"ul. {self.street_input.text()}, "
+            f"{self.post_code_input.text()} "
+            f"{self.city_input.text()}, "
+            f"{self.country_combo_box.currentText()}"
+        )
 
 
     def _validate_password_input(self, text):
@@ -159,6 +177,14 @@ class RegisterWindow(QWidget):
             self.confirm_password_input.setStyleSheet(self.invalid_style)
 
 
+    def _hide_summary(self):
+        """Ukrywa sekcję podsumowania i przywraca poprzedni widok."""
+        self.summary_label.setVisible(False)
+        self.add_user_button.setVisible(False)
+        self.cancel_button.setVisible(False)
+        self.confirm_button.setEnabled(True)  # Odblokuj przycisk "Zatwierdź"
+
+
     def _show_summary(self):
         # Sprawdź poprawność walidacji wszystkich pól
         if not self._is_form_valid():
@@ -167,7 +193,7 @@ class RegisterWindow(QWidget):
 
         # Zbierz dane z formularza
         full_name = f"{self.first_name_input.text()} {self.last_name_input.text()}"
-        address = self._get_full_address()  # Użyj istniejącej metody do pobrania adresu
+        address = self._get_full_address()
         login = self.login_input.text()
         phone = self.phone_input.text()
         email = self.email_input.text()
@@ -185,7 +211,8 @@ class RegisterWindow(QWidget):
         # Pokaż podsumowanie i przycisk "Dodaj"
         self.summary_label.setVisible(True)
         self.add_user_button.setVisible(True)
-        self.confirm_button.setEnabled(False)  # Opcjonalnie: zablokuj przycisk "Zatwierdź"
+        self.cancel_button.setVisible(True)
+        self.confirm_button.setEnabled(False)
 
 
     def _is_form_valid(self):
@@ -215,13 +242,7 @@ class RegisterWindow(QWidget):
             email = self.email_input.text()
 
             password_hash = bcrypt.hashpw(self.password_input.text().encode('utf-8'), bcrypt.gensalt()).decode()
-            full_address = (
-                f"ul. "
-                f"{self.street_input.text()}, "
-                f"{self.post_code_input.text()} "
-                f"{self.city_input.text()}, "
-                f"{self.country_combo_box.currentText()}"
-            )
+            full_address = self._get_full_address()
 
         with SessionLocal() as session:
                 new_user = User(
