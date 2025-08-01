@@ -5,6 +5,9 @@ from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy.orm import relationship
 from datetime import date
 from database.base import Base
+from models.vehicle import Vehicle
+from models.repair_history import RepairHistory
+from models.rental_history import RentalHistory
 
 
 class User(Base):

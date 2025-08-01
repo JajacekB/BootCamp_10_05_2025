@@ -45,11 +45,11 @@ def create_simple_widow():
 
     def on_button_toggled(checked):
         if checked:
-            status_label.setText("Stan przycisku 'Właczony'")
+            status_label.setText("Stan przycisku 'Włączony'")
             toggle_button.setText("ON")
             print("\nPrzycisk bistabilny WŁĄCZONY")
         else:
-            status_label.setText("Stan przycisku 'Wyłaczony'")
+            status_label.setText("Stan przycisku 'Wyłączony'")
             toggle_button.setText("OFF")
             print("Przycisk bistabilny WYŁĄCZONY")
 
