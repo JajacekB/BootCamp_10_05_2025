@@ -5,7 +5,7 @@ from validation.validation import is_valid_phone, is_valid_email
 from PySide6.QtWidgets import (
     QApplication, QWidget, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox, QGridLayout
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from sqlalchemy.exc import IntegrityError
 from models.user import User
 from models.vehicle import Vehicle
@@ -99,13 +99,22 @@ class RegisterWindow(QWidget):
         login_layout.addRow("Potwierdź hasło:", self.confirm_password_input)
         main_layout.addLayout(login_layout, 5, 0, 1, 2)
 
+        self.cancel1_button = QPushButton("Anuluj")
+        self.cancel1_button.setFixedSize(150, 45)
+        self.cancel1_button.setStyleSheet(
+            "background-color: red; color: white; border-radius: 8px; padding: 10px;"
+        )
+        self.cancel1_button.setVisible(True)
+        self.cancel1_button.clicked.connect(self._close_window)
+        main_layout.addWidget(self.cancel1_button, 6, 0, 1, 1, alignment=Qt.AlignLeft)
+
         self.confirm_button = QPushButton("Zatwierdź")
-        self.confirm_button.setFixedSize(105, 45)
+        self.confirm_button.setFixedSize(150, 45)
         self.confirm_button.setStyleSheet(
-            "background-color: #555; color: white; border-radius: 8px; padding: 10px;"
+            "background-color: green; color: white; border-radius: 8px; padding: 10px;"
         )
         self.confirm_button.clicked.connect(self._show_summary)
-        main_layout.addWidget(self.confirm_button, 6, 1, 1, 2, alignment=Qt.AlignRight)
+        main_layout.addWidget(self.confirm_button, 6, 1, 1, 1, alignment=Qt.AlignRight)
 
         # --- Sekcja podsumowania (domyślnie ukryta) ---
         self.summary_label = QLabel()
@@ -113,14 +122,14 @@ class RegisterWindow(QWidget):
         self.summary_label.setVisible(False)
         main_layout.addWidget(self.summary_label, 7, 0, 1, 2)
 
-        self.cancel_button = QPushButton("Anuluj")
-        self.cancel_button.setFixedSize(150, 45)
-        self.cancel_button.setStyleSheet(
+        self.cancel2_button = QPushButton("Anuluj")
+        self.cancel2_button.setFixedSize(150, 45)
+        self.cancel2_button.setStyleSheet(
             "background-color: #F44336; color: white; border-radius: 8px; padding: 10px;"
         )
-        self.cancel_button.setVisible(False)
-        self.cancel_button.clicked.connect(self._hide_summary)
-        main_layout.addWidget(self.cancel_button, 8, 0, 1, 1, alignment=Qt.AlignLeft)
+        self.cancel2_button.setVisible(False)
+        self.cancel2_button.clicked.connect(self._hide_summary)
+        main_layout.addWidget(self.cancel2_button, 8, 0, 1, 1, alignment=Qt.AlignLeft)
 
         self.add_user_button = QPushButton("Dodaj użytkownika")
         self.add_user_button.setFixedSize(150, 45)
@@ -175,6 +184,10 @@ class RegisterWindow(QWidget):
             self.confirm_password_input.setStyleSheet(self.valid_style)
         else:
             self.confirm_password_input.setStyleSheet(self.invalid_style)
+
+
+    def _close_window(self):
+        QTimer.singleShot(500, self.close)
 
 
     def _hide_summary(self):
