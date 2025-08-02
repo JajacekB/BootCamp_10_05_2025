@@ -194,7 +194,7 @@ class RegisterWindow(QWidget):
         """Ukrywa sekcję podsumowania i przywraca poprzedni widok."""
         self.summary_label.setVisible(False)
         self.add_user_button.setVisible(False)
-        self.cancel_button.setVisible(False)
+        self.cancel1_button.setVisible(False)
         self.confirm_button.setEnabled(True)  # Odblokuj przycisk "Zatwierdź"
 
 
@@ -224,7 +224,7 @@ class RegisterWindow(QWidget):
         # Pokaż podsumowanie i przycisk "Dodaj"
         self.summary_label.setVisible(True)
         self.add_user_button.setVisible(True)
-        self.cancel_button.setVisible(True)
+        self.cancel2_button.setVisible(True)
         self.confirm_button.setEnabled(False)
 
 
