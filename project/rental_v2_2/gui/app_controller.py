@@ -3,17 +3,13 @@ from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtCore import QObject, Signal, Qt
 
 from database.base import SessionLocal, Session
-from services.user_service import register_user
-from services.auth_service import login_user, login_user_gui # Import both for now, use login_user_gui
-
 
 from gui.windows.start_window import StartWindow
 from gui.windows.login_dialog import LoginDialog
 from gui.windows.register_dialog import RegisterWindow
 from gui.windows.admin_dialog import AdminDialog
+from gui.windows.seller_dialog import SellerDialog
 
-# Import menu functions (these are still console-based, will be replaced by GUI)
-from ui.menu_seller import menu_seller
 from ui.menu_client import menu_client
 from services.overdue_check import check_overdue_vehicles
 
@@ -37,7 +33,6 @@ class AppController(QObject):
         super().__init__()
         self.app = QApplication(sys.argv)
 
-        # Main application state variables
         self.current_user = None
         self.db_session: Session = None
 
@@ -48,7 +43,6 @@ class AppController(QObject):
             print(f"❌ Błąd podczas otwierania początkowej sesji bazy danych: {e}")
             sys.exit(1)
 
-        # Ensure the session is closed when the application quits
         self.app.aboutToQuit.connect(self._close_db_session_on_exit)
 
         self.start_window = StartWindow()
@@ -64,20 +58,20 @@ class AppController(QObject):
 
         self.current_active_window: QWidget = None
 
-    def run(self):
 
+    def run(self):
         self._show_start_window()
         sys.exit(self.app.exec())
 
-    def _show_start_window(self):
 
+    def _show_start_window(self):
         if self.current_active_window:
             self.current_active_window.hide()
         self.start_window.show()
         self.current_active_window = self.start_window
 
-    def _handle_login_request(self):
 
+    def _handle_login_request(self):
         print("\n--- Obsługa żądania logowania z GUI ---")
 
         login_dialog = LoginDialog(self.db_session, self.start_window)
@@ -91,7 +85,6 @@ class AppController(QObject):
 
 
     def _handle_register_request(self):
-
         print("\n--- Obsługa żądania rejestracji z GUI ---")
 
         self.register_window = RegisterWindow()
@@ -116,12 +109,29 @@ class AppController(QObject):
 
 
     def _on_user_logged_in(self, user):
-
         print(f"Kontroler: Użytkownik {user.first_name} {user.last_name} ({user.role}) zalogowany. Przechodzę do menu.")
 
         self.current_user = user
         # Call a method to show the appropriate menu based on user role, passing the persistent session
         self._show_main_user_menu(user)
+
+
+    def _handle_logout_request(self):
+        print("\n🔒 Wylogowano. Zamykam sesję bazy danych.")
+
+        self.current_user = None
+        self.loggedOut.emit()
+
+
+    def logout(self):
+        self._handle_logout_request()
+
+
+    def _close_db_session_on_exit(self):
+        if self.db_session:
+            self.db_session.close()
+            print("✅ Sesja bazy danych zamknięta podczas zamykania aplikacji.")
+        self.db_session = None
 
 
     def _show_main_user_menu(self, user):
@@ -144,8 +154,7 @@ class AppController(QObject):
             self._show_admin_menu()
 
         elif user.role == "seller":
-            # TODO: Dodaj SellerDialog
-            print("⚠️ GUI dla sprzedawcy jeszcze niegotowe.")
+            self._show_seller_menu()
 
         elif user.role == "client":
             # TODO: Dodaj ClientDialog
@@ -155,26 +164,9 @@ class AppController(QObject):
             print(f"❌ Nieznana rola użytkownika: {user.role}")
             self._handle_logout_request()
 
-    def _handle_logout_request(self):
-
-        print("\n🔒 Wylogowano. Zamykam sesję bazy danych.")
-
-        self.current_user = None
-        self.loggedOut.emit()
-
-    def logout(self):
-        self._handle_logout_request()
-
-    def _close_db_session_on_exit(self):
-
-        if self.db_session:
-            self.db_session.close()
-            print("✅ Sesja bazy danych zamknięta podczas zamykania aplikacji.")
-        self.db_session = None
 
     def _handle_admin_command(self, command_num: str):
         commands = {
-
             "1": lambda: add_seller(self.db_session),
             "2": lambda: remove_user(self.db_session, role="seller"),
             "3": lambda: add_client(self.db_session),
@@ -191,28 +183,67 @@ class AppController(QObject):
 
             "12": lambda: update_profile(self.db_session, self.current_user)
         }
-
         action = commands.get(command_num)
         if action:
             action()
         else:
             print(f"❌ Nieznana komenda: {command_num}")
 
+
     def _show_admin_menu(self):
         if self.current_active_window:
             self.current_active_window.close()
 
-        self.current_active_window = AdminDialog(
+        self.admin_dialog = AdminDialog(
             user=self.current_user,
             session=self.db_session,
             controller=self
         )
-        self.current_active_window.command_selected.connect(self._handle_admin_command)
-        self.current_active_window.logout.connect(self._handle_logout_request)
+        self.admin_dialog.command_selected.connect(self._handle_admin_command)
+        self.admin_dialog.setWindowModality(Qt.ApplicationModal)
+        self.admin_dialog.show()
+        self.admin_dialog.raise_()
+        self.admin_dialog.activateWindow()
+        self.current_active_window = self.admin_dialog
 
-        self.current_active_window.setWindowModality(Qt.ApplicationModal)
-        self.current_active_window.show()
-        self.current_active_window.raise_()
-        self.current_active_window.activateWindow()
+
+    def _handle_seller_command(self, command_num: str):
+        commands = {
+            "1": lambda: add_client(self.db_session),
+            "2": lambda: remove_user(self.db_session),
+            "3": lambda: get_clients(self.db_session),
+
+            "4": lambda: add_vehicles_batch(self.db_session),
+            "5": lambda: remove_vehicle(self.db_session),
+            "6": lambda: get_vehicle(self.db_session),
+
+            "7": lambda: rent_vehicle_for_client(self.db_session, self.current_user),
+            "8": lambda: return_vehicle(self.db_session, self.current_user),
+            "9": lambda: repair_vehicle(self.db_session),
+
+            "10": lambda: update_profile(self.db_session, self.current_user)
+        }
+        action = commands.get(command_num)
+        if action:
+            action()
+        else:
+            print(f"❌ Nieznana komenda: {command_num}")
+
+
+    def _show_seller_menu(self):
+        if self.current_active_window:
+            self.current_active_window.close()
+
+        self.seller_dialog = SellerDialog(
+            user=self.current_user,
+            session=self.db_session,
+            controller=self
+        )
+        self.seller_dialog.command_selected.connect(self._handle_seller_command)
+        self.seller_dialog.setWindowModality(Qt.ApplicationModal)
+        self.seller_dialog.show()
+        self.seller_dialog.raise_()
+        self.seller_dialog.activateWindow()
+        self.current_active_window = self.seller_dialog
 
 

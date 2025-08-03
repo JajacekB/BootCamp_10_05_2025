@@ -3,8 +3,7 @@ from PySide6.QtWidgets import (QDialog, QLabel, QVBoxLayout, QPushButton
 from PySide6.QtCore import Qt, QTimer, Signal
 
 
-
-class AdminDialog(QDialog):
+class SellerDialog(QDialog):
 
     command_selected = Signal(str)
     logout = Signal(object)
@@ -16,10 +15,10 @@ class AdminDialog(QDialog):
         self.session = session
         self.controller = controller
 
-        self.setWindowTitle("Menu Admina")
+        self.setWindowTitle("Menu Sprzedawcy")
         self.setGeometry(650, 150, 350, 450)
 
-        self.setWindowModality(Qt.ApplicationModal)  # 🔁 To czyni okno modalnym
+        self.setWindowModality(Qt.ApplicationModal)
 
         self.setStyleSheet("""
             QDialog {
@@ -40,25 +39,23 @@ class AdminDialog(QDialog):
 
     def setup_ui(self):
         menu_list = [
-            "1. Dodaj nowego sprzedawcę",
-            "2. Usuń sprzedawcę",
-            "3. Dodaj nowego klienta",
-            "4. Usuń klienta",
-            "5. Przeglądaj klientów",
-            "6. Dodaj nowy pojazd",
-            "7. Usuń pojazd z użytkowania",
-            "8. Przeglądaj pojazdy",
-            "9. Wypożycz pojazd klientowi",
-            "10. Zwróć pojazd",
-            "11. Oddaj pojazd do naprawy",
-            "12. Aktualizuj profil"
+            "1. Dodaj nowego klienta",
+            "2. Usuń klienta",
+            "3. Przeglądaj klientów",
+            "4. Dodaj nowy pojazd",
+            "5. Usuń pojazd z użytkowania",
+            "6. Przeglądaj pojazdy",
+            "7. Wypożycz pojazd klientowi",
+            "8. Zwróć pojazd",
+            "9. Oddaj pojazd do naprawy",
+            "10. Aktualizuj profil"
         ]
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(30, 30, 30, 30)
         main_layout.setSpacing(15)
 
-        self.hello_label = QLabel("Menu Admina")
+        self.hello_label = QLabel("Menu Sprzedawcy")
         self.hello_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
         self.hello_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.hello_label)
