@@ -9,10 +9,9 @@ from gui.windows.login_dialog import LoginDialog
 from gui.windows.register_dialog import RegisterWindow
 from gui.windows.admin_dialog import AdminDialog
 from gui.windows.seller_dialog import SellerDialog
+from gui.windows.client_dialog import ClientDialog
 
-from ui.menu_client import menu_client
 from services.overdue_check import check_overdue_vehicles
-
 from services.user_service import add_seller, add_client,remove_user, get_clients, update_profile
 from services.vehicle_management import add_vehicles_batch, remove_vehicle, get_vehicle
 from services.rental_process import rent_vehicle_for_client, return_vehicle
@@ -157,8 +156,7 @@ class AppController(QObject):
             self._show_seller_menu()
 
         elif user.role == "client":
-            # TODO: Dodaj ClientDialog
-            print("⚠️ GUI dla klienta jeszcze niegotowe.")
+            self._show_seller_menu()
 
         else:
             print(f"❌ Nieznana rola użytkownika: {user.role}")
@@ -245,5 +243,36 @@ class AppController(QObject):
         self.seller_dialog.raise_()
         self.seller_dialog.activateWindow()
         self.current_active_window = self.seller_dialog
+
+
+    def _handle_client_command(self, command_num: str):
+        commands = {
+            "1": lambda: get_vehicle(self.db_session),
+            "2": lambda: rent_vehicle_for_client(self.db_session, self.current_user),
+            "3": lambda: return_vehicle(self.db_session, self.current_user),
+            "4": lambda: update_profile(self.db_session, self.current_user)
+        }
+        action = commands.get(command_num)
+        if action:
+            action()
+        else:
+            print(f"❌ Nieznana komenda: {command_num}")
+
+
+    def _show_client_menu(self):
+        if self.current_active_window:
+            self.current_active_window.close()
+
+        self.client_dialog = ClientDialog(
+            user=self.current_user,
+            session=self.db_session,
+            controller=self
+        )
+        self.client_dialog.command_selected.connect(self._handle_client_command)
+        self.client_dialog.setWindowModality(Qt.ApplicationModal)
+        self.client_dialog.show()
+        self.client_dialog.raise_()
+        self.client_dialog.activateWindow()
+        self.current_active_window = self.client_dialog
 
 
