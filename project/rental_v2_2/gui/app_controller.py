@@ -9,7 +9,8 @@ from services.auth_service import login_user, login_user_gui # Import both for n
 
 # Import your GUI windows
 from gui.windows.start_window import StartWindow # Assuming StartWindow is now in gui/windows/
-from gui.windows.login_dialog import LoginDialog # NEW: Import LoginDialog
+from gui.windows.login_dialog import LoginDialog
+from gui.windows.register_dialog import RegisterWindow# NEW: Import LoginDialog
 
 # Import menu functions (these are still console-based, will be replaced by GUI)
 from ui.menu_admin import menu_admin
@@ -51,6 +52,7 @@ class AppController(QObject):
 
         # Initialize windows
         self.start_window = StartWindow()
+        self.register_window = None  # will be created when needed
         # You'll add more windows here as your app grows (e.g., self.login_dialog, self.main_menu_window)
 
         # Connect signals from StartWindow to controller methods
@@ -108,27 +110,35 @@ class AppController(QObject):
     def _handle_register_request(self):
         """
         Handles the registration request from the StartWindow.
-        Uses the controller's persistent database session for the registration process.
-        NOTE: This still uses the console-based register_user for now.
+        Opens the RegisterWindow and manages its lifecycle.
         """
-        print("\n--- Rozpoczynanie procesu rejestracji (proszę sprawdzić konsolę) ---")
-        # Ensure the session is open before using it
-        if not self.db_session:
-            try:
-                self.db_session = SessionLocal()
-                print("✅ Sesja bazy danych ponownie otwarta dla rejestracji.")
-            except Exception as e:
-                print(f"❌ Błąd podczas ponownego otwierania sesji dla rejestracji: {e}")
-                return # Cannot proceed without a session
+        print("\n--- Obsługa żądania rejestracji z GUI ---")
 
-        user = register_user(self.db_session) # Use the controller's persistent session
-        if user:
-            print(f"Zarejestrowano nowego użytkownika: {user.first_name} {user.last_name} ({user.login}) (Rola: {user.role})")
-            # Optionally, automatically log in the new user or prompt them to log in
-            # For now, we'll just print.
+        # if self.current_active_window:
+        #     self.current_active_window.hide()
+
+        self.register_window = RegisterWindow()
+        self.register_window.registration_finished.connect(self._on_registration_finished)
+
+        self.register_window.show()
+        self.current_active_window = self.register_window
+
+
+    def _on_registration_finished(self, success: bool):
+        if success:
+            print("Rejestracja zakończona sukcesem, wracam do StartWindow")
         else:
-            print("Rejestracja nieudana.")
-        print("--- Proces rejestracji zakończony ---")
+            print("Rejestracja nieudana, wracam do StartWindow")
+
+        # Zamknij okno rejestracji
+        if self.register_window:
+            self.register_window.close()
+            self.register_window = None
+
+        # Pokaż StartWindow z powrotem
+        self.start_window.show()
+        self.current_active_window = self.start_window
+
 
     def _on_user_logged_in(self, user):
         """
@@ -209,3 +219,6 @@ class AppController(QObject):
             self.db_session.close()
             print("✅ Sesja bazy danych zamknięta podczas zamykania aplikacji.")
         self.db_session = None
+
+
+

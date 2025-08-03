@@ -3,22 +3,27 @@ import bcrypt
 import pycountry
 from validation.validation import is_valid_phone, is_valid_email
 from PySide6.QtWidgets import (
-    QApplication, QWidget, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox, QGridLayout
+    QApplication, QWidget, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox, QGridLayout, QDialog
 )
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from sqlalchemy.exc import IntegrityError
 from models.user import User
-from models.vehicle import Vehicle
 from database.base import SessionLocal
 
 
-class RegisterWindow(QWidget):
+class RegisterWindow(QDialog):
 
-    def __init__(self):
+    registration_cancelled = Signal()
+    registration_finished = Signal(bool)
+
+    def __init__(self, parent=None):
         super().__init__()
+        self.setModal(True)
+        self.parent = parent
 
         self.setWindowTitle("Rejestracja")
-        self.setGeometry(450, 100, 350, 450)
+        self.setGeometry(650, 150, 350, 450)
+
         self.setStyleSheet("""
             QWidget {
                 background-color: #333; /* Ciemne tło dla całego okna */
@@ -187,7 +192,8 @@ class RegisterWindow(QWidget):
 
 
     def _close_window(self):
-        QTimer.singleShot(500, self.close)
+        self.registration_cancelled.emit()  # powiadom kontroler
+        self.hide()
 
 
     def _hide_summary(self):
@@ -244,7 +250,6 @@ class RegisterWindow(QWidget):
 
         return phone_valid and email_valid and password_valid and confirm_password_valid
 
-
     def register_client_gui(self):
         # Sprawdź, czy walidacja wszystkich pól jest poprawna
         if self._is_form_valid():
@@ -257,7 +262,7 @@ class RegisterWindow(QWidget):
             password_hash = bcrypt.hashpw(self.password_input.text().encode('utf-8'), bcrypt.gensalt()).decode()
             full_address = self._get_full_address()
 
-        with SessionLocal() as session:
+            with SessionLocal() as session:
                 new_user = User(
                     first_name=first_name,
                     last_name=last_name,
@@ -268,21 +273,48 @@ class RegisterWindow(QWidget):
                     address=full_address,
                     role="client"
                 )
-
                 try:
                     session.add(new_user)
                     session.commit()
                     session.refresh(new_user)
-                    print(f"\n✅ Użytkownik {login} został dodany pomyślnie.")
+
+                    # Zielony komunikat sukcesu
+                    self.summary_label.setText("✅ Użytkownik został dodany pomyślnie. Okno zamknie się za 7 sekund.")
+                    self.summary_label.setStyleSheet("color: #4CAF50; font-size: 14px;")
+                    self.summary_label.setVisible(True)
+
+                    # Blokuj przyciski, by nie można było kliknąć ponownie
+                    self.add_user_button.setEnabled(False)
+                    self.cancel2_button.setEnabled(False)
+
+                    # Timer zamykający okno po 7 sekundach (7000 ms)
+                    QTimer.singleShot(7000, self.close)
+                    self.registration_finished.emit(True)
+
                     return new_user
+
                 except IntegrityError:
                     session.rollback()
-                    print("\n❌ Login, telefon lub email już istnieje. Spróbuj z innymi danymi.")
+
+                    # Czerwony komunikat błędu
+                    self.summary_label.setText("❌ Login, telefon lub email już istnieje. Okno zamknie się za 7 sekund.")
+                    self.summary_label.setStyleSheet("color: #F44336; font-size: 14px;")
+                    self.summary_label.setVisible(True)
+
+                    # Blokuj przyciski
+                    self.add_user_button.setEnabled(False)
+                    self.cancel2_button.setEnabled(False)
+
+                    # Timer zamykający okno po 7 sekundach
+                    QTimer.singleShot(7000, self.close)
+                    self.registration_finished.emit(False)
+
                     return None
+        else:
+            # Jeśli walidacja nie przeszła, pokaz komunikat i nie zamykaj okna
+            self.summary_label.setText("❌ Formularz zawiera błędy. Popraw dane i spróbuj ponownie.")
+            self.summary_label.setStyleSheet("color: #F44336; font-size: 14px;")
+            self.summary_label.setVisible(True)
+            return None
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    main_window = RegisterWindow()
-    main_window.show()
-    sys.exit(app.exec())

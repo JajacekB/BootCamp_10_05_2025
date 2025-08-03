@@ -3,7 +3,7 @@ import sys
 from PySide6.QtCore import  Qt, QTimer
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
 from PySide6.QtGui import QPixmap, QFont
-from gui.windows.register_window import RegisterWindow
+from gui.windows.register_dialog import RegisterWindow
 
 
 class RunWindow(QWidget):
@@ -136,11 +136,10 @@ class RunWindow(QWidget):
 
 
     def show_register_window(self):
-        # Sprawdź, czy okno już istnieje, żeby uniknąć otwierania wielu okien
         if self.register_window is None:
             self.register_window = RegisterWindow()
 
-        self.register_window.show()
+        QTimer.singleShot(500, self.register_window.show)
 
 
     def _exit_and_close(self):

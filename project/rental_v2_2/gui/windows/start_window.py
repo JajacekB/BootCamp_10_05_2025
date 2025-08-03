@@ -119,4 +119,11 @@ class StartWindow(QWidget):
 
         # Use QTimer.singleShot to delay the application exit
         # The time is in milliseconds, so 11 seconds = 11000 ms
-        QTimer.singleShot(11000, QApplication.instance().quit)
+        QTimer.singleShot(3000, QApplication.instance().quit)
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    main_window = StartWindow()
+    main_window.show()
+    sys.exit(app.exec())
