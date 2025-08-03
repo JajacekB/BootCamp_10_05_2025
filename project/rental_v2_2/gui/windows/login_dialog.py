@@ -1,16 +1,16 @@
 import sys
-from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QApplication
 from PySide6.QtCore import Qt, Signal, QObject
 from PySide6.QtGui import QFont, QPalette, QColor
+from PySide6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QApplication
+)
 
-# Import the backend authentication service
-from services.auth_service import login_user_gui # We will create this new function
+from services.auth_service import login_user_gui
+
 
 class LoginDialog(QDialog):
-    # Define signals to communicate with the AppController
-    # Emits the User object upon successful login
+
     login_successful = Signal(object)
-    # Emitted when the user cancels the login process
     login_cancelled = Signal()
 
     def __init__(self, db_session, parent=None):
@@ -44,10 +44,9 @@ class LoginDialog(QDialog):
         self.message_label = QLabel("", self)
         self.message_label.setFont(QFont("Arial", 12))
         self.message_label.setAlignment(Qt.AlignCenter)
-        self.message_label.setStyleSheet("color: red;") # Default to red for errors
+        self.message_label.setStyleSheet("color: red;")
         main_layout.addWidget(self.message_label)
 
-        # Login/Email Input
         login_layout = QHBoxLayout()
         login_label = QLabel("Login/Email:", self)
         login_label.setFont(QFont("Arial", 14))
@@ -60,7 +59,6 @@ class LoginDialog(QDialog):
         login_layout.addWidget(self.login_input)
         main_layout.addLayout(login_layout)
 
-        # Password Input
         password_layout = QHBoxLayout()
         password_label = QLabel("Hasło:", self)
         password_label.setFont(QFont("Arial", 14))
@@ -74,7 +72,7 @@ class LoginDialog(QDialog):
         password_layout.addWidget(self.password_input)
         main_layout.addLayout(password_layout)
 
-        # Buttons
+
         button_layout = QHBoxLayout()
         self.login_button = QPushButton("Zaloguj się", self)
         self.cancel_button = QPushButton("Anuluj", self)

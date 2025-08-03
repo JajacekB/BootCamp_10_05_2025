@@ -26,7 +26,7 @@ class RegisterWindow(QDialog):
 
         self.setStyleSheet("""
             QWidget {
-                background-color: #333; /* Ciemne tło dla całego okna */
+                background-color: #2e2e2e; /* Ciemne tło dla całego okna */
                 color: #eee; /* Jasny kolor tekstu dla całego okna */
                 font-size: 16px;
             }
