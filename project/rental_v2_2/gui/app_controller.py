@@ -156,7 +156,7 @@ class AppController(QObject):
             self._show_seller_menu()
 
         elif user.role == "client":
-            self._show_seller_menu()
+            self._show_client_menu()
 
         else:
             print(f"❌ Nieznana rola użytkownika: {user.role}")
@@ -189,15 +189,15 @@ class AppController(QObject):
 
 
     def _show_admin_menu(self):
-        if self.current_active_window:
-            self.current_active_window.close()
+        # if self.current_active_window:
+        #     self.current_active_window.close()
 
         self.admin_dialog = AdminDialog(
             user=self.current_user,
             session=self.db_session,
             controller=self
         )
-        self.admin_dialog.command_selected.connect(self._handle_admin_command)
+        self.admin_dialog.logout.connect(self.logout)
         self.admin_dialog.setWindowModality(Qt.ApplicationModal)
         self.admin_dialog.show()
         self.admin_dialog.raise_()
@@ -229,15 +229,15 @@ class AppController(QObject):
 
 
     def _show_seller_menu(self):
-        if self.current_active_window:
-            self.current_active_window.close()
+        # if self.current_active_window:
+        #     self.current_active_window.close()
 
         self.seller_dialog = SellerDialog(
             user=self.current_user,
             session=self.db_session,
             controller=self
         )
-        self.seller_dialog.command_selected.connect(self._handle_seller_command)
+        self.seller_dialog.logout.connect(self.logout)
         self.seller_dialog.setWindowModality(Qt.ApplicationModal)
         self.seller_dialog.show()
         self.seller_dialog.raise_()
@@ -260,15 +260,15 @@ class AppController(QObject):
 
 
     def _show_client_menu(self):
-        if self.current_active_window:
-            self.current_active_window.close()
+        # if self.current_active_window:
+        #     self.current_active_window.close()
 
         self.client_dialog = ClientDialog(
             user=self.current_user,
             session=self.db_session,
             controller=self
         )
-        self.client_dialog.command_selected.connect(self._handle_client_command)
+        self.client_dialog.logout.connect(self.logout)
         self.client_dialog.setWindowModality(Qt.ApplicationModal)
         self.client_dialog.show()
         self.client_dialog.raise_()

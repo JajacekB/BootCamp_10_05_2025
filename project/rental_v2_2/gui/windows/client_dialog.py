@@ -1,6 +1,6 @@
-from PySide6.QtWidgets import (QDialog, QLabel, QVBoxLayout, QPushButton
-)
+from PySide6.QtWidgets import QDialog, QLabel, QVBoxLayout, QPushButton
 from PySide6.QtCore import Qt, QTimer, Signal
+from models.promotions import Promotion
 
 
 class ClientDialog(QDialog):
@@ -37,10 +37,11 @@ class ClientDialog(QDialog):
 
         self.setup_ui()
 
+
     def setup_ui(self):
         menu_list = [
             "1. Przeglądaj pojazdy",
-            "2. Wypożycz pojazd klientowi",
+            "2. Wypożycz pojazd",
             "3. Zwróć pojazd",
             "4. Aktualizuj profil"
         ]
@@ -49,10 +50,18 @@ class ClientDialog(QDialog):
         main_layout.setContentsMargins(30, 30, 30, 30)
         main_layout.setSpacing(15)
 
-        self.hello_label = QLabel("Menu Klienta")
-        self.hello_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
-        self.hello_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(self.hello_label)
+        self.promo_banner = QLabel(self._build_promo_banner())
+        self.promo_banner.setStyleSheet("""
+            color: #00FFCC;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px dashed #888;
+            padding: 10px;
+            background-color: #1e1e1e;
+        """)
+        self.promo_banner.setWordWrap(True)
+        self.promo_banner.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(self.promo_banner)
 
         for item_text in menu_list:
             button = QPushButton(item_text)
@@ -75,11 +84,31 @@ class ClientDialog(QDialog):
 
         self.logoff_button.clicked.connect(self._on_logout_clicked)
 
+
     def _on_dynamic_button_clicked(self, command_num: str):
         print(f"Emituję command_selected: {command_num}")
         self.command_selected.emit(command_num)
 
+
     def _on_logout_clicked(self):
         print("Emituję sygnał logout")
         self.logout.emit(self.user)
+
+
+    def _build_promo_banner(self):
+        time_promos = self.session.query(Promotion).filter_by(type='time').order_by(Promotion.min_days).all()
+        loyalty_promos = self.session.query(Promotion).filter_by(type='loyalty').all()
+
+        banner_text = "🎉 PROMOCJE:\n"
+        if time_promos:
+            banner_text += "🏷️ Zniżki czasowe:\n"
+            for promo in time_promos:
+                banner_text += f"  • {promo.discount_percent:.0f}% za ≥ {promo.min_days} dni\n"
+
+        if loyalty_promos:
+            banner_text += "💎 Program lojalnościowy:\n"
+            for promo in loyalty_promos:
+                banner_text += f"  • {promo.description}\n"
+
+        return banner_text
 
