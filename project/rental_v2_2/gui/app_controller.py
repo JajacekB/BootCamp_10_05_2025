@@ -111,23 +111,6 @@ class AppController(QObject):
 
         print("--- Proces dodawania sprzedawcy zakończony ---")
 
-    # def _handle_register_request(self, parent_window=None):
-    #     print("--- Obsługa żądania rejestracji z GUI ---")
-    #
-    #     self.register_window = RegisterWindow(self.db_session, auto=True, role="seller")
-    #
-    #     self.register_window.registration_finished.connect(self._on_registration_finished)
-    #     self.register_window.registration_cancelled.connect(self._on_registration_cancelled)
-    #
-    #     if isinstance(parent_window, AdminDialog):
-    #         self.register_window_parent = parent_window
-    #         parent_window.load_widget(self.register_window)  # ⬅️ To pokazuje jako widget
-    #     else:
-    #         self.register_window_parent = self.start_window
-    #         self.start_window.hide()
-    #         self.register_window.show()
-    #         self.current_active_window = self.register_window
-
 
     def _handle_register_window(self):
         """Wyświetla rejestrację jako osobne okno (np. z poziomu StartWindow)."""
@@ -147,9 +130,6 @@ class AppController(QObject):
             self.register_window.close()
             self.register_window = None
 
-        # if self.register_parent_window:
-        #     self.register_parent_window.show()
-        #     self.current_active_window = self.register_parent_window
         elif self.start_window:
             self.start_window.show()
             self.current_active_window = self.start_window
@@ -198,49 +178,11 @@ class AppController(QObject):
         print("❌ Rejestracja anulowana – czyszczenie dynamicznego obszaru (RegisterWidget).")
         self.register_widget.clear_form()
 
-        # if self.admin_dialog:
-        #     self.admin_dialog.clear_dynamic_area()
-
-
-    # def _on_registration_finished(self, success: bool):
-    #     if success:
-    #         QMessageBox.information(self, "Sukces", "Użytkownik został zarejestrowany.")
-    #     else:
-    #         QMessageBox.warning(self, "Niepowodzenie", "Rejestracja nie powiodła się.")
-    #     self.admin_dialog.clear_dynamic_area()
-    #
-    #     if self.register_parent_window:
-    #         self.register_parent_window.show()
-    #         self.current_active_window = self.register_parent_window
-    #
-    #     self.start_window.show()
-    #     self.current_active_window = self.start_window
-
-
-    # def _on_registration_cancelled(self):
-    #     print("❌ Rejestracja anulowana – wracam do poprzedniego okna.")
-    #     self.admin_dialog.clear_dynamic_area()
-    #     if isinstance(self.register_window_parent, AdminDialog):
-    #         self.register_window_parent.clear_dynamic_area()
-    #     else:
-    #         if self.register_window:
-    #             self.register_window.close()
-    #             self.register_window = None
-    #
-    #         # Powrót do okna nadrzędnego
-    #         if self.register_window_parent:
-    #             self.register_window_parent.show()
-    #             self.current_active_window = self.register_window_parent
-    #             self.register_window_parent = None
-    #         else:
-    #             print("⚠️ Nie ustawiono nadrzędnego okna – nie można wrócić.")
-
 
     def _on_user_logged_in(self, user):
         print(f"Kontroler: Użytkownik {user.first_name} {user.last_name} ({user.role}) zalogowany. Przechodzę do menu.")
 
         self.current_user = user
-        # Call a method to show the appropriate menu based on user role, passing the persistent session
         self._show_main_user_menu(user)
 
 
@@ -270,14 +212,12 @@ class AppController(QObject):
 
         print(f"Wyświetlam menu dla roli: {user.role}")
 
-        # Sprawdzenie zaległości — tylko dla admina i sprzedawcy
         if user.role in ("seller", "admin"):
             try:
                 check_overdue_vehicles(self.db_session, user)
             except Exception as e:
                 print(f"❌ Błąd podczas sprawdzania zaległości: {e}")
 
-        # GUI menu dla każdej roli
         if user.role == "admin":
             self._show_admin_menu()
 

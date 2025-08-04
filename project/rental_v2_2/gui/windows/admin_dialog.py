@@ -26,7 +26,7 @@ class AdminDialog(QMainWindow):
             QMainWindow {
                 background-color: #2e2e2e;
                 color: #eee;
-                font-size: 16px;
+                font-size: 18px;
             }
             QPushButton {
                 background-color: #555;
@@ -47,7 +47,6 @@ class AdminDialog(QMainWindow):
         central_widget.setLayout(self.grid_layout)
         self.current_widget = None
 
-        # Kolumna 0: menu boczne (dotychczasowa zawartość)
         menu_layout = QVBoxLayout()
         menu_layout.setSpacing(15)
 
