@@ -1,5 +1,5 @@
 import sys
-from gui.app_controller import AppController # Import the new AppController
+from gui.app_controller import AppController
 
 def main():
     """

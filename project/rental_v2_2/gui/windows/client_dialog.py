@@ -16,9 +16,7 @@ class ClientDialog(QDialog):
         self.controller = controller
 
         self.setWindowTitle("Menu klienta")
-        self.setGeometry(650, 150, 350, 450)
-
-        self.setWindowModality(Qt.ApplicationModal)
+        # self.setGeometry(650, 150, 350, 450)
 
         self.setStyleSheet("""
             QDialog {
@@ -36,6 +34,7 @@ class ClientDialog(QDialog):
         self.invalid_style = "border: 1px solid #F44336;"
 
         self.setup_ui()
+        self.showMaximized()
 
 
     def setup_ui(self):

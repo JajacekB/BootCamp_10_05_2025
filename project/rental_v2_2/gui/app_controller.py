@@ -1,5 +1,5 @@
 import sys
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 from PySide6.QtCore import QObject, Signal, Qt
 
 from database.base import SessionLocal, Session
@@ -10,11 +10,12 @@ from gui.windows.register_dialog import RegisterWindow
 from gui.windows.admin_dialog import AdminDialog
 from gui.windows.seller_dialog import SellerDialog
 from gui.windows.client_dialog import ClientDialog
+from gui.windows.register_wiget import RegisterWidget
 
 from services.overdue_check import check_overdue_vehicles
 from services.user_service import add_seller, add_client,remove_user, get_clients, update_profile
 from services.vehicle_management import add_vehicles_batch, remove_vehicle, get_vehicle
-from services.rental_process import rent_vehicle_for_client, return_vehicle
+from services.rental_process import rent_vehicle_for_client, return_vehicle, rent_vehicle
 from services.repair import repair_vehicle
 
 
@@ -31,6 +32,12 @@ class AppController(QObject):
     def __init__(self):
         super().__init__()
         self.app = QApplication(sys.argv)
+        self.start_window = None
+        self.login_window = None
+        self.admin_dialog = None
+        self.register_window = None
+        self.register_window_parent = None  # ⬅️ DODAJ TO
+        self.current_active_window = None
 
         self.current_user = None
         self.db_session: Session = None
@@ -48,7 +55,7 @@ class AppController(QObject):
         self.register_window = None
 
         self.start_window.login_requested.connect(self._handle_login_request)
-        self.start_window.register_requested.connect(self._handle_register_request)
+        self.start_window.register_requested.connect(self._handle_register_window)
 
         self.loggedOut.connect(self._show_start_window)
 
@@ -70,6 +77,11 @@ class AppController(QObject):
         self.current_active_window = self.start_window
 
 
+    def show_admin_menu(self, user):
+        self.admin_dialog = AdminDialog(app_controller=self)
+        self.admin_dialog.show()
+
+
     def _handle_login_request(self):
         print("\n--- Obsługa żądania logowania z GUI ---")
 
@@ -83,28 +95,144 @@ class AppController(QObject):
         print("--- Proces logowania w GUI zakończony ---")
 
 
-    def _handle_register_request(self):
-        print("\n--- Obsługa żądania rejestracji z GUI ---")
+    def _handle_add_seller_wiget(self):
+        print("\n--- Dodawanie sprzedawcy (auto login/hasło) ---")
 
-        self.register_window = RegisterWindow()
-        self.register_window.registration_finished.connect(self._on_registration_finished)
+        self.register_widget = RegisterWidget(
+            session=self.db_session,
+            parent=self.start_window,
+            role="seller",
+            auto=True
+        )
+        self.register_widget.registration_finished.connect(self.on_registration_finished_widget)
+        self.register_widget.registration_cancelled.connect(self.on_registration_cancelled_widget)
 
+        self.admin_dialog.show_register_widget(role="seller", auto=True)
+
+        print("--- Proces dodawania sprzedawcy zakończony ---")
+
+    # def _handle_register_request(self, parent_window=None):
+    #     print("--- Obsługa żądania rejestracji z GUI ---")
+    #
+    #     self.register_window = RegisterWindow(self.db_session, auto=True, role="seller")
+    #
+    #     self.register_window.registration_finished.connect(self._on_registration_finished)
+    #     self.register_window.registration_cancelled.connect(self._on_registration_cancelled)
+    #
+    #     if isinstance(parent_window, AdminDialog):
+    #         self.register_window_parent = parent_window
+    #         parent_window.load_widget(self.register_window)  # ⬅️ To pokazuje jako widget
+    #     else:
+    #         self.register_window_parent = self.start_window
+    #         self.start_window.hide()
+    #         self.register_window.show()
+    #         self.current_active_window = self.register_window
+
+
+    def _handle_register_window(self):
+        """Wyświetla rejestrację jako osobne okno (np. z poziomu StartWindow)."""
+        self.register_window = RegisterWindow(self.db_session)
+        self.register_window.registration_finished.connect(self.on_registration_finished_window)
+        self.register_window.registration_cancelled.connect(self.on_registration_cancelled_window)
         self.register_window.show()
-        self.current_active_window = self.register_window
 
 
-    def _on_registration_finished(self, success: bool):
+    def on_registration_finished_window(self, success: bool):
         if success:
-            print("Rejestracja zakończona sukcesem, wracam do StartWindow")
+            QMessageBox.information(None, "Sukces", "Użytkownik został zarejestrowany.")
         else:
-            print("Rejestracja nieudana, wracam do StartWindow")
+            QMessageBox.warning(None, "Niepowodzenie", "Rejestracja nie powiodła się.")
 
         if self.register_window:
             self.register_window.close()
             self.register_window = None
 
-        self.start_window.show()
-        self.current_active_window = self.start_window
+        if self.register_parent_window:
+            self.register_parent_window.show()
+            self.current_active_window = self.register_parent_window
+        elif self.start_window:
+            self.start_window.show()
+            self.current_active_window = self.start_window
+
+
+    def on_registration_cancelled_window(self):
+        print("❌ Rejestracja anulowana – wracam do poprzedniego okna (RegisterWindow).")
+
+        if self.register_window:
+            self.register_window.close()
+            self.register_window = None
+
+        # Powrót do okna nadrzędnego
+        if self.register_window_parent:
+            self.register_window_parent.show()
+            self.current_active_window = self.register_window_parent
+            self.register_window_parent = None
+        else:
+            print("⚠️ Nie ustawiono nadrzędnego okna – nie można wrócić.")
+
+
+    def handle_register_widget(self):
+        """Wyświetla formularz rejestracji jako widget w AdminDialog."""
+        if self.admin_dialog is None:
+            print("❌ Błąd: AdminDialog nie został zainicjalizowany.")
+            return
+
+        self.register_widget = RegisterWidget(self.db_session)
+        self.register_widget.registration_finished.connect(self.on_registration_finished_widget)
+        self.register_widget.registration_cancelled.connect(self.on_registration_cancelled_widget)
+
+        self.admin_dialog.show_register_widget(self.register_widget)
+
+
+    def on_registration_finished_widget(self, success: bool):
+        if success:
+            QMessageBox.information(None, "Sukces", "Użytkownik został zarejestrowany.")
+        else:
+            QMessageBox.warning(None, "Niepowodzenie", "Rejestracja nie powiodła się.")
+
+        if self.admin_dialog:
+            self.admin_dialog.clear_dynamic_area()
+
+
+    def on_registration_cancelled_widget(self):
+        print("❌ Rejestracja anulowana – czyszczenie dynamicznego obszaru (RegisterWidget).")
+
+        if self.admin_dialog:
+            self.admin_dialog.clear_dynamic_area()
+
+
+    # def _on_registration_finished(self, success: bool):
+    #     if success:
+    #         QMessageBox.information(self, "Sukces", "Użytkownik został zarejestrowany.")
+    #     else:
+    #         QMessageBox.warning(self, "Niepowodzenie", "Rejestracja nie powiodła się.")
+    #     self.admin_dialog.clear_dynamic_area()
+    #
+    #     if self.register_parent_window:
+    #         self.register_parent_window.show()
+    #         self.current_active_window = self.register_parent_window
+    #
+    #     self.start_window.show()
+    #     self.current_active_window = self.start_window
+
+
+    # def _on_registration_cancelled(self):
+    #     print("❌ Rejestracja anulowana – wracam do poprzedniego okna.")
+    #     self.admin_dialog.clear_dynamic_area()
+    #     if isinstance(self.register_window_parent, AdminDialog):
+    #         self.register_window_parent.clear_dynamic_area()
+    #     else:
+    #         if self.register_window:
+    #             self.register_window.close()
+    #             self.register_window = None
+    #
+    #         # Powrót do okna nadrzędnego
+    #         if self.register_window_parent:
+    #             self.register_window_parent.show()
+    #             self.current_active_window = self.register_window_parent
+    #             self.register_window_parent = None
+    #         else:
+    #             print("⚠️ Nie ustawiono nadrzędnego okna – nie można wrócić.")
 
 
     def _on_user_logged_in(self, user):
@@ -165,9 +293,9 @@ class AppController(QObject):
 
     def _handle_admin_command(self, command_num: str):
         commands = {
-            "1": lambda: add_seller(self.db_session),
+            "1": lambda: self._handle_add_seller_wiget(),
             "2": lambda: remove_user(self.db_session, role="seller"),
-            "3": lambda: add_client(self.db_session),
+            "3": lambda: self._handle_register_widget(),
             "4": lambda: remove_user(self.db_session),
             "5": lambda: get_clients(self.db_session),
 
@@ -189,17 +317,18 @@ class AppController(QObject):
 
 
     def _show_admin_menu(self):
-        # if self.current_active_window:
-        #     self.current_active_window.close()
+        if self.current_active_window:
+            self.current_active_window.close()
 
         self.admin_dialog = AdminDialog(
             user=self.current_user,
             session=self.db_session,
             controller=self
         )
+        self.admin_dialog.command_selected.connect(self._handle_admin_command)
         self.admin_dialog.logout.connect(self.logout)
-        self.admin_dialog.setWindowModality(Qt.ApplicationModal)
-        self.admin_dialog.show()
+
+        self.admin_dialog.showMaximized()
         self.admin_dialog.raise_()
         self.admin_dialog.activateWindow()
         self.current_active_window = self.admin_dialog
@@ -207,7 +336,7 @@ class AppController(QObject):
 
     def _handle_seller_command(self, command_num: str):
         commands = {
-            "1": lambda: add_client(self.db_session),
+            "1": lambda: self._handle_register_widget(),
             "2": lambda: remove_user(self.db_session),
             "3": lambda: get_clients(self.db_session),
 
@@ -229,8 +358,8 @@ class AppController(QObject):
 
 
     def _show_seller_menu(self):
-        # if self.current_active_window:
-        #     self.current_active_window.close()
+        if self.current_active_window:
+            self.current_active_window.close()
 
         self.seller_dialog = SellerDialog(
             user=self.current_user,
@@ -238,8 +367,9 @@ class AppController(QObject):
             controller=self
         )
         self.seller_dialog.logout.connect(self.logout)
-        self.seller_dialog.setWindowModality(Qt.ApplicationModal)
-        self.seller_dialog.show()
+        self.admin_dialog.command_selected.connect(self._handle_seller_command)
+
+        self.seller_dialog.showMaximized()
         self.seller_dialog.raise_()
         self.seller_dialog.activateWindow()
         self.current_active_window = self.seller_dialog
@@ -247,8 +377,8 @@ class AppController(QObject):
 
     def _handle_client_command(self, command_num: str):
         commands = {
-            "1": lambda: get_vehicle(self.db_session),
-            "2": lambda: rent_vehicle_for_client(self.db_session, self.current_user),
+            "1": lambda: get_vehicle(self.db_session, only_available=True),
+            "2": lambda: rent_vehicle(self.db_session, self.current_user),
             "3": lambda: return_vehicle(self.db_session, self.current_user),
             "4": lambda: update_profile(self.db_session, self.current_user)
         }
@@ -260,8 +390,8 @@ class AppController(QObject):
 
 
     def _show_client_menu(self):
-        # if self.current_active_window:
-        #     self.current_active_window.close()
+        if self.current_active_window:
+            self.current_active_window.close()
 
         self.client_dialog = ClientDialog(
             user=self.current_user,
@@ -269,8 +399,9 @@ class AppController(QObject):
             controller=self
         )
         self.client_dialog.logout.connect(self.logout)
-        self.client_dialog.setWindowModality(Qt.ApplicationModal)
-        self.client_dialog.show()
+        self.admin_dialog.command_selected.connect(self._handle_client_command)
+
+        self.client_dialog.showMaximized()
         self.client_dialog.raise_()
         self.client_dialog.activateWindow()
         self.current_active_window = self.client_dialog

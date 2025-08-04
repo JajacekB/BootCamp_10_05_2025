@@ -16,10 +16,13 @@ class RegisterWindow(QDialog):
     registration_cancelled = Signal()
     registration_finished = Signal(bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, session, parent=None, role="client", auto=False):
         super().__init__()
         self.setModal(True)
         self.parent = parent
+        self.session = session
+        self.role = role
+        self.auto =auto
 
         self.setWindowTitle("Rejestracja")
         self.setGeometry(650, 150, 350, 450)
@@ -88,21 +91,42 @@ class RegisterWindow(QDialog):
         login_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
         main_layout.addWidget(login_label, 4, 0, 1, 2)
 
-        self.login_input = QLineEdit()
-        self.password_input = QLineEdit()
-        self.password_input.setEchoMode(QLineEdit.Password)
-        self.password_input.setPlaceholderText("Musi zawierać 6 znaków, 1 wielką literę, 1 cyfrę")
-        self.password_input.textChanged.connect(self._validate_password_input)
+        if auto and self.role == "seller":
+            count = session.query(User).filter_by(role="seller").count()
+            seller_number = str(count + 1).zfill(2)
+            seller_login = f"Seller{seller_number}"
+            raw_password = seller_login
+            print(f"\nUtworzono login: {seller_login} | hasło: {raw_password}")
 
-        self.confirm_password_input = QLineEdit()
-        self.confirm_password_input.setEchoMode(QLineEdit.Password)
-        self.confirm_password_input.editingFinished.connect(self._validate_confirm_password)
+            self.login_input = QLineEdit(seller_login)
+            self.login_input.setReadOnly(True)
 
-        login_layout = QFormLayout()
-        login_layout.addRow("Login:", self.login_input)
-        login_layout.addRow("Hasło:", self.password_input)
-        login_layout.addRow("Potwierdź hasło:", self.confirm_password_input)
-        main_layout.addLayout(login_layout, 5, 0, 1, 2)
+            self.password_input = QLineEdit(raw_password)
+            self.password_input.setEchoMode(QLineEdit.Password)
+            self.password_input.setReadOnly(True)
+
+            # Layout z loginem i hasłem (bez potwierdzenia)
+            login_layout = QFormLayout()
+            login_layout.addRow("Login:", self.login_input)
+            login_layout.addRow("Hasło:", self.password_input)
+            main_layout.addLayout(login_layout, 5, 0, 1, 2)
+
+        else:
+            self.login_input = QLineEdit()
+            self.password_input = QLineEdit()
+            self.password_input.setEchoMode(QLineEdit.Password)
+            self.password_input.setPlaceholderText("Musi zawierać 6 znaków, 1 wielką literę, 1 cyfrę")
+            self.password_input.textChanged.connect(self._validate_password_input)
+
+            self.confirm_password_input = QLineEdit()
+            self.confirm_password_input.setEchoMode(QLineEdit.Password)
+            self.confirm_password_input.editingFinished.connect(self._validate_confirm_password)
+
+            login_layout = QFormLayout()
+            login_layout.addRow("Login:", self.login_input)
+            login_layout.addRow("Hasło:", self.password_input)
+            login_layout.addRow("Potwierdź hasło:", self.confirm_password_input)
+            main_layout.addLayout(login_layout, 5, 0, 1, 2)
 
         self.cancel1_button = QPushButton("Anuluj")
         self.cancel1_button.setFixedSize(150, 45)
@@ -271,7 +295,7 @@ class RegisterWindow(QDialog):
                     email=email,
                     password_hash=password_hash,
                     address=full_address,
-                    role="client"
+                    role=self.role
                 )
                 try:
                     session.add(new_user)

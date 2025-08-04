@@ -1,28 +1,29 @@
-from PySide6.QtWidgets import (QDialog, QLabel, QVBoxLayout, QPushButton
+from PySide6.QtWidgets import (
+    QMainWindow, QWidget, QLabel, QVBoxLayout,
+    QPushButton, QGridLayout, QFrame
 )
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import Qt, Signal
+from gui.windows.register_wiget import RegisterWidget
 
 
 
-class AdminDialog(QDialog):
 
+class AdminDialog(QMainWindow):
     command_selected = Signal(str)
     logout = Signal(object)
 
     def __init__(self, user, session, controller):
         super().__init__()
-        print("✅ Inicjalizacja AdminDialog")
+        print("✅ Inicjalizacja AdminWindow")
         self.user = user
         self.session = session
         self.controller = controller
+        self.dynamic_area = QFrame()
+        self.current_widget = None
 
         self.setWindowTitle("Menu Admina")
-        self.setGeometry(650, 150, 350, 450)
-
-        self.setWindowModality(Qt.ApplicationModal)  # 🔁 To czyni okno modalnym
-
         self.setStyleSheet("""
-            QDialog {
+            QMainWindow {
                 background-color: #2e2e2e;
                 color: #eee;
                 font-size: 16px;
@@ -33,12 +34,28 @@ class AdminDialog(QDialog):
                 padding: 5px;
             }
         """)
-        self.valid_style = "border: 1px solid #4CAF50;"
-        self.invalid_style = "border: 1px solid #F44336;"
 
-        self.setup_ui()
+        self._build_ui()
+        self.showMaximized()
 
-    def setup_ui(self):
+    def _build_ui(self):
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        self.grid_layout = QGridLayout()
+        self.grid_layout.setContentsMargins(30, 30, 30, 30)
+        self.grid_layout.setSpacing(20)
+        central_widget.setLayout(self.grid_layout)
+        self.current_widget = None
+
+        # Kolumna 0: menu boczne (dotychczasowa zawartość)
+        menu_layout = QVBoxLayout()
+        menu_layout.setSpacing(15)
+
+        hello_label = QLabel("Menu Admina")
+        hello_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        hello_label.setAlignment(Qt.AlignCenter)
+        menu_layout.addWidget(hello_label)
+
         menu_list = [
             "1. Dodaj nowego sprzedawcę",
             "2. Usuń sprzedawcę",
@@ -54,35 +71,65 @@ class AdminDialog(QDialog):
             "12. Aktualizuj profil"
         ]
 
-        main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(30, 30, 30, 30)
-        main_layout.setSpacing(15)
-
-        self.hello_label = QLabel("Menu Admina")
-        self.hello_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
-        self.hello_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(self.hello_label)
-
         for item_text in menu_list:
             button = QPushButton(item_text)
             button.setFixedSize(255, 31)
             button.setStyleSheet("color: white; border-radius: 8px; padding-left: 10px;")
-            main_layout.addWidget(button, alignment=Qt.AlignCenter)
-
+            menu_layout.addWidget(button, alignment=Qt.AlignCenter)
             command_num = item_text.split(".")[0]
             button.clicked.connect(lambda checked, num=command_num: self._on_dynamic_button_clicked(num))
 
         info_label = QLabel("Wybierz co chcesz robić:")
         info_label.setStyleSheet("color: purple; font-size: 18px; font-weight: bold;")
         info_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(info_label)
+        menu_layout.addWidget(info_label)
 
-        self.logoff_button = QPushButton("Wyloguj się")
-        self.logoff_button.setFixedSize(255, 50)
-        self.logoff_button.setStyleSheet("color: white; font-size: 18px; border-radius: 8px; padding: 10px;")
-        main_layout.addWidget(self.logoff_button, alignment=Qt.AlignCenter)
+        logoff_button = QPushButton("Wyloguj się")
+        logoff_button.setFixedSize(255, 50)
+        logoff_button.setStyleSheet("color: white; font-size: 18px; border-radius: 8px; padding: 10px;")
+        logoff_button.clicked.connect(self._on_logout_clicked)
+        menu_layout.addWidget(logoff_button, alignment=Qt.AlignCenter)
 
-        self.logoff_button.clicked.connect(self._on_logout_clicked)
+        # Dodanie menu_layout jako widżetu do kolumny 0
+        menu_container = QWidget()
+        menu_container.setLayout(menu_layout)
+        self.grid_layout.addWidget(menu_container, 0, 0)
+
+        # Placeholder na dynamiczne widżety (np. QWidget z formularzem)
+        self.dynamic_area = QWidget()
+        self.dynamic_area.setLayout(QVBoxLayout())
+        self.grid_layout.addWidget(self.dynamic_area, 0, 1, 1, 2)  # kolumny 1 i 2
+
+    def show_register_widget(self, role: str = None, auto: bool = False):
+        # Wyczyść dynamiczne miejsce
+        for i in reversed(range(self.dynamic_area.layout().count())):
+            widget = self.dynamic_area.layout().itemAt(i).widget()
+            if widget is not None:
+                widget.setParent(None)
+
+        # Utwórz widget rejestracji
+        self.register_widget = RegisterWidget(
+            session=self.session,
+            parent=self,
+            role=role,
+            auto=auto
+        )
+
+        # Obsługa sygnałów
+        self.register_widget.registration_finished.connect(self.controller.on_registration_finished_widget)
+        self.register_widget.registration_cancelled.connect(self.controller.on_registration_cancelled_widget)
+        self.controller.clear_requested.connect(self.clear_dynamic_area)
+
+        # Dodaj do dynamicznego obszaru
+        self.dynamic_area.layout().addWidget(self.register_widget)
+
+
+    def clear_dynamic_area(self):
+        if self.current_widget:
+            self.dynamic_area.layout().removeWidget(self.current_widget)
+            self.current_widget.deleteLater()
+            self.current_widget = None
+
 
     def _on_dynamic_button_clicked(self, command_num: str):
         print(f"Emituję command_selected: {command_num}")
@@ -92,3 +139,7 @@ class AdminDialog(QDialog):
         print("Emituję sygnał logout")
         self.logout.emit(self.user)
 
+    def load_widget(self, widget):
+        self.clear_dynamic_area()
+        self.dynamic_area.layout().addWidget(widget)
+        self.current_widget = widget
