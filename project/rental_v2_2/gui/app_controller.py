@@ -13,7 +13,7 @@ from gui.windows.client_dialog import ClientDialog
 from gui.windows.register_wiget import RegisterWidget
 
 from services.overdue_check import check_overdue_vehicles
-from services.user_service import add_seller, add_client,remove_user, get_clients, update_profile
+from services.user_service import remove_user, get_clients, update_profile
 from services.vehicle_management import add_vehicles_batch, remove_vehicle, get_vehicle
 from services.rental_process import rent_vehicle_for_client, return_vehicle, rent_vehicle
 from services.repair import repair_vehicle
@@ -26,7 +26,7 @@ class UserLoggedInSignal(QObject):
 
 
 class AppController(QObject):
-
+    clear_requested = Signal()
     loggedOut = Signal()
 
     def __init__(self):
@@ -78,7 +78,7 @@ class AppController(QObject):
 
 
     def show_admin_menu(self, user):
-        self.admin_dialog = AdminDialog(app_controller=self)
+        self.admin_dialog = AdminDialog(user=user, session=self.db_session, controller=self)
         self.admin_dialog.show()
 
 
@@ -147,9 +147,9 @@ class AppController(QObject):
             self.register_window.close()
             self.register_window = None
 
-        if self.register_parent_window:
-            self.register_parent_window.show()
-            self.current_active_window = self.register_parent_window
+        # if self.register_parent_window:
+        #     self.register_parent_window.show()
+        #     self.current_active_window = self.register_parent_window
         elif self.start_window:
             self.start_window.show()
             self.current_active_window = self.start_window
@@ -196,9 +196,10 @@ class AppController(QObject):
 
     def on_registration_cancelled_widget(self):
         print("❌ Rejestracja anulowana – czyszczenie dynamicznego obszaru (RegisterWidget).")
+        self.register_widget.clear_form()
 
-        if self.admin_dialog:
-            self.admin_dialog.clear_dynamic_area()
+        # if self.admin_dialog:
+        #     self.admin_dialog.clear_dynamic_area()
 
 
     # def _on_registration_finished(self, success: bool):
@@ -295,7 +296,7 @@ class AppController(QObject):
         commands = {
             "1": lambda: self._handle_add_seller_wiget(),
             "2": lambda: remove_user(self.db_session, role="seller"),
-            "3": lambda: self._handle_register_widget(),
+            "3": lambda: self.handle_register_widget(),
             "4": lambda: remove_user(self.db_session),
             "5": lambda: get_clients(self.db_session),
 
@@ -336,7 +337,7 @@ class AppController(QObject):
 
     def _handle_seller_command(self, command_num: str):
         commands = {
-            "1": lambda: self._handle_register_widget(),
+            "1": lambda: self.handle_register_widget(),
             "2": lambda: remove_user(self.db_session),
             "3": lambda: get_clients(self.db_session),
 
