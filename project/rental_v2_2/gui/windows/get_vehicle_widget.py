@@ -1,7 +1,7 @@
 import sys
 from collections import defaultdict
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox,
-        QGridLayout, QApplication, QListWidget, QListWidgetItem
+        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox
     )
 from PySide6.QtCore import Qt, QTimer, Signal
 
@@ -25,6 +25,7 @@ class GetVehicleWidget(QWidget):
         self.session = session
         self.role = role
         self.auto = auto
+
         self.setWindowTitle("Pojazdy")
 
         self.setStyleSheet("""
@@ -69,11 +70,6 @@ class GetVehicleWidget(QWidget):
         main_layout.addLayout(form_layout)
 
         self.list_widget = QListWidget()
-        # list_vehicles = get_list()
-        # for vehicle in list_vehicles:
-        #     item = QListWidgetItem(str(vehicle))
-        #     item.setData(Qt.UserRole, vehicle)
-        #     list_widget.addItem(item)
 
         main_layout.addWidget(self.list_widget)
 
@@ -82,14 +78,9 @@ class GetVehicleWidget(QWidget):
         search_button.setFixedSize(150, 45)
         search_button.clicked.connect(self.get_list)
 
-
         main_layout.addWidget(search_button, alignment=Qt.AlignRight)
 
-
-
-
-
-
+        self.list_widget.itemClicked.connect(self.handle_item_clicked)
 
         main_layout.addStretch()
 
@@ -115,10 +106,8 @@ class GetVehicleWidget(QWidget):
             if available_is == "Dostępne":
                 available_vehicles = get_available_vehicles(session, vehicle_type=vehicle_type)
 
-
             elif available_is == "Niedostępne":
                 available_vehicles, _ = get_unavailable_vehicle(session, vehicle_type=vehicle_type)
-
 
             else:
                 if vehicle_type == "all":
@@ -133,7 +122,7 @@ class GetVehicleWidget(QWidget):
 
             vehicles_sorted = sorted(
                 available_vehicles,
-                key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model)
+                key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model, v.individual_id)
             )
             vehicles = defaultdict(list)
             for v in (vehicles_sorted):
@@ -142,10 +131,53 @@ class GetVehicleWidget(QWidget):
 
             for (brand, model, cash_per_day), group in vehicles.items():
                 count = len(group)
-                display_text = f"{brand} {model} – {cash_per_day:.2f} zł/dzień - ({count} szt.)"
+                display_text = f"{brand} {model}  –  {cash_per_day:.2f} zł/dzień - ({count} szt.)"
                 item = QListWidgetItem(display_text)
                 item.setData(Qt.UserRole, group)  # Przechowujemy całą grupę pojazdów
                 self.list_widget.addItem(item)
+
+    def show_group_members(self, group):
+        self.list_widget.clear()
+
+        for v in group:
+            display_text = (
+                f"🔹 {v.brand} {v.vehicle_model}  -  "
+                f"{v.cash_per_day:.2f} zł/dzień,  [{v.individual_id}]"
+            )
+            item = QListWidgetItem(display_text)
+            item.setFlags(Qt.ItemIsEnabled)  # nie można ich zaznaczać/klikać
+            self.list_widget.addItem(item)
+
+        # przycisk powrotu
+        return_item = QListWidgetItem("↩ Wróć do listy grup")
+        return_item.setData(Qt.UserRole, "return")
+        self.list_widget.addItem(return_item)
+
+
+    def handle_item_clicked(self, item):
+        data = item.data(Qt.UserRole)
+
+        if data == "return":
+            self.get_list()  # wróć do widoku grup
+            return
+
+        if isinstance(data, list):
+            self.show_group_members(data)
+
+    # def handle_item_clicked(self, item):
+    #     data = item.data(Qt.UserRole)
+    #
+    #     if isinstance(data, list):  # Kliknięto grupę
+    #         self.show_group_members(data)
+    #
+    #     elif data == "return":
+    #         self.get_list()
+    #
+    #     else:
+    #         # Tu możesz np. wyświetlić szczegóły konkretnego pojazdu
+    #         QMessageBox.information(self, "Pojazd", f"Wybrano:\n{data}")
+
+
 
 
 
