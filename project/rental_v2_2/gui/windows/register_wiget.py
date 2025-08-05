@@ -31,6 +31,9 @@ class RegisterWidget(QWidget):
                 border-radius: 5px;
                 padding: 5px;
             }
+            QLineEdit {
+                font-size: 14px;
+            }
         """)
 
         self.valid_style = "border: 1px solid #4CAF50;"

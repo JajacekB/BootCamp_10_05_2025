@@ -32,6 +32,7 @@ class AdminDialog(QMainWindow):
                 background-color: #555;
                 border-radius: 5px;
                 padding: 5px;
+                font-size: 18px;
             }
         """)
 
@@ -51,7 +52,7 @@ class AdminDialog(QMainWindow):
         menu_layout.setSpacing(15)
 
         hello_label = QLabel("Menu Admina")
-        hello_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        hello_label.setStyleSheet("color: white; font-size: 22px; font-weight: bold;")
         hello_label.setAlignment(Qt.AlignCenter)
         menu_layout.addWidget(hello_label)
 
@@ -79,7 +80,7 @@ class AdminDialog(QMainWindow):
             button.clicked.connect(lambda checked, num=command_num: self._on_dynamic_button_clicked(num))
 
         info_label = QLabel("Wybierz co chcesz robić:")
-        info_label.setStyleSheet("color: purple; font-size: 18px; font-weight: bold;")
+        info_label.setStyleSheet("color: purple; font-size: 20px; font-weight: bold;")
         info_label.setAlignment(Qt.AlignCenter)
         menu_layout.addWidget(info_label)
 
