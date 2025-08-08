@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 from gui.windows.register_wiget import RegisterWidget
+from gui.windows.get_vehicle_widget import GetVehicleWidget
 
 
 
@@ -101,13 +102,6 @@ class AdminDialog(QMainWindow):
         self.grid_layout.addWidget(self.dynamic_area, 0, 1, 1, 2)  # kolumny 1 i 2
 
     def show_register_widget(self, role: str = None, auto: bool = False):
-        # Wyczyść dynamiczne miejsce
-        for i in reversed(range(self.dynamic_area.layout().count())):
-            widget = self.dynamic_area.layout().itemAt(i).widget()
-            if widget is not None:
-                widget.setParent(None)
-
-        # Utwórz widget rejestracji
         self.register_widget = RegisterWidget(
             session=self.session,
             parent=self,
@@ -115,20 +109,47 @@ class AdminDialog(QMainWindow):
             auto=auto
         )
 
-        # Obsługa sygnałów
-        self.register_widget.registration_finished.connect(self.controller.on_registration_finished_widget)
-        self.register_widget.registration_cancelled.connect(self.controller.on_registration_cancelled_widget)
+        # Obsługa sygnałów rejestracji
+        self.register_widget.registration_finished.connect(
+            self.controller.on_registration_finished_widget
+        )
+        self.register_widget.registration_cancelled.connect(
+            self.controller.on_registration_cancelled_widget
+        )
         self.controller.clear_requested.connect(self.clear_dynamic_area)
+        # self.menu_widget.command_selected.connect(self._handle_admin_command)
 
-        # Dodaj do dynamicznego obszaru
-        self.dynamic_area.layout().addWidget(self.register_widget)
+        # Wyświetl
+        self.load_widget(self.register_widget)
 
+    def show_get_vehicle_widget(self):
+        print("🔧 Wywołano show_get_vehicle_widget()")
+        self.get_vehicle_widget = GetVehicleWidget(self)
+        self.show_widget(self.get_vehicle_widget)
+
+    # def show_widget(self, widget: QWidget):
+    #     # Wyczyść dynamiczne miejsce
+    #     for i in reversed(range(self.dynamic_area.layout().count())):
+    #         old_widget = self.dynamic_area.layout().itemAt(i).widget()
+    #         if old_widget is not None:
+    #             old_widget.setParent(None)
+    #
+    #     # Dodaj nowy widget
+    #     self.dynamic_area.layout().addWidget(widget)
 
     def clear_dynamic_area(self):
-        if self.current_widget:
-            self.dynamic_area.layout().removeWidget(self.current_widget)
-            self.current_widget.deleteLater()
-            self.current_widget = None
+        layout = self.dynamic_area.layout()
+        if layout is None:
+            return
+
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.setParent(None)
+                widget.deleteLater()
+
+        self.current_widget = None
 
 
     def _on_dynamic_button_clicked(self, command_num: str):

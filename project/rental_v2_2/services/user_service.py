@@ -258,10 +258,10 @@ def get_clients(session):
             print(client, "\n")
 
         question = {
-            "W": "Wyświetl szczegóły użytkownika",
-            "P": "Powrót do menu główneg"
+            "w": "Wyświetl szczegóły użytkownika",
+            "p": "Powrót do menu główneg"
         }
-        choice = choice_menu(f"\nCo chcesz teraz zrobić?")
+        choice = choice_menu(f"\nCo chcesz teraz zrobić?", question)
 
         if choice == "p":
             return

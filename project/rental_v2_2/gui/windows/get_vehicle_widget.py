@@ -164,66 +164,9 @@ class GetVehicleWidget(QWidget):
         if isinstance(data, list):
             self.show_group_members(data)
 
-    # def handle_item_clicked(self, item):
-    #     data = item.data(Qt.UserRole)
-    #
-    #     if isinstance(data, list):  # Kliknięto grupę
-    #         self.show_group_members(data)
-    #
-    #     elif data == "return":
-    #         self.get_list()
-    #
-    #     else:
-    #         # Tu możesz np. wyświetlić szczegóły konkretnego pojazdu
-    #         QMessageBox.information(self, "Pojazd", f"Wybrano:\n{data}")
-
-
-
-
-
-
-# def get_list():
-#     with SessionLocal() as session:
-#         vehicle_list = session.query(Vehicle).all()
-#         # wymusz dostęp do wszystkich pól, żeby SQLAlchemy załadowało dane zanim sesja się zamknie
-#         for v in vehicle_list:
-#             _ = v.vehicle_id
-#             _ = v.brand
-#             _ = v.vehicle_model
-#             _ = v.cash_per_day
-#             _ = v.is_available
-#             _ = v.return_date
-#             _ = v.individual_id
-#             # polimorfizm: jeśli to Car, Scooter lub Bike, wymusz dostęp do specyficznych atrybutów:
-#             if isinstance(v, Car):
-#                 _ = v.size
-#                 _ = v.fuel_type
-#             elif isinstance(v, Scooter):
-#                 _ = v.max_speed
-#             elif isinstance(v, Bike):
-#                 _ = v.bike_type
-#                 _ = v.is_electric
-#         return vehicle_list
-
-
-
-
-
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = GetVehicleWidget()
     main_window.show()
     sys.exit(app.exec())
-
-
-# def on_search_clicked(self):
-#     status = self.status_combo_box.currentText()
-#     vehicle_type = self.type_combo_box.currentText()
-#     filtered_vehicles = get_vehicles_filtered(self.session, status, vehicle_type)
-#     self.list_widget.clear()
-#     for v in filtered_vehicles:
-#         item = QListWidgetItem(str(v))
-#         item.setData(Qt.UserRole, v)
-#         self.list_widget.addItem(item)

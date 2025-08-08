@@ -11,6 +11,7 @@ from gui.windows.admin_dialog import AdminDialog
 from gui.windows.seller_dialog import SellerDialog
 from gui.windows.client_dialog import ClientDialog
 from gui.windows.register_wiget import RegisterWidget
+from gui.windows.get_vehicle_widget import GetVehicleWidget
 
 from services.overdue_check import check_overdue_vehicles
 from services.user_service import remove_user, get_clients, update_profile
@@ -38,6 +39,7 @@ class AppController(QObject):
         self.register_window = None
         self.register_window_parent = None  # ⬅️ DODAJ TO
         self.current_active_window = None
+
 
         self.current_user = None
         self.db_session: Session = None
@@ -242,7 +244,7 @@ class AppController(QObject):
 
             "6": lambda: add_vehicles_batch(self.db_session),
             "7": lambda: remove_vehicle(self.db_session),
-            "8": lambda: get_vehicle(self.db_session),
+            "8": lambda: self.show_get_vehicle_widget(),
 
             "9": lambda: rent_vehicle_for_client(self.db_session, self.current_user),
             "10": lambda: return_vehicle(self.db_session, self.current_user),
@@ -346,5 +348,24 @@ class AppController(QObject):
         self.client_dialog.raise_()
         self.client_dialog.activateWindow()
         self.current_active_window = self.client_dialog
+
+    def show_get_vehicle_widget(self):
+        self.get_vehicle_widget = GetVehicleWidget(self)
+        self.show_widget(self.get_vehicle_widget)
+
+    def show_widget(self, widget: QWidget):
+        if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):
+            layout = self.current_active_window.dynamic_area.layout()
+            # Wyczyść dynamiczny obszar
+            for i in reversed(range(layout.count())):
+                widget_to_remove = layout.itemAt(i).widget()
+                if widget_to_remove is not None:
+                    widget_to_remove.setParent(None)
+            # Dodaj nowy widget
+            layout.addWidget(widget)
+            widget.show()
+            print("✅ Widget został dodany do dynamicznego obszaru.")
+        else:
+            print("❌ Nie można znaleźć dynamicznego obszaru do wyświetlenia widgetu.")
 
 
