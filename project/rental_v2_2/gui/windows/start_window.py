@@ -58,13 +58,11 @@ class StartWindow(QWidget):
 
         logo_label.setAlignment(Qt.AlignCenter)
 
-        # Title Label
         self.title_label = QLabel("🚗  MOTO VIBE 3000  🚗\nWYPOŻYCZALNIA POJAZDÓW")
         self.title_label.setFont(QFont("Arial", 32, QFont.Bold))
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setStyleSheet("color: white;")
 
-        # Buttons
         btn_login = QPushButton("Zaloguj się")
         btn_register = QPushButton("Zarejestruj się")
         self.btn_exit = QPushButton("Zamknij program")
@@ -78,7 +76,7 @@ class StartWindow(QWidget):
                 "border-radius: 8px;"
             )
 
-        # Connect buttons to emit their respective signals
+
         btn_login.clicked.connect(self.login_requested.emit)
         btn_register.clicked.connect(lambda: self.register_requested.emit(self))
         # Connect the exit button to the handle_exit_program function

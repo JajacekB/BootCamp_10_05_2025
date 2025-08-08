@@ -20,16 +20,13 @@ class ChoiceDialog(QDialog):
         else:
             raise TypeError("Options musi być listą lub słownikiem")
 
-        # Przygotowanie układu
         layout = QVBoxLayout()
 
-        # Złamanie prompta jeśli za długi
         wrapped_prompt = "\n".join(textwrap.wrap(prompt, width=60))
         label = QLabel(wrapped_prompt)
         label.setWordWrap(True)
         layout.addWidget(label)
 
-        # Scrollable area, jeśli opcji dużo
         scroll_area = QScrollArea()
         scroll_widget = QWidget()
         scroll_layout = QVBoxLayout(scroll_widget)

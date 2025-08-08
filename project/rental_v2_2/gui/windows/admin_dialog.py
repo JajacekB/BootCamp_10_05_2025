@@ -8,7 +8,6 @@ from gui.windows.get_vehicle_widget import GetVehicleWidget
 
 
 
-
 class AdminDialog(QMainWindow):
     command_selected = Signal(str)
     logout = Signal(object)
@@ -109,7 +108,7 @@ class AdminDialog(QMainWindow):
             auto=auto
         )
 
-        # Obsługa sygnałów rejestracji
+
         self.register_widget.registration_finished.connect(
             self.controller.on_registration_finished_widget
         )
@@ -117,9 +116,7 @@ class AdminDialog(QMainWindow):
             self.controller.on_registration_cancelled_widget
         )
         self.controller.clear_requested.connect(self.clear_dynamic_area)
-        # self.menu_widget.command_selected.connect(self._handle_admin_command)
 
-        # Wyświetl
         self.load_widget(self.register_widget)
 
     def show_get_vehicle_widget(self):
@@ -127,15 +124,6 @@ class AdminDialog(QMainWindow):
         self.get_vehicle_widget = GetVehicleWidget(self)
         self.show_widget(self.get_vehicle_widget)
 
-    # def show_widget(self, widget: QWidget):
-    #     # Wyczyść dynamiczne miejsce
-    #     for i in reversed(range(self.dynamic_area.layout().count())):
-    #         old_widget = self.dynamic_area.layout().itemAt(i).widget()
-    #         if old_widget is not None:
-    #             old_widget.setParent(None)
-    #
-    #     # Dodaj nowy widget
-    #     self.dynamic_area.layout().addWidget(widget)
 
     def clear_dynamic_area(self):
         layout = self.dynamic_area.layout()

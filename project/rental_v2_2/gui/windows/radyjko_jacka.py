@@ -129,21 +129,19 @@ class MyBasicWindow(QWidget):
 
 
         self.gain_slider = QSlider(Qt.Horizontal)
-        self.gain_slider.setMinimum(810)  # Wartość 0 będzie odpowiadać -80 dB
-        self.gain_slider.setMaximum(1060)  # Wartość 80 będzie odpowiadać 0 dB
-        self.gain_slider.setValue(810)  # Ustawienie domyślnej wartości na 0 dB
+        self.gain_slider.setMinimum(810)
+        self.gain_slider.setMaximum(1060)
+        self.gain_slider.setValue(810)
         self.gain_slider.setSingleStep(1)
         self.gain_slider.setFixedSize(255, 35)
         main_layout.addWidget(self.gain_slider, alignment=Qt.AlignCenter)
 
-
-        # --- Używamy naszej niestandardowej klasy pokrętła ---
         self.gain_dial = CustomDial()
         self.gain_dial.setMinimum(0)
         self.gain_dial.setMaximum(100)
         self.gain_dial.setValue(80)
         self.gain_dial.setFixedSize(100, 100)
-        self.gain_dial.setNotchesVisible(True)  # Dodajemy nacięcia, żeby wyglądało lepiej
+        self.gain_dial.setNotchesVisible(True)
 
         main_layout.addWidget(self.gain_dial, alignment=Qt.AlignCenter)
 

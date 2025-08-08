@@ -53,7 +53,7 @@ class GetVehicleWidget(QWidget):
         main_layout = QVBoxLayout()
 
         title_label = QLabel("Przegląd pojazdów w wypozyczalni:" )
-        title_label.setStyleSheet("font-size: 28; color: white; ")
+        title_label.setStyleSheet("font-size: 28px; color: white; ")
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
 
