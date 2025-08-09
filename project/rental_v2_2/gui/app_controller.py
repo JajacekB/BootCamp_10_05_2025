@@ -1,6 +1,6 @@
 import sys
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 from PySide6.QtCore import QObject, Signal
+from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 
 from database.base import SessionLocal, Session
 
@@ -10,15 +10,16 @@ from gui.windows.admin_dialog import AdminDialog
 from gui.windows.seller_dialog import SellerDialog
 from gui.windows.client_dialog import ClientDialog
 from gui.windows.register_wiget import RegisterWidget
-from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.get_users_widget import GetUsersWidget
+from gui.windows.get_vehicle_widget import GetVehicleWidget
+from gui.windows.add_vehicle_widget import AddVehicleWidget
 from gui.windows.delete_client_widget import DeleteUsersWidget
 
+from services.repair import repair_vehicle
 from services.overdue_check import check_overdue_vehicles
 from services.user_service import remove_user, get_clients, update_profile
 from services.vehicle_management import add_vehicles_batch, remove_vehicle, get_vehicle
 from services.rental_process import rent_vehicle_for_client, return_vehicle, rent_vehicle
-from services.repair import repair_vehicle
 
 
 
@@ -336,6 +337,10 @@ class AppController(QObject):
         print("🔧🔧🔧 Wywołano delete_client_widget()")
         self.delete_client_widget = DeleteUsersWidget(self.db_session, "seller")
         self.show_widget(self.delete_client_widget)
+
+    def show_add_vehicle_widget(self):
+        print("🔧🔧🔧 Wywołano add_vehicle_widget()")
+
 
     def show_widget(self, widget: QWidget):
         if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):
