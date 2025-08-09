@@ -22,7 +22,7 @@ class GetVehicleWidget(QWidget):
 
     def __init__(self, session=None, parent=None, role = "admin", auto = False):
         super().__init__()
-        self.session = session
+        self.session =  session or SessionLocal()
         self.role = role
         self.auto = auto
 
@@ -52,10 +52,10 @@ class GetVehicleWidget(QWidget):
 
         main_layout = QVBoxLayout()
 
-        title_label = QLabel("Przegląd pojazdów w wypozyczalni:" )
-        title_label.setStyleSheet("font-size: 28px; color: white; ")
-        title_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(title_label)
+        self.title_label = QLabel("Przegląd pojazdów w wypozyczalni:" )
+        self.title_label.setStyleSheet("font-size: 28px; color: white; ")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(self.title_label)
 
         self.status_combo_box = QComboBox()
         self.status_combo_box.addItems(status_options)
@@ -73,12 +73,15 @@ class GetVehicleWidget(QWidget):
 
         main_layout.addWidget(self.list_widget)
 
-        search_button = QPushButton("Pokaż")
-        search_button.setStyleSheet("font-size: 24; color: white; border-radius: 8px; padding: 10px; ")
-        search_button.setFixedSize(150, 45)
-        search_button.clicked.connect(self.get_list)
+        self.search_button = QPushButton("Pokaż")
+        self.search_button.setStyleSheet(
+            "background-color: green;"
+            " font-size: 24; color: white;"
+            " border-radius: 8px; padding: 10px; ")
+        self.search_button.setFixedSize(150, 45)
+        self.search_button.clicked.connect(self.get_vehicles_list)
 
-        main_layout.addWidget(search_button, alignment=Qt.AlignRight)
+        main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
 
         self.list_widget.itemClicked.connect(self.handle_item_clicked)
 
@@ -88,53 +91,52 @@ class GetVehicleWidget(QWidget):
 
 
 
-    def get_list(self):
+    def get_vehicles_list(self):
         self.list_widget.clear()
 
-        with SessionLocal() as session:
-            vehicle_type_input = self.type_combo_box.currentText()
-            available_is = self.status_combo_box.currentText()
+        vehicle_type_input = self.type_combo_box.currentText()
+        available_is = self.status_combo_box.currentText()
 
-            vehicle_type_options = {
-                "Wszystkie": "all",
-                "Samochody": "car",
-                "Skutery": "scooter",
-                "Rowery": "bike"
-            }
-            vehicle_type = vehicle_type_options.get(vehicle_type_input, "all")
+        vehicle_type_options = {
+            "Wszystkie": "all",
+            "Samochody": "car",
+            "Skutery": "scooter",
+            "Rowery": "bike"
+        }
+        vehicle_type = vehicle_type_options.get(vehicle_type_input, "all")
 
-            if available_is == "Dostępne":
-                available_vehicles = get_available_vehicles(session, vehicle_type=vehicle_type)
+        if available_is == "Dostępne":
+            available_vehicles = get_available_vehicles(self.session, vehicle_type=vehicle_type)
 
-            elif available_is == "Niedostępne":
-                available_vehicles, _ = get_unavailable_vehicle(session, vehicle_type=vehicle_type)
+        elif available_is == "Niedostępne":
+            available_vehicles, _ = get_unavailable_vehicle(self.session, vehicle_type=vehicle_type)
+
+        else:
+            if vehicle_type == "all":
+                available_vehicles = self.session.query(Vehicle).all()
 
             else:
-                if vehicle_type == "all":
-                    available_vehicles = session.query(Vehicle).all()
+                available_vehicles = self.session.query(Vehicle).filter(Vehicle.type == vehicle_type).all()
 
-                else:
-                    available_vehicles = session.query(Vehicle).filter(Vehicle.type == vehicle_type).all()
+        if not available_vehicles:
+            print("\n🚫 Brak pasujących pojazdów.")
+            return
 
-            if not available_vehicles:
-                print("\n🚫 Brak pasujących pojazdów.")
-                return
+        vehicles_sorted = sorted(
+            available_vehicles,
+            key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model, v.individual_id)
+        )
+        vehicles = defaultdict(list)
+        for v in (vehicles_sorted):
+            key = (v.brand, v.vehicle_model, v.cash_per_day)
+            vehicles[key].append(v)
 
-            vehicles_sorted = sorted(
-                available_vehicles,
-                key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model, v.individual_id)
-            )
-            vehicles = defaultdict(list)
-            for v in (vehicles_sorted):
-                key = (v.brand, v.vehicle_model, v.cash_per_day)
-                vehicles[key].append(v)
-
-            for (brand, model, cash_per_day), group in vehicles.items():
-                count = len(group)
-                display_text = f"{brand} {model}  –  {cash_per_day:.2f} zł/dzień - ({count} szt.)"
-                item = QListWidgetItem(display_text)
-                item.setData(Qt.UserRole, group)  # Przechowujemy całą grupę pojazdów
-                self.list_widget.addItem(item)
+        for (brand, model, cash_per_day), group in vehicles.items():
+            count = len(group)
+            display_text = f"{brand} {model}  –  {cash_per_day:.2f} zł/dzień - ({count} szt.)"
+            item = QListWidgetItem(display_text)
+            item.setData(Qt.UserRole, group)  # Przechowujemy całą grupę pojazdów
+            self.list_widget.addItem(item)
 
     def show_group_members(self, group):
         self.list_widget.clear()
@@ -158,7 +160,7 @@ class GetVehicleWidget(QWidget):
         data = item.data(Qt.UserRole)
 
         if data == "return":
-            self.get_list()  # wróć do widoku grup
+            self.get_vehicles_list()  # wróć do widoku grup
             return
 
         if isinstance(data, list):

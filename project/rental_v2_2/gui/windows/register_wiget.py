@@ -135,7 +135,9 @@ class RegisterWidget(QWidget):
         self.confirm_button = QPushButton("Zatwierdź")
         self.confirm_button.setFixedSize(150, 45)
         self.confirm_button.setStyleSheet(
-            "background-color: green; color: white; border-radius: 8px; padding: 10px;"
+            "background-color: green;"
+            " font-size: 24; color: white; color: white;"
+            " border-radius: 8px; padding: 10px;"
         )
         self.confirm_button.clicked.connect(self._show_summary)
         main_layout.addWidget(self.confirm_button, 6, 1, 1, 1, alignment=Qt.AlignRight)

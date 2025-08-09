@@ -15,7 +15,7 @@ from models.rental_history import RentalHistory
 from database.base import SessionLocal
 
 
-class GetUsers(QWidget):
+class GetUsersWidget(QWidget):
 
     def __init__(self, session=None):
         super().__init__()
@@ -64,12 +64,16 @@ class GetUsers(QWidget):
             main_layout.addWidget(self.list_widget)
             self.list_widget.itemClicked.connect(self.show_user_details)
 
-            search_button = QPushButton("Pokaż")
-            search_button.setStyleSheet("font-size: 24; color: white; border-radius: 8px; padding: 10px; ")
-            search_button.setFixedSize(150, 45)
-            search_button.clicked.connect(self.get_users_list)
+            self.search_button = QPushButton("Pokaż")
+            self.search_button.setStyleSheet(
+                "background-color: green;"
+                " font-size: 24; color: white;"
+                " border-radius: 8px; padding: 10px;"
+            )
+            self.search_button.setFixedSize(150, 45)
+            self.search_button.clicked.connect(self.get_users_list)
 
-            main_layout.addWidget(search_button, alignment=Qt.AlignRight)
+            main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
 
             main_layout.addStretch()
             self.setLayout(main_layout)
@@ -162,7 +166,7 @@ class GetUsers(QWidget):
                 else:
 
                     user_details = (f"{user_info}\n"
-                                    f"{vehicle_info}\n"
+                                    f"\n{vehicle_info}\n"
                                     f"Wynajęty od {start_str} do {planned_str}")
 
             self.list_widget.clear()
@@ -176,6 +180,6 @@ class GetUsers(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    main_window = GetUsers()
+    main_window = GetUsersWidget()
     main_window.show()
     sys.exit(app.exec())

@@ -12,6 +12,7 @@ from gui.windows.seller_dialog import SellerDialog
 from gui.windows.client_dialog import ClientDialog
 from gui.windows.register_wiget import RegisterWidget
 from gui.windows.get_vehicle_widget import GetVehicleWidget
+from gui.windows.get_users_widget import GetUsersWidget
 
 from services.overdue_check import check_overdue_vehicles
 from services.user_service import remove_user, get_clients, update_profile
@@ -240,7 +241,7 @@ class AppController(QObject):
             "2": lambda: remove_user(self.db_session, role="seller"),
             "3": lambda: self.handle_register_widget(),
             "4": lambda: remove_user(self.db_session),
-            "5": lambda: get_clients(self.db_session),
+            "5": lambda: self.show_get_users_widget(),
 
             "6": lambda: add_vehicles_batch(self.db_session),
             "7": lambda: remove_vehicle(self.db_session),
@@ -350,8 +351,13 @@ class AppController(QObject):
         self.current_active_window = self.client_dialog
 
     def show_get_vehicle_widget(self):
-        self.get_vehicle_widget = GetVehicleWidget(self)
+        self.get_vehicle_widget = GetVehicleWidget(self.db_session)
         self.show_widget(self.get_vehicle_widget)
+
+    def show_get_users_widget(self):
+        print("🔧🔧🔧 Wywołano show_get_users_widget()")
+        self.get_users_widget = GetUsersWidget(self.db_session)
+        self.show_widget(self.get_users_widget)
 
     def show_widget(self, widget: QWidget):
         if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):

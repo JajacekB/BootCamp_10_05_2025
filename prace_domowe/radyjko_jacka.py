@@ -3,17 +3,16 @@ from PySide6.QtWidgets import (
 QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QRadioButton, QSlider, QDial, QLineEdit
 )
 from PySide6.QtCore import  Qt, QTimer
-from rich.align import Align
 
 
 class CustomDial(QDial):
     def wheelEvent(self, event):
-        """Metoda obsługująca kręcenie kółkiem myszy."""
+
         if event.angleDelta().y() > 0:
             self.setValue(self.value() - 1)
         else:
             self.setValue(self.value() + 1)
-        # Ważne: Akceptujemy zdarzenie, aby nie było przekazywane dalej
+
         event.accept()
 
 
@@ -92,19 +91,16 @@ class MyBasicWindow(QWidget):
         ]
         self.longus = len(self.lista_osobista)
 
-
         for index, item_text in enumerate(self.lista_osobista):
             button = QPushButton(item_text)
             button.setFixedSize(255, 35)
             main_layout.addWidget(button, alignment=Qt.AlignCenter)
             button.clicked.connect(lambda checked, text=item_text: self._on_dynamic_button_clicked(text))
 
-
         self.hello_label = QLabel(">>> Hello there <<<")
         self.hello_label.setStyleSheet("color: purple; font-size: 21px; font-weight: bold;")
         self.hello_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(self.hello_label, alignment=Qt.AlignBottom)
-
 
         self.confirm_button = QPushButton("Turn off")
         self.confirm_button.setFixedSize(255, 50)
@@ -113,20 +109,16 @@ class MyBasicWindow(QWidget):
         )
         main_layout.addWidget(self.confirm_button, alignment=Qt.AlignCenter)
 
-
         self.radio_button1 = QRadioButton("FM")
         self.radio_button2 = QRadioButton("AM")
         main_layout.addWidget(self.radio_button1)
         main_layout.addWidget(self.radio_button2)
         self.radio_button1.setChecked(True)
 
-
         self.input_field = QLineEdit()
         self.input_field.setPlaceholderText("Podaj częstotliwość: ")
         self.input_field.setFixedSize(255, 35)
-
         main_layout.addWidget(self.input_field, alignment=Qt.AlignCenter)
-
 
         self.gain_slider = QSlider(Qt.Horizontal)
         self.gain_slider.setMinimum(810)
@@ -142,9 +134,7 @@ class MyBasicWindow(QWidget):
         self.gain_dial.setValue(80)
         self.gain_dial.setFixedSize(100, 100)
         self.gain_dial.setNotchesVisible(True)
-
         main_layout.addWidget(self.gain_dial, alignment=Qt.AlignCenter)
-
 
         self.input_field.returnPressed.connect(self._on_input_entered)
         self.gain_slider.valueChanged.connect(self._update_label_from_slider)
@@ -174,6 +164,7 @@ class MyBasicWindow(QWidget):
         self.hello_label.setText(f"Frequency: {display_value:.1f} MHz")
         print(f"Ustawiono wartość na: {display_value:.1f}")
 
+
     def _update_label_from_dial(self, value):
         db_value = value - 80
         self.hello_label.setText(f"Volume: {db_value} dB")
@@ -201,7 +192,6 @@ class MyBasicWindow(QWidget):
         print(f"ostatecznie wybrano: '{off_text}'")
         print("\nDo widzenia !!!\n Pa")
         QTimer.singleShot(5000, self.close)
-
 
 
 if __name__ == '__main__':

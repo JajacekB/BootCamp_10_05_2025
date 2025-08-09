@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from gui.windows.register_wiget import RegisterWidget
 from gui.windows.get_vehicle_widget import GetVehicleWidget
+from gui.windows.get_users_widget import GetUsersWidget
 
 
 
@@ -90,12 +91,10 @@ class AdminDialog(QMainWindow):
         logoff_button.clicked.connect(self._on_logout_clicked)
         menu_layout.addWidget(logoff_button, alignment=Qt.AlignCenter)
 
-        # Dodanie menu_layout jako widżetu do kolumny 0
         menu_container = QWidget()
         menu_container.setLayout(menu_layout)
         self.grid_layout.addWidget(menu_container, 0, 0)
 
-        # Placeholder na dynamiczne widżety (np. QWidget z formularzem)
         self.dynamic_area = QWidget()
         self.dynamic_area.setLayout(QVBoxLayout())
         self.grid_layout.addWidget(self.dynamic_area, 0, 1, 1, 2)  # kolumny 1 i 2
@@ -108,7 +107,6 @@ class AdminDialog(QMainWindow):
             auto=auto
         )
 
-
         self.register_widget.registration_finished.connect(
             self.controller.on_registration_finished_widget
         )
@@ -118,11 +116,6 @@ class AdminDialog(QMainWindow):
         self.controller.clear_requested.connect(self.clear_dynamic_area)
 
         self.load_widget(self.register_widget)
-
-    def show_get_vehicle_widget(self):
-        print("🔧 Wywołano show_get_vehicle_widget()")
-        self.get_vehicle_widget = GetVehicleWidget(self)
-        self.show_widget(self.get_vehicle_widget)
 
 
     def clear_dynamic_area(self):
