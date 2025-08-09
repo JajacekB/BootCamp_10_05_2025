@@ -8,9 +8,6 @@ from PySide6.QtCore import Qt, QTimer, Signal
 from services.vehicle_avability import get_unavailable_vehicle, get_available_vehicles
 from models.vehicle import Vehicle, Car, Scooter, Bike
 from models.user import User
-# from models.rental_history import RentalHistory
-# from models.repair_history import RepairHistory
-# from models.invoice import Invoice
 from database.base import SessionLocal
 
 
@@ -76,7 +73,7 @@ class GetVehicleWidget(QWidget):
         self.search_button = QPushButton("Pokaż")
         self.search_button.setStyleSheet(
             "background-color: green;"
-            " font-size: 24; color: white;"
+            " font-size: 24px; color: white;"
             " border-radius: 8px; padding: 10px; ")
         self.search_button.setFixedSize(150, 45)
         self.search_button.clicked.connect(self.get_vehicles_list)

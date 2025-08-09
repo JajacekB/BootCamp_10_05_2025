@@ -5,14 +5,14 @@ from PySide6.QtCore import QObject, Signal, Qt
 from database.base import SessionLocal, Session
 
 from gui.windows.start_window import StartWindow
-from gui.windows.login_dialog import LoginDialog
-from gui.windows.register_dialog import RegisterWindow
+from gui.windows.login_window import LoginDialog
 from gui.windows.admin_dialog import AdminDialog
 from gui.windows.seller_dialog import SellerDialog
 from gui.windows.client_dialog import ClientDialog
 from gui.windows.register_wiget import RegisterWidget
 from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.get_users_widget import GetUsersWidget
+from gui.windows.delete_clent_widget import DeleteUsersWidget
 
 from services.overdue_check import check_overdue_vehicles
 from services.user_service import remove_user, get_clients, update_profile
@@ -117,7 +117,7 @@ class AppController(QObject):
 
     def _handle_register_window(self):
         """Wyświetla rejestrację jako osobne okno (np. z poziomu StartWindow)."""
-        self.register_window = RegisterWindow(self.db_session)
+        self.register_window = RegisterWidget(self.db_session)
         self.register_window.registration_finished.connect(self.on_registration_finished_window)
         self.register_window.registration_cancelled.connect(self.on_registration_cancelled_window)
         self.register_window.show()
@@ -240,7 +240,7 @@ class AppController(QObject):
             "1": lambda: self._handle_add_seller_wiget(),
             "2": lambda: remove_user(self.db_session, role="seller"),
             "3": lambda: self.handle_register_widget(),
-            "4": lambda: remove_user(self.db_session),
+            "4": lambda: self.show_delete_client_widget(),
             "5": lambda: self.show_get_users_widget(),
 
             "6": lambda: add_vehicles_batch(self.db_session),
@@ -351,6 +351,7 @@ class AppController(QObject):
         self.current_active_window = self.client_dialog
 
     def show_get_vehicle_widget(self):
+        print("🔧🔧🔧 Wywołano show_get_vehicle_widget()")
         self.get_vehicle_widget = GetVehicleWidget(self.db_session)
         self.show_widget(self.get_vehicle_widget)
 
@@ -358,6 +359,11 @@ class AppController(QObject):
         print("🔧🔧🔧 Wywołano show_get_users_widget()")
         self.get_users_widget = GetUsersWidget(self.db_session)
         self.show_widget(self.get_users_widget)
+
+    def show_delete_client_widget(self):
+        print("🔧🔧🔧 Wywołano delete_client_widget()")
+        self.delete_client_widget = DeleteUsersWidget(self.db_session)
+        self.show_widget(self.delete_client_widget)
 
     def show_widget(self, widget: QWidget):
         if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):
@@ -367,7 +373,7 @@ class AppController(QObject):
                 widget_to_remove = layout.itemAt(i).widget()
                 if widget_to_remove is not None:
                     widget_to_remove.setParent(None)
-            # Dodaj nowy widget
+
             layout.addWidget(widget)
             widget.show()
             print("✅ Widget został dodany do dynamicznego obszaru.")

@@ -1,15 +1,16 @@
 from PySide6.QtWidgets import (
-    QWidget, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox, QGridLayout
+    QWidget, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox, QGridLayout, QMainWindow
 )
 from PySide6.QtCore import Qt, QTimer, Signal
 import bcrypt
 import pycountry
+from PySide6.scripts.project_lib import QMLDIR_FILE
 from sqlalchemy.exc import IntegrityError
 from models.user import User
 from validation.validation import is_valid_phone, is_valid_email
 
 
-class RegisterWidget(QWidget):
+class RegisterWindow(QMainWindow):
 
     registration_cancelled = Signal()
     registration_finished = Signal(bool)
@@ -127,9 +128,7 @@ class RegisterWidget(QWidget):
         self.cancel1_button = QPushButton("Anuluj")
         self.cancel1_button.setFixedSize(150, 45)
         self.cancel1_button.setStyleSheet(
-            "background-color: red;"
-            "font-size: 24px; color: white;"
-            " border-radius: 8px; padding: 10px;"
+            "background-color: red; color: white; border-radius: 8px; padding: 10px;"
         )
         self.cancel1_button.clicked.connect(self._cancel_registration)
         main_layout.addWidget(self.cancel1_button, 6, 0, 1, 1, alignment=Qt.AlignLeft)
@@ -138,7 +137,7 @@ class RegisterWidget(QWidget):
         self.confirm_button.setFixedSize(150, 45)
         self.confirm_button.setStyleSheet(
             "background-color: green;"
-            " font-size: 24px; color: white; color: white;"
+            " font-size: 24; color: white; color: white;"
             " border-radius: 8px; padding: 10px;"
         )
         self.confirm_button.clicked.connect(self._show_summary)

@@ -10,8 +10,6 @@ from datetime import date
 from models.vehicle import Vehicle, Car, Scooter, Bike
 from models.user import User
 from models.rental_history import RentalHistory
-# from models.repair_history import RepairHistory
-# from models.invoice import Invoice
 from database.base import SessionLocal
 
 
@@ -42,41 +40,38 @@ class GetUsersWidget(QWidget):
 
     def _build_ui(self):
 
-        with SessionLocal() as session:
+        users_optins = ["Wszyscy", "Z wypożyczeniem", "Bez wypożyczenia"]
 
-            users_optins = ["Wszyscy", "Z wypożyczeniem", "Bez wypożyczenia"]
+        main_layout = QVBoxLayout()
 
-            main_layout = QVBoxLayout()
+        title_label = QLabel("Przegląd klientów wypozyczalni:")
+        title_label.setStyleSheet("font-size: 28px; color: white; ")
+        title_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(title_label)
 
-            title_label = QLabel("Przegląd klientów wypozyczalni:")
-            title_label.setStyleSheet("font-size: 28px; color: white; ")
-            title_label.setAlignment(Qt.AlignCenter)
-            main_layout.addWidget(title_label)
+        self.status_combo_box = QComboBox()
+        self.status_combo_box.addItems(users_optins)
 
-            self.status_combo_box = QComboBox()
-            self.status_combo_box.addItems(users_optins)
+        form_layout = QFormLayout()
+        form_layout.addRow("Kótych kientów chcesz przeglądać?", self.status_combo_box)
+        main_layout.addLayout(form_layout)
 
-            form_layout = QFormLayout()
-            form_layout.addRow("Kótych kientów chcesz przeglądać?", self.status_combo_box)
-            main_layout.addLayout(form_layout)
+        self.list_widget = QListWidget()
+        main_layout.addWidget(self.list_widget)
+        self.list_widget.itemClicked.connect(self.show_user_details)
 
-            self.list_widget = QListWidget()
-            main_layout.addWidget(self.list_widget)
-            self.list_widget.itemClicked.connect(self.show_user_details)
+        self.search_button = QPushButton("Pokaż")
+        self.search_button.setStyleSheet(
+            "background-color: green;"
+            "font-size: 24px; color: white;"
+            "border-radius: 8px; padding: 10px;"
+        )
+        self.search_button.setFixedSize(150, 45)
+        self.search_button.clicked.connect(self.get_users_list)
+        main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
 
-            self.search_button = QPushButton("Pokaż")
-            self.search_button.setStyleSheet(
-                "background-color: green;"
-                " font-size: 24; color: white;"
-                " border-radius: 8px; padding: 10px;"
-            )
-            self.search_button.setFixedSize(150, 45)
-            self.search_button.clicked.connect(self.get_users_list)
-
-            main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
-
-            main_layout.addStretch()
-            self.setLayout(main_layout)
+        main_layout.addStretch()
+        self.setLayout(main_layout)
 
 
     def get_users_list(self):
@@ -90,7 +85,7 @@ class GetUsersWidget(QWidget):
                     Vehicle.is_available == False
                 ).all()
 
-                if not users_type:
+                if not vehicle_with_rent:
                     QMessageBox.information(self, "Informacja", "Obecnie żaden klient nie wypożycza pojazdów.")
                     return
 
@@ -106,7 +101,7 @@ class GetUsersWidget(QWidget):
                     Vehicle.is_available == False
                 ).all()
 
-                if not users_type:
+                if not vehicle_with_rent:
                     QMessageBox.information(self, "Informacja", "Brak klientów bez wypożyczenia.")
                     return
 
