@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
-from PySide6.QtCore import QObject, Signal, Qt
+from PySide6.QtCore import QObject, Signal
 
 from database.base import SessionLocal, Session
 
@@ -12,7 +12,7 @@ from gui.windows.client_dialog import ClientDialog
 from gui.windows.register_wiget import RegisterWidget
 from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.get_users_widget import GetUsersWidget
-from gui.windows.delete_clent_widget import DeleteUsersWidget
+from gui.windows.delete_client_widget import DeleteUsersWidget
 
 from services.overdue_check import check_overdue_vehicles
 from services.user_service import remove_user, get_clients, update_profile
@@ -37,8 +37,8 @@ class AppController(QObject):
         self.start_window = None
         self.login_window = None
         self.admin_dialog = None
-        self.register_window = None
-        self.register_window_parent = None  # ⬅️ DODAJ TO
+        self.register_widget = None
+        self.register_window_parent = None
         self.current_active_window = None
 
 
@@ -55,7 +55,7 @@ class AppController(QObject):
         self.app.aboutToQuit.connect(self._close_db_session_on_exit)
 
         self.start_window = StartWindow()
-        self.register_window = None
+        self.register_widget = None
 
         self.start_window.login_requested.connect(self._handle_login_request)
         self.start_window.register_requested.connect(self._handle_register_window)
@@ -117,45 +117,13 @@ class AppController(QObject):
 
     def _handle_register_window(self):
         """Wyświetla rejestrację jako osobne okno (np. z poziomu StartWindow)."""
-        self.register_window = RegisterWidget(self.db_session)
-        self.register_window.registration_finished.connect(self.on_registration_finished_window)
-        self.register_window.registration_cancelled.connect(self.on_registration_cancelled_window)
-        self.register_window.show()
-
-
-    def on_registration_finished_window(self, success: bool):
-        if success:
-            QMessageBox.information(None, "Sukces", "Użytkownik został zarejestrowany.")
-        else:
-            QMessageBox.warning(None, "Niepowodzenie", "Rejestracja nie powiodła się.")
-
-        if self.register_window:
-            self.register_window.close()
-            self.register_window = None
-
-        elif self.start_window:
-            self.start_window.show()
-            self.current_active_window = self.start_window
-
-
-    def on_registration_cancelled_window(self):
-        print("❌ Rejestracja anulowana – wracam do poprzedniego okna (RegisterWindow).")
-
-        if self.register_window:
-            self.register_window.close()
-            self.register_window = None
-
-        # Powrót do okna nadrzędnego
-        if self.register_window_parent:
-            self.register_window_parent.show()
-            self.current_active_window = self.register_window_parent
-            self.register_window_parent = None
-        else:
-            print("⚠️ Nie ustawiono nadrzędnego okna – nie można wrócić.")
+        self.register_widget = RegisterWidget(self.db_session)
+        self.register_widget.registration_finished.connect(self.on_registration_finished_widget)
+        self.register_widget.registration_cancelled.connect(self.on_registration_cancelled_widget)
+        self.register_widget.show()
 
 
     def handle_register_widget(self):
-        """Wyświetla formularz rejestracji jako widget w AdminDialog."""
         if self.admin_dialog is None:
             print("❌ Błąd: AdminDialog nie został zainicjalizowany.")
             return
@@ -163,7 +131,6 @@ class AppController(QObject):
         self.register_widget = RegisterWidget(self.db_session)
         self.register_widget.registration_finished.connect(self.on_registration_finished_widget)
         self.register_widget.registration_cancelled.connect(self.on_registration_cancelled_widget)
-
         self.admin_dialog.show_register_widget(self.register_widget)
 
 
@@ -238,7 +205,7 @@ class AppController(QObject):
     def _handle_admin_command(self, command_num: str):
         commands = {
             "1": lambda: self._handle_add_seller_wiget(),
-            "2": lambda: remove_user(self.db_session, role="seller"),
+            "2": lambda: self.show_delete_seller_widget(),
             "3": lambda: self.handle_register_widget(),
             "4": lambda: self.show_delete_client_widget(),
             "5": lambda: self.show_get_users_widget(),
@@ -363,6 +330,11 @@ class AppController(QObject):
     def show_delete_client_widget(self):
         print("🔧🔧🔧 Wywołano delete_client_widget()")
         self.delete_client_widget = DeleteUsersWidget(self.db_session)
+        self.show_widget(self.delete_client_widget)
+
+    def show_delete_seller_widget(self):
+        print("🔧🔧🔧 Wywołano delete_client_widget()")
+        self.delete_client_widget = DeleteUsersWidget(self.db_session, "seller")
         self.show_widget(self.delete_client_widget)
 
     def show_widget(self, widget: QWidget):

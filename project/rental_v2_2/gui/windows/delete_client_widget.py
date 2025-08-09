@@ -16,9 +16,10 @@ from database.base import SessionLocal
 
 class DeleteUsersWidget(QWidget):
 
-    def __init__(self, session=None):
+    def __init__(self, session=None, role="client"):
         super().__init__()
         self.session =  session or SessionLocal()
+        self.role = role
 
         self.setWindowTitle("Klienci")
 
@@ -60,7 +61,7 @@ class DeleteUsersWidget(QWidget):
             "font-size: 24px; color: white;"
             "border-radius: 8px; padding: 10px;"
         )
-        self.search_button.clicked.connect(lambda: self._choice_client_to_delete())
+        self.search_button.clicked.connect(lambda: self._choice_client_to_delete(self.role))
         main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
 
 
@@ -137,7 +138,7 @@ class DeleteUsersWidget(QWidget):
         try:
             self.user = self.session.query(User).filter(User.id == uid).first()
             self.user_str = (
-                f""
+                f"Czy chcesz usunąć?\n\n"
                 f"Użytkownik: {self.user.first_name} {self.user.last_name}\n"                
                 f"email: {self.user.email}\n"
                 f"zamieszkały: {self.user.address}\n"
@@ -151,11 +152,7 @@ class DeleteUsersWidget(QWidget):
             self.cancel_button.setVisible(True)
             self.search_button.setEnabled(False)
 
-
-
-
         except Exception as e:
-
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas pobierania danych:\n{e}")
 
     def _hide_summary(self):
@@ -164,11 +161,21 @@ class DeleteUsersWidget(QWidget):
         self.cancel_button.setVisible(False)
         self.search_button.setEnabled(True)
 
-    def _delete_client(self):
-        """
+    def _delete_client(self, item):
+        uid = item.data(Qt.UserRole)
+        try:
+            user = self.session.query(User).filter(User.id == uid).first()
+            if user:
+                self.session.delete(user)
+                self.session.commit()
+                QMessageBox.information(self, "Sukces", "Użytkownik został usunięty.")
+            else:
+                QMessageBox.warning(self, "Błąd", "Nie znaleziono użytkownika.")
 
-        :return:
-        """
+            self._hide_summary()
+
+        except Exception as e:
+            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas usuwania użytkownika:\n{e}")
 
 
 
