@@ -211,7 +211,7 @@ class AppController(QObject):
             "4": lambda: self.show_delete_client_widget(),
             "5": lambda: self.show_get_users_widget(),
 
-            "6": lambda: add_vehicles_batch(self.db_session),
+            "6": lambda: self.show_add_vehicle_widget(),
             "7": lambda: remove_vehicle(self.db_session),
             "8": lambda: self.show_get_vehicle_widget(),
 
@@ -340,6 +340,8 @@ class AppController(QObject):
 
     def show_add_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano add_vehicle_widget()")
+        self.add_vehicle_widget = AddVehicleWidget(self.db_session)
+        self.show_widget(self.add_vehicle_widget)
 
 
     def show_widget(self, widget: QWidget):

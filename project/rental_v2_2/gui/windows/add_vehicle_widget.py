@@ -1,7 +1,7 @@
 import sys
 from collections import defaultdict
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox,
-        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox
+        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox, QSpacerItem, QSizePolicy
     )
 from PySide6.QtCore import Qt, QTimer, Signal
 from requests import session
@@ -51,7 +51,7 @@ class AddVehicleWidget(QWidget):
         self.main_layout.addWidget(title_label, 0, 0, 1, 2)
 
         self.veh_type_combo_box = QComboBox()
-        self.veh_type_combo_box.addItems(["Samochody", "Skutery", "Rowery"])
+        self.veh_type_combo_box.addItems(["", "Samochody", "Skutery", "Rowery"])
         self.veh_type = self.veh_type_combo_box.currentText()
 
         self.vehicle_count = QLineEdit(self)
@@ -90,6 +90,12 @@ class AddVehicleWidget(QWidget):
         data2_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(data2_label, 5, 0, 1, 1)
 
+        col_count = self.main_layout.columnCount()
+        for col in range(col_count):
+            self.main_layout.setColumnStretch(col, 1)
+
+        last_row = self.main_layout.rowCount()
+        self.main_layout.setRowStretch(last_row, 1)
 
         self.setLayout(self.main_layout)
 
@@ -147,8 +153,6 @@ class AddVehicleWidget(QWidget):
                 widget = item.widget()
                 if widget:
                     widget.deleteLater()
-            # opcjonalnie: usuń layout z głównego layoutu jeśli trzeba
-
         else:
             self.individual_number_layout = QFormLayout(self)
 
@@ -171,15 +175,6 @@ class AddVehicleWidget(QWidget):
         return [field.text() for field in self.individual_number_fields]
 
 
-
-
-        # for item_text in menu_list:
-        #     button = QPushButton(item_text)
-        #     button.setFixedSize(255, 31)
-        #     button.setStyleSheet("color: white; border-radius: 8px; padding-left: 10px;")
-        #     menu_layout.addWidget(button, alignment=Qt.AlignCenter)
-        #     command_num = item_text.split(".")[0]
-        #     button.clicked.connect(lambda checked, num=command_num: self._on_dynamic_button_clicked(num))
 
 
 

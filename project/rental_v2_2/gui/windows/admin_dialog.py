@@ -4,9 +4,6 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal
 from gui.windows.register_wiget import RegisterWidget
-from gui.windows.get_vehicle_widget import GetVehicleWidget
-from gui.windows.get_users_widget import GetUsersWidget
-
 
 
 class AdminDialog(QMainWindow):
@@ -44,13 +41,23 @@ class AdminDialog(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         self.grid_layout = QGridLayout()
-        self.grid_layout.setContentsMargins(30, 30, 30, 30)
-        self.grid_layout.setSpacing(20)
+        self.grid_layout.setContentsMargins(25, 25, 25, 25)
+        self.grid_layout.setSpacing(15)
+
+        self.grid_layout.setColumnStretch(0, 0)  # menu nie rozciąga się
+        self.grid_layout.setColumnStretch(1, 1)  # dynamic_area zajmuje resztę
+
+        # self.grid_layout.setColumnStretch(0, 1)
+        # self.grid_layout.setColumnStretch(1, 1)
+        # self.grid_layout.setColumnStretch(2, 1)
+
         central_widget.setLayout(self.grid_layout)
         self.current_widget = None
 
         menu_layout = QVBoxLayout()
         menu_layout.setSpacing(15)
+        menu_layout.setContentsMargins(0, 0, 0, 0)
+        menu_layout.setAlignment(Qt.AlignTop)
 
         hello_label = QLabel("Menu Admina")
         hello_label.setStyleSheet("color: white; font-size: 22px; font-weight: bold;")
@@ -74,7 +81,7 @@ class AdminDialog(QMainWindow):
 
         for item_text in menu_list:
             button = QPushButton(item_text)
-            button.setFixedSize(255, 31)
+            button.setFixedSize(300, 45)
             button.setStyleSheet("color: white; border-radius: 8px; padding-left: 10px;")
             menu_layout.addWidget(button, alignment=Qt.AlignCenter)
             command_num = item_text.split(".")[0]
@@ -93,7 +100,7 @@ class AdminDialog(QMainWindow):
 
         menu_container = QWidget()
         menu_container.setLayout(menu_layout)
-        self.grid_layout.addWidget(menu_container, 0, 0)
+        self.grid_layout.addWidget(menu_container, 0, 0, alignment=Qt.AlignTop | Qt.AlignLeft)
 
         self.dynamic_area = QWidget()
         self.dynamic_area.setLayout(QVBoxLayout())
