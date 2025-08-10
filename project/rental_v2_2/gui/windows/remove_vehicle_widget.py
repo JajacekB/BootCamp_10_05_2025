@@ -1,16 +1,13 @@
 import sys
 from collections import defaultdict
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox,
-        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox, QSpacerItem, QSizePolicy, QHBoxLayout
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox,
+        QApplication, QListWidget, QListWidgetItem, QMessageBox, QHBoxLayout
     )
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import Qt
+
+from database.base import SessionLocal
 
 from services.vehicle_avability import get_available_vehicles
-
-from models.vehicle import Vehicle, Car, Scooter, Bike
-from models.user import User
-from models.rental_history import RentalHistory
-from database.base import SessionLocal
 
 
 class RemoveVehicleWidget(QWidget):

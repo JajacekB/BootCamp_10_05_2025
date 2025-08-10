@@ -167,6 +167,13 @@ class RegisterWidget(QWidget):
         self.add_user_button.clicked.connect(self.register_client_gui)
         main_layout.addWidget(self.add_user_button, 8, 1, 1, 1, alignment=Qt.AlignRight)
 
+        col_count = main_layout.columnCount()
+        for col in range(col_count):
+            main_layout.setColumnStretch(col, 1)
+
+        last_row = main_layout.rowCount()
+        main_layout.setRowStretch(last_row, 1)
+
 
     def _get_full_address(self):
         return (

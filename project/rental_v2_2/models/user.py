@@ -29,6 +29,6 @@ class User(Base):
     repairs_done = relationship("RepairHistory", back_populates="mechanic", foreign_keys="RepairHistory.mechanic_id")
 
     def __repr__(self):
-        return (f"    Klient: [ID={self.id}]\n"
-                f"          {self.first_name} {self.last_name}"
+        return (f"Klient: [ID={self.id}]\n"
+                f"  {self.first_name} {self.last_name}"
             )

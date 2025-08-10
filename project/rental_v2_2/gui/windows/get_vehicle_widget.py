@@ -44,31 +44,28 @@ class GetVehicleWidget(QWidget):
 
     def _build_ui(self):
 
-        status_options = ["Wszystkie", "Dostępne", "Niedostępne"]
-        vehicle_type_options = ["Wszystkie", "Samochody", "Skutery", "Rowery"]
-
-        main_layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout()
 
         self.title_label = QLabel("Przegląd pojazdów w wypozyczalni:" )
         self.title_label.setStyleSheet("font-size: 28px; color: white; ")
         self.title_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(self.title_label)
+        self.main_layout.addWidget(self.title_label)
 
         self.status_combo_box = QComboBox()
-        self.status_combo_box.addItems(status_options)
+        self.status_combo_box.addItems(["Wszystkie", "Dostępne", "Niedostępne"])
 
         self.type_combo_box = QComboBox()
-        self.type_combo_box.addItems(vehicle_type_options)
+        self.type_combo_box.addItems(["Wszystkie", "Samochody", "Skutery", "Rowery"])
 
-        form_layout = QFormLayout()
-        form_layout.addRow("Wybierz czy chcez przeglądać pojazdy dostępne", self.status_combo_box)
-        form_layout.addRow("Jaki rodzaj pojazdów chcesz przeglądać:", self.type_combo_box)
+        self.form_layout = QFormLayout()
+        self.form_layout.addRow("Wybierz czy chcez przeglądać pojazdy dostępne", self.status_combo_box)
+        self.form_layout.addRow("Jaki rodzaj pojazdów chcesz przeglądać:", self.type_combo_box)
 
-        main_layout.addLayout(form_layout)
+        self.main_layout.addLayout(self.form_layout)
 
         self.list_widget = QListWidget()
 
-        main_layout.addWidget(self.list_widget)
+        self.main_layout.addWidget(self.list_widget)
 
         self.search_button = QPushButton("Pokaż")
         self.search_button.setStyleSheet(
@@ -78,13 +75,13 @@ class GetVehicleWidget(QWidget):
         self.search_button.setFixedSize(150, 45)
         self.search_button.clicked.connect(self.get_vehicles_list)
 
-        main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
+        self.main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
 
         self.list_widget.itemClicked.connect(self.handle_item_clicked)
 
-        main_layout.addStretch()
+        self.main_layout.addStretch()
 
-        self.setLayout(main_layout)
+        self.setLayout(self.main_layout)
 
 
 
