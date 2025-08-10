@@ -149,6 +149,7 @@ class DeleteUsersWidget(QWidget):
 
             self.summary_label.setVisible(True)
             self.delete_user_button.setVisible(True)
+            self.delete_user_button.setEnabled(True)
             self.cancel_button.setVisible(True)
             self.search_button.setEnabled(False)
 
@@ -158,21 +159,24 @@ class DeleteUsersWidget(QWidget):
     def _hide_summary(self):
         self.summary_label.setVisible(False)
         self.delete_user_button.setVisible(False)
+        self.delete_user_button.setEnabled(False)
         self.cancel_button.setVisible(False)
         self.search_button.setEnabled(True)
+        self.user = None
+        self.list_widget.clearSelection()
 
-    def _delete_client(self, item):
-        uid = item.data(Qt.UserRole)
+    def _delete_client(self):
         try:
-            user = self.session.query(User).filter(User.id == uid).first()
-            if user:
-                self.session.delete(user)
-                self.session.commit()
-                QMessageBox.information(self, "Sukces", "Użytkownik został usunięty.")
-            else:
-                QMessageBox.warning(self, "Błąd", "Nie znaleziono użytkownika.")
+            if not self.user:
+                QMessageBox.warning(self, "Błąd", "Nie wybrano użytkownika.")
+                return
+
+            self.session.delete(self.user)
+            self.session.commit()
+            QMessageBox.information(self, "Sukces", "Użytkownik został usunięty.")
 
             self._hide_summary()
+            self.list_widget.clear()
 
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas usuwania użytkownika:\n{e}")

@@ -14,6 +14,7 @@ from gui.windows.get_users_widget import GetUsersWidget
 from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.add_vehicle_widget import AddVehicleWidget
 from gui.windows.delete_client_widget import DeleteUsersWidget
+from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
 
 from services.repair import repair_vehicle
 from services.overdue_check import check_overdue_vehicles
@@ -212,7 +213,7 @@ class AppController(QObject):
             "5": lambda: self.show_get_users_widget(),
 
             "6": lambda: self.show_add_vehicle_widget(),
-            "7": lambda: remove_vehicle(self.db_session),
+            "7": lambda: self.show_remove_vehicle_widget(),
             "8": lambda: self.show_get_vehicle_widget(),
 
             "9": lambda: rent_vehicle_for_client(self.db_session, self.current_user),
@@ -342,6 +343,11 @@ class AppController(QObject):
         print("🔧🔧🔧 Wywołano add_vehicle_widget()")
         self.add_vehicle_widget = AddVehicleWidget(self.db_session)
         self.show_widget(self.add_vehicle_widget)
+
+    def show_remove_vehicle_widget(self):
+        print("🔧🔧🔧 Wywołano remove_vehicle_widget()")
+        self.remove_vehicle_widget = RemoveVehicleWidget(self.db_session)
+        self.show_widget(self.remove_vehicle_widget)
 
 
     def show_widget(self, widget: QWidget):

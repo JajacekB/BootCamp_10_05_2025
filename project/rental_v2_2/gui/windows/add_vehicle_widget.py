@@ -321,12 +321,52 @@ class AddVehicleWidget(QWidget):
 
         self.main_layout.addWidget(self.vehicles_list_widget, 9, 0, 1, 2)
 
+        self.update_db_button = QPushButton("Zapisz")
+        self.update_db_button.setFixedSize(150, 45)
+        self.update_db_button.setStyleSheet(
+            "background-color: green;"
+            " font-size: 24px; color: white; color: white;"
+            " border-radius: 8px; padding: 10px;"
+        )
+        self.update_db_button.clicked.connect(self._update_database)
+        self.main_layout.addWidget(self.update_db_button, 10, 1, 1, 1, alignment=Qt.AlignRight)
 
+    def _update_database(self):
+        try:
+            self.session.commit()
+            QMessageBox.information(self, "Sukces", "Dane zostały zapisane do bazy.")
 
+            # Wyczyść listę pojazdów w pamięci
+            self.vehicles.clear()
 
+            # Wyczyść pola formularza
+            self.veh_brand.clear()
+            self.veh_model.clear()
+            self.veh_cash_per_day.clear()
 
+            if hasattr(self, "size_combo_box"):
+                self.size_combo_box.setCurrentIndex(0)
+            if hasattr(self, "fuel_combo_box"):
+                self.fuel_combo_box.setCurrentIndex(0)
+            if hasattr(self, "scooter_speed"):
+                self.scooter_speed.clear()
+            if hasattr(self, "bike_typ_combo_box"):
+                self.bike_typ_combo_box.setCurrentIndex(0)
 
+            if hasattr(self, "individual_number_fields"):
+                for field in self.individual_number_fields:
+                    field.clear()
 
+            # Usuń widgety z listy pojazdów (np. QLabel albo QListWidget)
+            if hasattr(self, "vehicle_list_widget"):
+                self.vehicle_list_widget.clear()
+
+            # Opcjonalnie przejdź do widoku startowego
+            # self._go_to_start_screen()
+
+        except Exception as e:
+            self.session.rollback()
+            QMessageBox.critical(self, "Błąd zapisu", f"Nie udało się zapisać do bazy:\n{e}")
 
 
     def _cancel_adding(self):
