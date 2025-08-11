@@ -1,4 +1,5 @@
 import sys
+from sqlalchemy import func, asc
 from datetime import date, datetime, timedelta
 from collections import defaultdict
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox,
@@ -6,9 +7,13 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, Q
     )
 from PySide6.QtCore import Qt, QTimer, Signal, QDate
 
+from services.rental_costs import calculate_rental_cost
+from services.id_generators import generate_reservation_id, generate_invoice_number
 from services.vehicle_avability import get_unavailable_vehicle, get_available_vehicles
-from models.vehicle import Vehicle, Car, Scooter, Bike
 from models.user import User
+from models.invoice import Invoice
+from models.rental_history import RentalHistory
+from models.vehicle import Vehicle, Car, Scooter, Bike
 from database.base import SessionLocal
 
 
@@ -20,8 +25,10 @@ class RentVehicleWidget(QWidget):
         self.session = session or SessionLocal()
         self.role = role
         self.auto = auto
+        self.role = role
+        self.user = None
         self.start_date = None
-        self.planned_returned_date = None
+        self.planned_return_date = None
         self.vehicle_type_input = None
         self.vehicle_type = None
 
@@ -31,7 +38,7 @@ class RentVehicleWidget(QWidget):
             QWidget {
                 background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
                 color: #eee; /* Jasny kolor tekstu */
-                font-size: 16px;
+                font-size: 14px;
             }
             QPushButton {
                 background-color: #555;
@@ -49,12 +56,12 @@ class RentVehicleWidget(QWidget):
         self.main_layout = QGridLayout()
 
         self.title_label = QLabel("=== WYPOŻYCZENIE POJAZDU ===")
-        self.title_label.setStyleSheet("font-size: 28px; color: white; ")
+        self.title_label.setStyleSheet("font-size: 24px; color: white; ")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label, 0, 1, 1, 3)
 
         self.title_label = QLabel("")
-        self.title_label.setStyleSheet("font-size: 28px; color: white; ")
+        self.title_label.setStyleSheet("font-size: 24px; color: white; ")
         self.main_layout.addWidget(self.title_label, 0, 4, 1, 1)
 
         self.type_combo_box = QComboBox()
@@ -65,17 +72,18 @@ class RentVehicleWidget(QWidget):
         self.main_layout.addLayout(self.form_layout, 1, 1, 1, 3)
 
         self.title_label = QLabel("Ustaw datę początku wynajmu:")
-        self.title_label.setStyleSheet("font-size: 18px; color: white; ")
+        self.title_label.setStyleSheet("font-size: 16px; color: white; ")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label, 2, 1, 1, 1)
 
         self.title_label = QLabel("Ustaw datę końca wynajmu:")
-        self.title_label.setStyleSheet("font-size: 18px; color: white; ")
+        self.title_label.setStyleSheet("font-size: 16px; color: white; ")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label, 2, 3, 1, 1)
 
         self.calendar_start = QCalendarWidget(self)
         self.today = QDate.currentDate()
+        # self.calendar_start.setFixedSize(300, 300)
         self.calendar_start.setSelectedDate(self.today)
         self.calendar_start.setMinimumDate(self.today)
         self.calendar_start.setGridVisible(True)
@@ -88,8 +96,8 @@ class RentVehicleWidget(QWidget):
         btn_cancel.clicked.connect(self.handle_cancel_button)
         btn_cancel.setStyleSheet(
             "background-color: green;"
-            " font-size: 20px; color: white;"
-            " border-radius: 8px; padding: 10px; ")
+            " font-size: 18px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(btn_cancel)
@@ -98,12 +106,12 @@ class RentVehicleWidget(QWidget):
         layout.addWidget(self.calendar_start)
         layout.addWidget(self.label_start)
         layout.addLayout(button_layout)
-
         self.main_layout.addLayout(layout, 3, 1, 1, 1)
 
         self.tomorrow = self.today.addDays(1)
 
         self.calendar_end = QCalendarWidget(self)
+        # self.calendar_end.setFixedSize(300, 300)
         self.calendar_end.setSelectedDate(self.tomorrow)
         self.calendar_end.setGridVisible(True)
 
@@ -115,8 +123,8 @@ class RentVehicleWidget(QWidget):
         btn_confirm.clicked.connect(self.handle_confirm_button)
         btn_confirm.setStyleSheet(
             "background-color: red;"
-            " font-size: 20px; color: white;"
-            " border-radius: 8px; padding: 10px; ")
+            " font-size: 18px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(btn_confirm)
@@ -125,7 +133,6 @@ class RentVehicleWidget(QWidget):
         layout.addWidget(self.calendar_end)
         layout.addWidget(self.label_end)
         layout.addLayout(button_layout)
-
         self.main_layout.addLayout(layout, 3, 3, 1, 1)
 
         self.list_widget = QListWidget()
@@ -137,6 +144,45 @@ class RentVehicleWidget(QWidget):
             if item.data(Qt.UserRole) is not None else None
         )
         self.main_layout.addWidget(self.list_widget, 4, 1, 1, 3)
+
+        self.confirmation_widget = QWidget()
+        self.confirmation_layout = QVBoxLayout(self.confirmation_widget)
+
+        self.info_label = QLabel()
+        self.info_label.setWordWrap(True)
+
+        self.btn_rent_cancel = QPushButton("Anuluj")
+        # self.btn_rent_cancel.clicked.connect(self.handle_rent_cancel_button)
+        self.btn_rent_cancel.setStyleSheet(
+            "background-color: green;"
+            " font-size: 18px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
+
+        self.btn_rent_accept = QPushButton("Wypożycz")
+        self.btn_rent_accept.clicked.connect(self.handle_rent_accept_button)
+        self.btn_rent_accept.setStyleSheet(
+            "background-color: red;"
+            " font-size: 18px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
+
+        self.summary_label = QLabel()
+        self.summary_label.setWordWrap(True)
+
+        self.btn_rent_final_cancel = QPushButton("Anuluj")
+        # self.btn_rent_cancel.clicked.connect(self.handle_rent_cancel_button)
+        self.btn_rent_final_cancel.setStyleSheet(
+            "background-color: green;"
+            " font-size: 18px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
+
+        self.btn_rent_final_accept = QPushButton("Zakończ")
+        self.btn_rent_final_accept.clicked.connect(self.handle_rent_final_accept_button)
+        self.btn_rent_final_accept.setStyleSheet(
+            "background-color: red;"
+            " font-size: 18px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
+
+
 
 
 
@@ -188,7 +234,7 @@ class RentVehicleWidget(QWidget):
         self.start_date = date(start_date_input.year(), start_date_input.month(), start_date_input.day())
 
         end_date_input = self.calendar_end.selectedDate()
-        self.planned_returned_date = date(end_date_input.year(), end_date_input.month(), end_date_input.day())
+        self.planned_return_date = date(end_date_input.year(), end_date_input.month(), end_date_input.day())
 
         self.vehicle_type_input = self.type_combo_box.currentText()
 
@@ -200,13 +246,13 @@ class RentVehicleWidget(QWidget):
         }
         self.vehicle_type = vehicle_type_map.get(self.vehicle_type_input)
         vehicles_to_rent = get_available_vehicles(
-            self.session, self.start_date, self.planned_returned_date, self.vehicle_type
+            self.session, self.start_date, self.planned_return_date, self.vehicle_type
         )
 
         if self.vehicle_type == "all":
             self.list_widget.clear()
 
-            vehicles_to_rent = get_available_vehicles(self.session, self.start_date, self.planned_returned_date)
+            vehicles_to_rent = get_available_vehicles(self.session, self.start_date, self.planned_return_date)
 
             vehicles_sorted = sorted(
                 vehicles_to_rent,
@@ -236,7 +282,7 @@ class RentVehicleWidget(QWidget):
             self.list_widget.clear()
 
             vehicles_to_rent = get_available_vehicles(
-                self.session, self.start_date, self.planned_returned_date, self.vehicle_type
+                self.session, self.start_date, self.planned_return_date, self.vehicle_type
             )
             vehicles_sorted = sorted(
                 vehicles_to_rent,
@@ -265,7 +311,7 @@ class RentVehicleWidget(QWidget):
             self.list_widget.clear()
 
             vehicles_to_rent = get_available_vehicles(
-                self.session, self.start_date, self.planned_returned_date, self.vehicle_type
+                self.session, self.start_date, self.planned_return_date, self.vehicle_type
             )
             vehicles_sorted = sorted(
                 vehicles_to_rent,
@@ -294,7 +340,7 @@ class RentVehicleWidget(QWidget):
             self.list_widget.clear()
 
             vehicles_to_rent = get_available_vehicles(
-                self.session, self.start_date, self.planned_returned_date, self.vehicle_type
+                self.session, self.start_date, self.planned_return_date, self.vehicle_type
             )
             vehicles_sorted = sorted(
                 vehicles_to_rent,
@@ -323,33 +369,122 @@ class RentVehicleWidget(QWidget):
                 item.setData(Qt.UserRole, bike)
                 self.list_widget.addItem(item)
 
-
         if not vehicles_to_rent:
             print("\n🚫 Brak pasujących pojazdów.")
             return
 
 
-
-
-
-
-
-
-
-
     def handle_single_vehicle_click(self, item):
-        def handle_single_vehicle_click(self, item):
-            if item.data(Qt.UserRole) == "header":
-                return  # ignorujemy kliknięcie w nagłówek
+        if item.data(Qt.UserRole) == "header":
+            return  # ignorujemy kliknięcie w nagłówek
+        group = item.data(Qt.UserRole)
+        if not isinstance(group, list) or not group:
+            return
+
+        matching_ids = [v.id for v in group]
+
+        result = self.session.query(
+            Vehicle,
+            func.count(RentalHistory.id).label("rental_count")
+        ).outerjoin(RentalHistory).filter(
+            Vehicle.id.in_(matching_ids)
+        ).group_by(Vehicle.id).order_by("rental_count").first()
+
+        if result:
+            self.chosen_vehicle, rental_count = result
+        else:
+            self.chosen_vehicle = group[0] if group else None
+            rental_count = 0
+
+        self.main_layout.addWidget(self.info_label, 5, 1, 1, 3)
+
+        self.info_label.setText(
+            f"Czy na pewno chcesz wypozyczyć ten pojazd?\n\n{self.chosen_vehicle.get_display_info()}"
+        )
+        self.main_layout.addWidget(self.btn_rent_cancel, 6, 1, 1, 1)
+        self.main_layout.addWidget(self.btn_rent_accept, 6, 3, 1, 1)
+
+    def handle_rent_accept_button(self, item):
+        self.user = self.session.query(User).filter(User.role == "admin").first()
+
+        rent_days = (self.planned_return_date - self.start_date).days
+        self.base_cost = rent_days * self.chosen_vehicle.cash_per_day
+        self.total_cost, discount_value, discount_type = calculate_rental_cost(
+            self.user, self.chosen_vehicle.cash_per_day, rent_days
+        )
+        total_cost_str = (
+            f"Całkowity koszt {self.total_cost} zł\n"
+            f"Kwota bazowa {self.base_cost} zł, udzielone rabaty {discount_value} zł {discount_type}"
+        )
+        self.main_layout.addWidget(self.summary_label, 7, 1, 1, 3)
+
+        self.summary_label.setText(
+            f"Całkowity koszt {self.total_cost} zł\n"
+            f"Kwota bazowa {self.base_cost} zł, udzielone rabaty {discount_value}% {discount_type}"
+        )
+        self.main_layout.addWidget(self.btn_rent_final_cancel, 8, 1, 1, 1)
+        self.main_layout.addWidget(self.btn_rent_final_accept, 8, 3, 1, 1)
+
+    def handle_rent_final_accept_button(self):
+        try:
+            reservation_id = generate_reservation_id(self.session)
+            invoice_number = generate_invoice_number(self.session, self.planned_return_date)
+
+            # Aktualizacja pojazdu
+            self.chosen_vehicle.is_available = False
+            self.chosen_vehicle.borrower_id = self.user.id
+            self.chosen_vehicle.return_date = self.planned_return_date
+            self.session.add(self.chosen_vehicle)
+
+            # Aktualizacja historii wypożyczeń
+            rental = RentalHistory(
+                reservation_id=reservation_id,
+                user_id=self.user.id,
+                vehicle_id=self.chosen_vehicle.id,
+                start_date=self.start_date,
+                planned_return_date=self.planned_return_date,
+                base_cost=self.base_cost,
+                total_cost=self.total_cost
+            )
+            self.session.add(rental)
+            self.session.flush()
+
+            # Faktura
+            invoice = Invoice(
+                invoice_number=invoice_number,
+                rental_id=rental.id,
+                amount=self.total_cost,
+                issue_date=self.planned_return_date
+            )
+
+            self.session.add_all(invoice)
+            self.session.commit()
+
+            QMessageBox.information(
+                self,
+                "Rezerwacja zakończona",
+                f"\n✅ Zarezerwowałeś {self.chosen_vehicle.brand} {self.chosen_vehicle.vehicle_model} "
+                f"od {self.start_date.toString('dd-MM-yyyy')} do {self.planned_return_date.toString('dd-MM-yyyy')}."
+                "\nMiłej jazdy!"
+            )
+
+        except Exception as e:
+            self.session.rollback()
+            # ❌ Błąd
+            QMessageBox.critical(
+                self,
+                "Błąd rezerwacji",
+                f"Wystąpił problem podczas zapisu rezerwacji.\nSzczegóły: {e}"
+            )
 
 
 
 
-    def find_vehicle_to_rent(self):
-        """
 
-        :return:
-        """
+
+
+
+
 
 
 
