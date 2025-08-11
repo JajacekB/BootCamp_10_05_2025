@@ -7,6 +7,8 @@ from PySide6.QtCore import Qt
 
 from database.base import SessionLocal
 
+from models.user import User
+
 from services.vehicle_avability import get_available_vehicles
 
 
@@ -140,22 +142,6 @@ class RemoveVehicleWidget(QWidget):
             # item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
             self.list_widget.addItem(item)
 
-    # def confirm_and_delete(self, vehicle):
-    #     msg = QMessageBox(self)
-    #     msg.setIcon(QMessageBox.Warning)
-    #     msg.setWindowTitle("Potwierdzenie usunięcia")
-    #     msg.setText(f"Czy na pewno chcesz usunąć ten pojazd?\n\n{vehicle!r}")
-    #     msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-    #     msg.setDefaultButton(QMessageBox.No)
-    #
-    #     result = msg.exec()
-    #
-    #     if result == QMessageBox.Yes:
-    #         self.session.delete(vehicle)
-    #         self.session.commit()
-    #         QMessageBox.information(self, "Usunięto", "Pojad został usunięty z bazy pojazdów.")
-    #         self.get_available_veh_list()
-
     def handle_item_clicked(self, item):
         data = item.data(Qt.UserRole)
 
@@ -182,16 +168,13 @@ class RemoveVehicleWidget(QWidget):
             QMessageBox.information(self, "Informacja", item.text())
             return
 
-        # Ukrywamy listę, pokazujemy panel potwierdzenia
         self.list_widget.setEnabled(False)
         self.confirmation_widget.setVisible(True)
 
-        # Wypełniamy label informacjami o pojeździe
         self.info_label.setText(
             f"Czy na pewno chcesz usunąć ten pojazd?\n\n{vehicle.get_display_info()}"
         )
 
-        # Zapamiętujemy pojazd do usunięcia
         self.vehicle_to_delete = vehicle
 
     def _confirm_delete(self):
@@ -216,34 +199,6 @@ class RemoveVehicleWidget(QWidget):
         self.vehicle_to_delete = None
         self.get_available_veh_list()
 
-    # def handle_single_vehicle_click(self, item):
-    #     vehicle = item.data(Qt.UserRole)
-    #
-    #     if isinstance(vehicle, list):
-    #         self.show_group_members(vehicle)
-    #         self.list_widget.itemClicked.disconnect()
-    #         self.list_widget.itemClicked.connect(self.handle_single_vehicle_click)
-    #         return
-    #
-    #     if not vehicle:
-    #         QMessageBox.information(self, "Informacja", item.text())
-    #         return
-    #
-    #     msg = QMessageBox(self)
-    #     msg.setWindowTitle("Potwierdź usunięcie pojazdu")
-    #     msg.setText("Czy na pewno chcesz usunąć ten pojazd?\n\n" + vehicle.get_display_info())
-    #     msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-    #     msg.setIcon(QMessageBox.Warning)
-    #     result = msg.exec()
-    #
-    #     if result == QMessageBox.Yes:
-    #         try:
-    #             self.session.delete(vehicle)
-    #             self.session.commit()
-    #             QMessageBox.information(self, "Sukces", "Pojazd został usunięty.")
-    #             self.get_available_veh_list()
-    #         except Exception as e:
-    #             QMessageBox.critical(self, "Błąd", f"Nie udało się usunąć pojazdu:\n{str(e)}")
 
 
 

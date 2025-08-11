@@ -20,6 +20,10 @@ class RentVehicleWidget(QWidget):
         self.session = session or SessionLocal()
         self.role = role
         self.auto = auto
+        self.start_date = None
+        self.planned_returned_date = None
+        self.vehicle_type_input = None
+        self.vehicle_type = None
 
         self.setWindowTitle("Wynajem pojazdów")
 
@@ -54,7 +58,7 @@ class RentVehicleWidget(QWidget):
         self.main_layout.addWidget(self.title_label, 0, 4, 1, 1)
 
         self.type_combo_box = QComboBox()
-        self.type_combo_box.addItems(["Wszystkie", "Samochody", "Skutery", "Rowery"])
+        self.type_combo_box.addItems(["Wszystkie", "Samochód", "Skuter", "Rower"])
 
         self.form_layout = QFormLayout()
         self.form_layout.addRow("Jaki rodzaj pojazdu chcesz wypożyczyć:", self.type_combo_box)
@@ -70,8 +74,6 @@ class RentVehicleWidget(QWidget):
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label, 2, 3, 1, 1)
 
-
-
         self.calendar_start = QCalendarWidget(self)
         self.today = QDate.currentDate()
         self.calendar_start.setSelectedDate(self.today)
@@ -84,18 +86,16 @@ class RentVehicleWidget(QWidget):
 
         btn_confirm = QPushButton("Zatwierdź")
 
-        btn_confirm.clicked.connect(self.on_confirm)
+        btn_confirm.clicked.connect(self.handle_confirm_button)
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(btn_confirm)
-        # button_layout.addWidget(btn_cancel)
 
         layout = QVBoxLayout()
         layout.addWidget(self.calendar_start)
         layout.addWidget(self.label_start)
         layout.addLayout(button_layout)
 
-        # self.setLayout(layout)
         self.main_layout.addLayout(layout, 3, 1, 1, 1)
 
         self.tomorrow = self.today.addDays(1)
@@ -110,7 +110,7 @@ class RentVehicleWidget(QWidget):
 
         btn_cancel = QPushButton("Anuluj")
 
-        btn_cancel.clicked.connect(self.cancel_button)
+        btn_cancel.clicked.connect(self.handle_cancel_button)
 
         button_layout = QHBoxLayout()
         button_layout.addWidget(btn_cancel)
@@ -121,6 +121,16 @@ class RentVehicleWidget(QWidget):
         layout.addLayout(button_layout)
 
         self.main_layout.addLayout(layout, 3, 3, 1, 1)
+
+        self.list_widget = QListWidget()
+        font = self.list_widget.font()
+        font.setFamily("Consolas")  # "Courier New", "Consolas", "DejaVu Sans Mono", "Monospace", "Monaco"
+        self.list_widget.setFont(font)
+        self.list_widget.itemClicked.connect(
+            lambda item: self.handle_single_vehicle_click(item)
+            if item.data(Qt.UserRole) is not None else None
+        )
+        self.main_layout.addWidget(self.list_widget, 4, 1, 1, 3)
 
 
 
@@ -155,7 +165,7 @@ class RentVehicleWidget(QWidget):
 
         self.label_end.setText(f"Wybrany koniec najmu: {end_date.toString('dd-MM-yyyy')}")
 
-    def cancel_button(self):
+    def handle_cancel_button(self):
 
         self.calendar_start.setSelectedDate(self.today)
         self.label_start.setText(f"Wybrany początek najmu: {self.today.toString('dd-MM-yyyy')}")
@@ -167,11 +177,174 @@ class RentVehicleWidget(QWidget):
         self.type_combo_box.setCurrentIndex(0)
 
 
-    def confirm_button(self):
+    def handle_confirm_button(self):
+        start_date_input = self.calendar_start.selectedDate()
+        self.start_date = date(start_date_input.year(), start_date_input.month(), start_date_input.day())
+
+        end_date_input = self.calendar_end.selectedDate()
+        self.planned_returned_date = date(end_date_input.year(), end_date_input.month(), end_date_input.day())
+
+        self.vehicle_type_input = self.type_combo_box.currentText()
+
+        vehicle_type_map = {
+            "Wszystkie": "all",
+            "Samochód": "car",
+            "Skuter": "scooter",
+            "Rower": "bike"
+        }
+        self.vehicle_type = vehicle_type_map.get(self.vehicle_type_input)
+        vehicles_to_rent = get_available_vehicles(
+            self.session, self.start_date, self.planned_returned_date, self.vehicle_type
+        )
+
+        if self.vehicle_type == "all":
+            self.list_widget.clear()
+
+            vehicles_to_rent = get_available_vehicles(self.session, self.start_date, self.planned_returned_date)
+
+            vehicles_sorted = sorted(
+                vehicles_to_rent,
+                key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model)
+            )
+            grouped = defaultdict(list)
+            for v in (vehicles_sorted):
+                key = (v.brand, v.vehicle_model, v.cash_per_day, v.type)
+                grouped[key].append(v)
+
+            header = f"|{'#':>4}|{'Typ':>9} | {'Marka':<15}| {'Model':<15}|{'Cena':>13} |"
+            self.list_widget.addItem(header)
+            self.list_widget.addItem("-" * len(header))
+
+            for index, ((brand, model, price, v_type), vehicle) in enumerate(grouped.items(), start=1):
+                formatted_price = f"{price:.2f} zł"
+
+                display_text = (
+                    f"|{index:>4}|{v_type:>9} |{brand:<15} | {model:<15}|{formatted_price:>13} |"
+                )
+                # f"|{index:>4}|{v_type:>11}|{brand:<17}|{model:<17}|{formatted_price:>15}|{len(scooter):^9}|"
+                item = QListWidgetItem(display_text)
+                item.setData(Qt.UserRole, vehicle)
+                self.list_widget.addItem(item)
+
+        elif self.vehicle_type == "car":
+            self.list_widget.clear()
+
+            vehicles_to_rent = get_available_vehicles(
+                self.session, self.start_date, self.planned_returned_date, self.vehicle_type
+            )
+            vehicles_sorted = sorted(
+                vehicles_to_rent,
+                key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model, v.fuel_type)
+            )
+            grouped = defaultdict(list)
+            for v in (vehicles_sorted):
+                key = (v.brand, v.vehicle_model, v.cash_per_day, v.size, v.fuel_type)
+                grouped[key].append(v)
+
+            header = f"|{'#':>4} | {'Marka':<11}| {'Model':<11}| {'Rodzaj':<11}| {'Paliwo':<11}|{'Cena':>13} |"
+            self.list_widget.addItem(header)
+            self.list_widget.addItem("-" * len(header))
+
+            for index, ((brand, model, price, size, fuel_type), cars) in enumerate(grouped.items(), start=1):
+                formatted_price = f"{price:.2f} zł"
+
+                display_text = (
+                    f"|{index:>4} | {brand:<11}| {model:<11}| {size:<11}| {fuel_type:<11}|{formatted_price:>13} |"
+                )
+                item = QListWidgetItem(display_text)
+                item.setData(Qt.UserRole, cars)
+                self.list_widget.addItem(item)
+
+        elif self.vehicle_type == "scooter":
+            self.list_widget.clear()
+
+            vehicles_to_rent = get_available_vehicles(
+                self.session, self.start_date, self.planned_returned_date, self.vehicle_type
+            )
+            vehicles_sorted = sorted(
+                vehicles_to_rent,
+                key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model)
+            )
+            grouped = defaultdict(list)
+            for v in (vehicles_sorted):
+                key = (v.brand, v.vehicle_model, v.cash_per_day, v.max_speed)
+                grouped[key].append(v)
+
+            header = f"|{'#':>4} | {'Marka':<11}| {'Model':<11}|{'Prędkość max':>13} |{'Cena':>13} |"
+            self.list_widget.addItem(header)
+            self.list_widget.addItem("-" * len(header))
+
+            for index, ((brand, model, price, max_speed), scooter) in enumerate(grouped.items(), start=1):
+                formatted_price = f"{price:.2f} zł"
+
+                display_text = (
+                    f"|{index:>4} | {brand:<11}| {model:<11}|{max_speed:>13} |{formatted_price:>13} |"
+                )
+                item = QListWidgetItem(display_text)
+                item.setData(Qt.UserRole, scooter)
+                self.list_widget.addItem(item)
+
+        elif self.vehicle_type == "bike":
+            self.list_widget.clear()
+
+            vehicles_to_rent = get_available_vehicles(
+                self.session, self.start_date, self.planned_returned_date, self.vehicle_type
+            )
+            vehicles_sorted = sorted(
+                vehicles_to_rent,
+                key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model)
+            )
+            grouped = defaultdict(list)
+            for v in (vehicles_sorted):
+                key = (v.brand, v.vehicle_model, v.cash_per_day, v.bike_type, v.is_electric)
+                grouped[key].append(v)
+
+            header = f"|{'#':>4}| {'Marka':<13}| {'Model':<15}| {'Rodzaj':<23}|{'Cena':>11} |"
+            self.list_widget.addItem(header)
+            self.list_widget.addItem("-" * len(header))
+
+            for index, ((brand, model, price, bike_type, is_electric), bike) in enumerate(grouped.items(), start=1):
+                formatted_price = f"{price:.2f} zł"
+                if is_electric:
+                    bike_variety = f"{bike_type} - elektryczny"
+                else:
+                    bike_variety = f"{bike_type} - klasyczny"
+
+                display_text = (
+                    f"|{index:>4}| {brand:<13}| {model:<15}| {bike_variety:23}|{formatted_price:>11} |"
+                )
+                item = QListWidgetItem(display_text)
+                item.setData(Qt.UserRole, bike)
+                self.list_widget.addItem(item)
+
+
+        if not vehicles_to_rent:
+            print("\n🚫 Brak pasujących pojazdów.")
+            return
+
+
+
+
+
+
+
+
+
+
+    def handle_single_vehicle_click(self, item):
+        def handle_single_vehicle_click(self, item):
+            if item.data(Qt.UserRole) == "header":
+                return  # ignorujemy kliknięcie w nagłówek
+
+
+
+
+    def find_vehicle_to_rent(self):
         """
 
         :return:
         """
+
 
 
 

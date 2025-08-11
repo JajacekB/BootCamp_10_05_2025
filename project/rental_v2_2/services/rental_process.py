@@ -51,7 +51,7 @@ def rent_vehicle_for_client(session, user: User):
         rent_vehicle(session=session, user=client)
         return
 
-# @with_session_if_needed
+
 def rent_vehicle(session=None, user: User = None):
     print("\n=== WYPOŻYCZENIE POJAZDU ===\n")
 
