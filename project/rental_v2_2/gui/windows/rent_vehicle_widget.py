@@ -84,12 +84,15 @@ class RentVehicleWidget(QWidget):
 
         self.calendar_start.selectionChanged.connect(self.update_start_label)
 
-        btn_confirm = QPushButton("Zatwierdź")
-
-        btn_confirm.clicked.connect(self.handle_confirm_button)
+        btn_cancel = QPushButton("Anuluj")
+        btn_cancel.clicked.connect(self.handle_cancel_button)
+        btn_cancel.setStyleSheet(
+            "background-color: green;"
+            " font-size: 20px; color: white;"
+            " border-radius: 8px; padding: 10px; ")
 
         button_layout = QHBoxLayout()
-        button_layout.addWidget(btn_confirm)
+        button_layout.addWidget(btn_cancel)
 
         layout = QVBoxLayout()
         layout.addWidget(self.calendar_start)
@@ -108,12 +111,15 @@ class RentVehicleWidget(QWidget):
 
         self.calendar_end.selectionChanged.connect(self.update_end_label)
 
-        btn_cancel = QPushButton("Anuluj")
-
-        btn_cancel.clicked.connect(self.handle_cancel_button)
+        btn_confirm = QPushButton("Zatwierdź")
+        btn_confirm.clicked.connect(self.handle_confirm_button)
+        btn_confirm.setStyleSheet(
+            "background-color: red;"
+            " font-size: 20px; color: white;"
+            " border-radius: 8px; padding: 10px; ")
 
         button_layout = QHBoxLayout()
-        button_layout.addWidget(btn_cancel)
+        button_layout.addWidget(btn_confirm)
 
         layout = QVBoxLayout()
         layout.addWidget(self.calendar_end)
@@ -211,7 +217,7 @@ class RentVehicleWidget(QWidget):
                 key = (v.brand, v.vehicle_model, v.cash_per_day, v.type)
                 grouped[key].append(v)
 
-            header = f"|{'#':>4}|{'Typ':>9} | {'Marka':<15}| {'Model':<15}|{'Cena':>13} |"
+            header = f"|{'#':>4}| {'Typ':<9}| {'Marka':<15}| {'Model':<15}|{'Cena':>13} |"
             self.list_widget.addItem(header)
             self.list_widget.addItem("-" * len(header))
 
@@ -219,7 +225,7 @@ class RentVehicleWidget(QWidget):
                 formatted_price = f"{price:.2f} zł"
 
                 display_text = (
-                    f"|{index:>4}|{v_type:>9} |{brand:<15} | {model:<15}|{formatted_price:>13} |"
+                    f"|{index:>4}| {v_type:<9}|{brand:<15} | {model:<15}|{formatted_price:>13} |"
                 )
                 # f"|{index:>4}|{v_type:>11}|{brand:<17}|{model:<17}|{formatted_price:>15}|{len(scooter):^9}|"
                 item = QListWidgetItem(display_text)
