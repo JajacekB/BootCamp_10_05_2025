@@ -19,14 +19,12 @@ from database.base import SessionLocal
 
 class RentVehicleWidget(QWidget):
 
-    def __init__(self, session = None, role = "admin", auto = False):
+    def __init__(self, session = None, user = None, auto = False):
         super().__init__()
 
         self.session = session or SessionLocal()
-        self.role = role
+        self.user = user
         self.auto = auto
-        self.role = role
-        self.user = None
         self.start_date = None
         self.planned_return_date = None
         self.vehicle_type_input = None
@@ -420,7 +418,7 @@ class RentVehicleWidget(QWidget):
         self.append_layout.addWidget(self.btn_rent_accept, 1, 3, 1, 1)
 
     def handle_rent_accept_button(self, item):
-        self.user = self.session.query(User).filter(User.role == "admin").first()
+        # self.user = self.session.query(User).filter(User.role == "admin").first()
 
         rent_days = (self.planned_return_date - self.start_date).days
         self.base_cost = rent_days * self.chosen_vehicle.cash_per_day

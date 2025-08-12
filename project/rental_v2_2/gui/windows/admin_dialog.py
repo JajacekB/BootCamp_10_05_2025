@@ -47,10 +47,6 @@ class AdminDialog(QMainWindow):
         self.grid_layout.setColumnStretch(0, 0)  # menu nie rozciąga się
         self.grid_layout.setColumnStretch(1, 1)  # dynamic_area zajmuje resztę
 
-        # self.grid_layout.setColumnStretch(0, 1)
-        # self.grid_layout.setColumnStretch(1, 1)
-        # self.grid_layout.setColumnStretch(2, 1)
-
         central_widget.setLayout(self.grid_layout)
         self.current_widget = None
 

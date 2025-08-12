@@ -281,7 +281,7 @@ class AppController(QObject):
             controller=self
         )
         self.seller_dialog.logout.connect(self.logout)
-        self.admin_dialog.command_selected.connect(self._handle_seller_command)
+        self.seller_dialog.command_selected.connect(self._handle_seller_command)
 
         self.seller_dialog.showMaximized()
         self.seller_dialog.raise_()
@@ -313,7 +313,7 @@ class AppController(QObject):
             controller=self
         )
         self.client_dialog.logout.connect(self.logout)
-        self.admin_dialog.command_selected.connect(self._handle_client_command)
+        self.client_dialog.command_selected.connect(self._handle_client_command)
 
         self.client_dialog.showMaximized()
         self.client_dialog.raise_()
@@ -352,7 +352,7 @@ class AppController(QObject):
 
     def show_rent_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano rent_vehicle_widget()")
-        self.rent_vehicle_widget = RentVehicleWidget(self.db_session)
+        self.rent_vehicle_widget = RentVehicleWidget(self.db_session, self.current_user)
         self.show_widget(self.rent_vehicle_widget)
 
 

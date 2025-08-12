@@ -16,11 +16,10 @@ class LoginDialog(QDialog):
     def __init__(self, db_session, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Logowanie do MOTO VIBE 3000")
-        self.db_session = db_session # Pass the database session to the dialog
+        self.db_session = db_session
 
-        self.setFixedSize(400, 300) # Set a fixed size for the dialog
+        self.setFixedSize(400, 300)
 
-        # Set background to 18% gray, consistent with StartWindow
         palette = QPalette()
         palette.setColor(QPalette.Window, QColor("#2e2e2e"))
         self.setPalette(palette)

@@ -98,35 +98,32 @@ class DeleteUsersWidget(QWidget):
         main_layout.addStretch()
         self.setLayout(main_layout)
 
-
-    def _choice_client_to_delete(self, user_role = "client"):
+    def _choice_client_to_delete(self, user_role="client"):
         self.list_widget.clear()
 
         try:
-            vehicle_with_rent = self.session.query(Vehicle).filter(
-                Vehicle.is_available == False
-            ).all()
+            # ID klientów, którzy aktualnie mają wypożyczone pojazdy
+            active_renters_ids = {
+                v.borrower_id
+                for v in self.session.query(Vehicle.borrower_id)
+                .filter(Vehicle.is_available == False, Vehicle.borrower_id != None)
+                .distinct()
+            }
 
-            if not vehicle_with_rent:
-                QMessageBox.information(self, "Informacja", "Brak klientów bez wypożyczenia.")
-                return
-
-            user_ids = [u.borrower_id for u in vehicle_with_rent]
-
+            # Wszyscy użytkownicy, którzy NIE są w tej liście
             candidates_to_delete = self.session.query(User).filter(
-                User.id.notin_(user_ids),
+                User.id.notin_(active_renters_ids),
                 User.role == user_role
             ).all()
 
-            candidates_view = defaultdict(list)
-            for u in (candidates_to_delete):
-                key = (u.id, u.first_name, u.last_name, u.login)
-                candidates_view[key].append(u)
+            if not candidates_to_delete:
+                QMessageBox.information(self, "Informacja", "Brak klientów bez aktywnego wypożyczenia.")
+                return
 
-            for (uid, first_name, last_name, login) in candidates_view:
-                user_strs = f"ID: [{uid:03d}]  -  {first_name} {last_name},  login: {login}."
+            for u in candidates_to_delete:
+                user_strs = f"ID: [{u.id:03d}]  -  {u.first_name} {u.last_name},  login: {u.login}."
                 item = QListWidgetItem(user_strs)
-                item.setData(Qt.UserRole, uid)
+                item.setData(Qt.UserRole, u.id)
                 self.list_widget.addItem(item)
 
         except Exception as e:
