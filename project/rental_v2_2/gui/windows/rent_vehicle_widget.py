@@ -145,11 +145,35 @@ class RentVehicleWidget(QWidget):
         )
         self.main_layout.addWidget(self.list_widget, 4, 1, 1, 3)
 
-        self.confirmation_widget = QWidget()
-        self.confirmation_layout = QVBoxLayout(self.confirmation_widget)
+        self.main_layout.addWidget(self._build_dynamic_area(), 5, 0, 1, 5)
+
+
+        col_count = self.main_layout.columnCount()
+        for col in range(col_count):
+            self.main_layout.setColumnStretch(col, 1)
+
+        last_row = self.main_layout.rowCount()
+        self.main_layout.setRowStretch(last_row, 1)
+
+        self.setLayout(self.main_layout)
+
+    def _build_dynamic_area(self):
+        # 1. Tworzę kontener QWidget
+        self.dynamic_widget = QWidget()
+
+        # 2. Wkładam w niego QGridLayout
+        self.append_layout = QGridLayout()
+        self.append_layout.setAlignment(Qt.AlignTop)
+        self.dynamic_widget.setLayout(self.append_layout)
+
+        self.info_0_label = QLabel()
+        self.info_0_label.setWordWrap(True)
 
         self.info_label = QLabel()
         self.info_label.setWordWrap(True)
+
+        self.info_5_label = QLabel()
+        self.info_5_label.setWordWrap(True)
 
         self.btn_rent_cancel = QPushButton("Anuluj")
         # self.btn_rent_cancel.clicked.connect(self.handle_rent_cancel_button)
@@ -182,18 +206,7 @@ class RentVehicleWidget(QWidget):
             " font-size: 18px; color: white;"
             " border-radius: 8px; padding: 6px; ")
 
-
-
-
-
-        col_count = self.main_layout.columnCount()
-        for col in range(col_count):
-            self.main_layout.setColumnStretch(col, 1)
-
-        last_row = self.main_layout.rowCount()
-        self.main_layout.setRowStretch(last_row, 1)
-
-        self.setLayout(self.main_layout)
+        return self.dynamic_widget
 
     def update_start_label(self):
         start_date = self.calendar_start.selectedDate()
@@ -396,13 +409,15 @@ class RentVehicleWidget(QWidget):
             self.chosen_vehicle = group[0] if group else None
             rental_count = 0
 
-        self.main_layout.addWidget(self.info_label, 5, 1, 1, 3)
+        self.append_layout.addWidget(self.info_0_label, 0, 0, 1, 1)
+        self.append_layout.addWidget(self.info_label, 0, 1, 1, 3)
+        self.append_layout.addWidget(self.info_5_label, 0, 5, 1, 1)
 
         self.info_label.setText(
             f"Czy na pewno chcesz wypozyczyć ten pojazd?\n\n{self.chosen_vehicle.get_display_info()}"
         )
-        self.main_layout.addWidget(self.btn_rent_cancel, 6, 1, 1, 1)
-        self.main_layout.addWidget(self.btn_rent_accept, 6, 3, 1, 1)
+        self.append_layout.addWidget(self.btn_rent_cancel, 1, 1, 1, 1)
+        self.append_layout.addWidget(self.btn_rent_accept, 1, 3, 1, 1)
 
     def handle_rent_accept_button(self, item):
         self.user = self.session.query(User).filter(User.role == "admin").first()
@@ -416,14 +431,14 @@ class RentVehicleWidget(QWidget):
             f"Całkowity koszt {self.total_cost} zł\n"
             f"Kwota bazowa {self.base_cost} zł, udzielone rabaty {discount_value} zł {discount_type}"
         )
-        self.main_layout.addWidget(self.summary_label, 7, 1, 1, 3)
+        self.append_layout.addWidget(self.summary_label, 2, 1, 1, 3)
 
         self.summary_label.setText(
             f"Całkowity koszt {self.total_cost} zł\n"
             f"Kwota bazowa {self.base_cost} zł, udzielone rabaty {discount_value}% {discount_type}"
         )
-        self.main_layout.addWidget(self.btn_rent_final_cancel, 8, 1, 1, 1)
-        self.main_layout.addWidget(self.btn_rent_final_accept, 8, 3, 1, 1)
+        self.append_layout.addWidget(self.btn_rent_final_cancel, 3, 1, 1, 1)
+        self.append_layout.addWidget(self.btn_rent_final_accept, 3, 3, 1, 1)
 
     def handle_rent_final_accept_button(self):
         try:
@@ -457,14 +472,14 @@ class RentVehicleWidget(QWidget):
                 issue_date=self.planned_return_date
             )
 
-            self.session.add_all(invoice)
+            self.session.add_all([invoice])
             self.session.commit()
 
             QMessageBox.information(
                 self,
                 "Rezerwacja zakończona",
                 f"\n✅ Zarezerwowałeś {self.chosen_vehicle.brand} {self.chosen_vehicle.vehicle_model} "
-                f"od {self.start_date.toString('dd-MM-yyyy')} do {self.planned_return_date.toString('dd-MM-yyyy')}."
+                f"od {self.start_date} do {self.planned_return_date}."
                 "\nMiłej jazdy!"
             )
 
@@ -476,18 +491,6 @@ class RentVehicleWidget(QWidget):
                 "Błąd rezerwacji",
                 f"Wystąpił problem podczas zapisu rezerwacji.\nSzczegóły: {e}"
             )
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

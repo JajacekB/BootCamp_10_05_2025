@@ -13,6 +13,7 @@ from gui.windows.register_wiget import RegisterWidget
 from gui.windows.get_users_widget import GetUsersWidget
 from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.add_vehicle_widget import AddVehicleWidget
+from gui.windows.rent_vehicle_widget import RentVehicleWidget
 from gui.windows.delete_client_widget import DeleteUsersWidget
 from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
 
@@ -216,7 +217,7 @@ class AppController(QObject):
             "7": lambda: self.show_remove_vehicle_widget(),
             "8": lambda: self.show_get_vehicle_widget(),
 
-            "9": lambda: rent_vehicle_for_client(self.db_session, self.current_user),
+            "9": lambda: self.show_rent_vehicle_widget(),
             "10": lambda: return_vehicle(self.db_session, self.current_user),
             "11": lambda: repair_vehicle(self.db_session),
 
@@ -290,8 +291,8 @@ class AppController(QObject):
 
     def _handle_client_command(self, command_num: str):
         commands = {
-            "1": lambda: get_vehicle(self.db_session, only_available=True),
-            "2": lambda: rent_vehicle(self.db_session, self.current_user),
+            "1": lambda: self.show_get_vehicle_widget(),
+            "2": lambda: self.show_rent_vehicle_widget(),
             "3": lambda: return_vehicle(self.db_session, self.current_user),
             "4": lambda: update_profile(self.db_session, self.current_user)
         }
@@ -348,6 +349,11 @@ class AppController(QObject):
         print("🔧🔧🔧 Wywołano remove_vehicle_widget()")
         self.remove_vehicle_widget = RemoveVehicleWidget(self.db_session)
         self.show_widget(self.remove_vehicle_widget)
+
+    def show_rent_vehicle_widget(self):
+        print("🔧🔧🔧 Wywołano rent_vehicle_widget()")
+        self.rent_vehicle_widget = RentVehicleWidget(self.db_session)
+        self.show_widget(self.rent_vehicle_widget)
 
 
     def show_widget(self, widget: QWidget):
