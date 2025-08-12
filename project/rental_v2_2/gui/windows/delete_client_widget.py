@@ -102,7 +102,7 @@ class DeleteUsersWidget(QWidget):
         self.list_widget.clear()
 
         try:
-            # ID klientów, którzy aktualnie mają wypożyczone pojazdy
+
             active_renters_ids = {
                 v.borrower_id
                 for v in self.session.query(Vehicle.borrower_id)
@@ -110,10 +110,10 @@ class DeleteUsersWidget(QWidget):
                 .distinct()
             }
 
-            # Wszyscy użytkownicy, którzy NIE są w tej liście
             candidates_to_delete = self.session.query(User).filter(
                 User.id.notin_(active_renters_ids),
-                User.role == user_role
+                User.role == user_role,
+                User.is_active == True
             ).all()
 
             if not candidates_to_delete:
@@ -168,15 +168,16 @@ class DeleteUsersWidget(QWidget):
                 QMessageBox.warning(self, "Błąd", "Nie wybrano użytkownika.")
                 return
 
-            self.session.delete(self.user)
+            self.user.is_active = False
             self.session.commit()
-            QMessageBox.information(self, "Sukces", "Użytkownik został usunięty.")
+
+            QMessageBox.information(self, "Sukces", "Użytkownik został dezaktywowany.")
 
             self._hide_summary()
             self.list_widget.clear()
 
         except Exception as e:
-            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas usuwania użytkownika:\n{e}")
+            QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas dezaktywacji użytkownika:\n{e}")
 
 
 

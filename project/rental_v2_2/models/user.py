@@ -1,7 +1,7 @@
 # directory: models
 # file: user.py
 
-from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy import Column, Integer, String, Date, Boolean
 from sqlalchemy.orm import relationship
 from datetime import date
 from database.base import Base
@@ -23,6 +23,7 @@ class User(Base):
     password_hash = Column(String, nullable=False)
     address = Column(String, nullable=True)
     registration_day = Column(Date, default=date.today)
+    is_active = Column(Boolean, nullable=False, default=True)
 
     vehicles = relationship("Vehicle", back_populates="borrower")
     rental_history = relationship("RentalHistory", back_populates="user")
