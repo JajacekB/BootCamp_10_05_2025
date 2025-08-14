@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt, Signal
 from gui.windows.register_wiget import RegisterWidget
 
 
+
 class AdminDialog(QMainWindow):
     command_selected = Signal(str)
     logout = Signal(object)
@@ -18,6 +19,11 @@ class AdminDialog(QMainWindow):
         self.controller = controller
         self.dynamic_area = QFrame()
         self.current_widget = None
+
+        try:
+            self.controller.show_overdue_rentals_widget()
+        except Exception as e:
+            print(f"❌ Błąd podczas sprawdzania zaległości: {e}")
 
         self.setWindowTitle("Menu Admina")
         self.setStyleSheet("""

@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, Q
         QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox
     )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFontInfo
+
 
 from gui.windows.calendar_combo_widget import CalendarCombo
 from services.rental_costs import recalculate_cost
@@ -27,20 +27,20 @@ class ReturnVehicleWidget(QWidget):
         self.setWindowTitle("Zwroty")
 
         self.setStyleSheet("""
-                    QWidget {
-                        background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
-                        color: #eee; /* Jasny kolor tekstu */
-                        font-size: 16px;
-                    }
-                    QPushButton {
-                        background-color: #555;
-                        border-radius: 5px;
-                        padding: 5px;
-                    }
-                    QLineEdit {
-                        font-size: 14px;
-                    }
-                """)
+            QWidget {
+                background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
+                color: #eee; /* Jasny kolor tekstu */
+                font-size: 16px;
+            }
+            QPushButton {
+                background-color: #555;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QLineEdit {
+                font-size: 14px;
+            }
+        """)
         self._build_ui()
 
 
@@ -68,17 +68,9 @@ class ReturnVehicleWidget(QWidget):
             font.setFamily("Menlo")
         else:  # Linux i inne
             font.setFamily("DejaVu Sans Mono")
-
         self.rentals_list.setFont(font)
-
         self.rentals_list.addItem("")
-        row_height = self.rentals_list.sizeHintForRow(0)
-        self.rentals_list.clear()
-        min_rows = 6
-        max_rows = 12
-        self.rentals_list.setMinimumHeight(row_height * min_rows + 2)
-        self.rentals_list.setMaximumHeight(row_height * max_rows + 2)
-
+        self.adjust_list_height()
         self.main_layout.addWidget(self.rentals_list)
         self.rentals_list.itemClicked.connect(self.show_rental_details)
 
@@ -228,10 +220,6 @@ class ReturnVehicleWidget(QWidget):
         self.finish_rental_label.show()
         self.cancel_button.show()
         self.finish_button.show()
-
-        rental = item.data(Qt.UserRole)
-        if rental is None:
-            return
 
         rental_text = (
             f"Czy chcesz zakończyć ten wynajem?\n\n"

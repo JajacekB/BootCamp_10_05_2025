@@ -54,7 +54,7 @@ def repair_vehicle(session):
     repair_days = get_positive_int(f"Podaj szacunkową ilość dni naprawy: ")
 
     today = date.today()
-    planned_end_date = datetime.today().date() + timedelta(days=repair_days)
+    planned_start_date = datetime.today().date() + timedelta(days=repair_days)
 
     broken_veh = session.query(Vehicle).filter(
         Vehicle.id == broken_veh_id
@@ -71,7 +71,7 @@ def repair_vehicle(session):
     broken_rent = session.query(RentalHistory).filter(
         RentalHistory.vehicle_id == broken_veh_id,
         today <= RentalHistory.planned_return_date,
-        RentalHistory.start_date <= planned_end_date
+        RentalHistory.start_date <= planned_start_date
     ).first()
 
     # jeśli brak najmu - oddanie do naprawy
@@ -185,7 +185,7 @@ def mark_as_under_repair(session, vehicle, repair_days):
     workshop_choice = get_positive_int("Wybierz numer warsztatu: ", max_value=len(workshops)) - 1
     selected_workshop = workshops[workshop_choice]
 
-    planned_end_date = date.today() + timedelta(days=repair_days)
+    planned_return_date = date.today() + timedelta(days=repair_days)
 
     repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy: ")
     repair_cost = repair_cost_per_day * repair_days
@@ -200,7 +200,7 @@ def mark_as_under_repair(session, vehicle, repair_days):
         vehicle_id=vehicle.id,
         mechanic_id=selected_workshop.id,
         start_date=date.today(),
-        planned_end_date=planned_end_date,
+        planned_return_date=planned_return_date,
         actual_return_date=None,
         cost=repair_cost,
         description=description
@@ -210,11 +210,11 @@ def mark_as_under_repair(session, vehicle, repair_days):
     # Aktualizacja pojazdu
     vehicle.is_available = False
     vehicle.borrower_id = selected_workshop.id
-    vehicle.return_date = planned_end_date
+    vehicle.return_date = planned_return_date
 
     session.commit()
     print(
         f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
-        f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planned_end_date}."
+        f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planned_return_date}."
     )
     return True

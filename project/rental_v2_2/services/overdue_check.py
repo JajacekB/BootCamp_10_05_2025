@@ -45,7 +45,7 @@ def check_overdue_vehicles(session, user):
         repair = session.query(RepairHistory).filter_by(
             vehicle_id=vehicle.id,
             mechanic_id=vehicle.borrower_id
-        ).order_by(RepairHistory.planned_end_date.desc()).first()
+        ).order_by(RepairHistory.planned_return_date.desc()).first()
 
         if rental and repair:
             print(f"\n⚠️ UWAGA! Pojazd ID: {vehicle.id} figuruje jako wypożyczony i w naprawie!")

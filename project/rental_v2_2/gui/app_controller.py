@@ -17,6 +17,7 @@ from gui.windows.rent_vehicle_widget import RentVehicleWidget
 from gui.windows.delete_client_widget import DeleteUsersWidget
 from gui.windows.return_vehicle_widget import ReturnVehicleWidget
 from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
+from gui.windows.overdue_rentals_widget import OverdueRentalsWidget
 
 from services.repair import repair_vehicle
 from services.overdue_check import check_overdue_vehicles
@@ -360,6 +361,11 @@ class AppController(QObject):
         print("🔧🔧🔧 Wywołano return_vehicle_widget()")
         self.return_vehicle_widget = ReturnVehicleWidget(self.db_session, self.current_user)
         self.show_widget(self.return_vehicle_widget)
+
+    def show_overdue_rentals_widget(self):
+        print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")
+        self.overdue_vehicle_rentals = OverdueRentalsWidget(self.db_session, self.current_user)
+        self.show_widget(self.overdue_vehicle_rentals)
 
     def show_widget(self, widget: QWidget):
         if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):
