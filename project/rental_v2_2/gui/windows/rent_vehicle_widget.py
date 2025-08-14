@@ -1,3 +1,4 @@
+import platform
 import sys
 from sqlalchemy import func, asc
 from datetime import date, datetime, timedelta
@@ -134,9 +135,16 @@ class RentVehicleWidget(QWidget):
         self.main_layout.addLayout(layout, 3, 3, 1, 1)
 
         self.list_widget = QListWidget()
-        font = self.list_widget.font()
-        font.setFamily("Consolas")  # "Courier New", "Consolas", "DejaVu Sans Mono", "Monospace", "Monaco"
-        self.list_widget.setFont(font)
+        font = self.rentals_list.font()
+        system = platform.system()
+        if system == "Windows":
+            font.setFamily("Consolas")
+        elif system == "Darwin":  # macOS
+            font.setFamily("Menlo")
+        else:  # Linux i inne
+            font.setFamily("DejaVu Sans Mono")
+
+        self.rentals_list.setFont(font)
         self.list_widget.itemClicked.connect(
             lambda item: self.handle_single_vehicle_click(item)
             if item.data(Qt.UserRole) is not None else None

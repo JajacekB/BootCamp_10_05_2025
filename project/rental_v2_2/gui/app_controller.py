@@ -15,6 +15,7 @@ from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.add_vehicle_widget import AddVehicleWidget
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
 from gui.windows.delete_client_widget import DeleteUsersWidget
+from gui.windows.return_vehicle_widget import ReturnVehicleWidget
 from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
 
 from services.repair import repair_vehicle
@@ -251,14 +252,14 @@ class AppController(QObject):
     def _handle_seller_command(self, command_num: str):
         commands = {
             "1": lambda: self.handle_register_widget(),
-            "2": lambda: remove_user(self.db_session),
-            "3": lambda: get_clients(self.db_session),
+            "2": lambda: self.show_delete_client_widget(),
+            "3": lambda: self.show_get_vehicle_widget(),
 
-            "4": lambda: add_vehicles_batch(self.db_session),
-            "5": lambda: remove_vehicle(self.db_session),
-            "6": lambda: get_vehicle(self.db_session),
+            "4": lambda: self.show_add_vehicle_widget(),
+            "5": lambda: self.show_remove_vehicle_widget(),
+            "6": lambda: self.show_get_vehicle_widget(),
 
-            "7": lambda: rent_vehicle_for_client(self.db_session, self.current_user),
+            "7": lambda: self.show_rent_vehicle_widget(),
             "8": lambda: return_vehicle(self.db_session, self.current_user),
             "9": lambda: repair_vehicle(self.db_session),
 
@@ -293,7 +294,7 @@ class AppController(QObject):
         commands = {
             "1": lambda: self.show_get_vehicle_widget(),
             "2": lambda: self.show_rent_vehicle_widget(),
-            "3": lambda: return_vehicle(self.db_session, self.current_user),
+            "3": lambda: self.show_return_vehicle_widget(),
             "4": lambda: update_profile(self.db_session, self.current_user)
         }
         action = commands.get(command_num)
@@ -355,6 +356,10 @@ class AppController(QObject):
         self.rent_vehicle_widget = RentVehicleWidget(self.db_session, self.current_user)
         self.show_widget(self.rent_vehicle_widget)
 
+    def show_return_vehicle_widget(self):
+        print("🔧🔧🔧 Wywołano return_vehicle_widget()")
+        self.return_vehicle_widget = ReturnVehicleWidget(self.db_session, self.current_user)
+        self.show_widget(self.return_vehicle_widget)
 
     def show_widget(self, widget: QWidget):
         if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):

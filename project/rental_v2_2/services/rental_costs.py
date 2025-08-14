@@ -43,8 +43,6 @@ def calculate_rental_cost(user, daily_rate, rental_days):
 
 
 def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, reservation_id: str):
-    # Rozdzielenie przypadków; przed czasem, aktualny, przeterminowany
-
     rental_looked = session.query(RentalHistory).filter(
         RentalHistory.reservation_id == reservation_id
     ).first()
@@ -54,28 +52,49 @@ def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, r
 
     planned_return_date = rental_looked.planned_return_date
     start_date = rental_looked.start_date
-    base_cost = rental_looked.base_cost
-
+    base_to_calculate = rental_looked.total_cost
     cash_per_day = vehicle.cash_per_day
 
+    discount_info = ""
+
     if return_date < start_date:
+        extra_fee = 0
         total_cost = cash_per_day
-        overdue_fee_text = f"(Skrócenie rezerwacji – kara {cash_per_day} zł)"
-    if return_date > planned_return_date:
+        case_text = f"📅 Rezerwacja anulowana przed rozpoczęciem. Opłata karna: {cash_per_day:.2f} zł."
+
+    elif return_date > planned_return_date:
         extra_days = (return_date - planned_return_date).days
         extra_fee = extra_days * cash_per_day
-        total_cost = base_cost + extra_fee
-        overdue_fee_text = f"\n{base_cost} zł opłata bazowa + {extra_days * cash_per_day} zł kara za przeterminowanie.)"
+        total_cost = base_to_calculate + extra_fee
+        case_text = (
+            f"⏰ Zwrot po terminie — opłata bazowa: {base_to_calculate:.2f} zł + "
+            f"kara za {extra_days} dni spóźnienia: {extra_fee:.2f} zł."
+        )
+
     elif return_date == planned_return_date:
         extra_fee = 0
-        total_cost = base_cost
-        overdue_fee_text = " (zwrot terminowy)"
-    else:
-        new_period = (planned_return_date - start_date).days
-        extra_fee = 0
-        total_cost = calculate_rental_cost(user, cash_per_day, new_period)
-        overdue_fee_text = " (zwrot przed terminem, naliczono koszt zgodnie z czasem użytkowania)"
+        total_cost = base_to_calculate
+        case_text = "✅ Zwrot terminowy — brak dodatkowych opłat."
 
-        return total_cost, extra_fee, overdue_fee_text
+    else:
+        new_period = (return_date - start_date).days
+        extra_fee = 0
+        price, discount_percent, discount_type = calculate_rental_cost(user, cash_per_day, new_period)
+        total_cost = price
+        discount_info = (
+            f" Rabat: {discount_percent:.0f}% ({discount_type})." if discount_type != "brak" else ""
+        )
+        case_text = (
+            f"🏎 Zwrot przed terminem — opłata naliczona za {new_period} dni użytkowania: "
+            f"{price:.2f} zł.{discount_info}"
+        )
+
+
+    summary_text = (
+        f"\n💸 — KKW (Rzeczywisty Koszt Wynajmu): {total_cost:.2f} zł.\n"
+        f"{case_text}"
+    )
+
+    return total_cost, extra_fee, summary_text
 
 
