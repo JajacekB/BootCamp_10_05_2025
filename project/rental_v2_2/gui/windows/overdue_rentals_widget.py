@@ -77,6 +77,59 @@ class OverdueRentalsWidget(QWidget):
         self.main_layout.addWidget(self.overdue_rental_detail, alignment=Qt.AlignLeft)
 
 
+        hbox1 = QHBoxLayout()
+
+        self.cancel_button = QPushButton("Anuluj")
+        self.cancel_button.hide()
+        self.cancel_button.setStyleSheet(
+            "background-color: red;"
+            " font-size: 20px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
+        self.cancel_button.setFixedSize(150, 45)
+        # self.cancel_button.clicked.connect(self.cancel_rentals)
+        hbox1.addWidget(self.cancel_button)
+
+        self.finish_button = QPushButton("Tak")
+        self.finish_button.hide()
+        self.finish_button.setStyleSheet(
+            "background-color: green;"
+            " font-size: 20px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
+        self.finish_button.setFixedSize(150, 45)
+        self.finish_button.clicked.connect(self.overdue_finish)
+        hbox1.addWidget(self.finish_button)
+
+        hbox1.addStretch()
+        self.main_layout.addLayout(hbox1)
+
+
+        hbox2 = QHBoxLayout()
+
+        self.calendar_comment_label = QLabel("Podaj rzeczywistą datę zwrotu: ")
+        self.calendar_comment_label.hide()
+        hbox2.addWidget(self.calendar_comment_label)
+
+        self.calendar_input = CalendarCombo()
+        self.calendar_input.hide()
+        hbox2.addWidget(self.calendar_input)
+
+        self.date_approve = QPushButton("Zatwierdź datę")
+        self.date_approve.hide()
+        self.date_approve.setStyleSheet(
+            "background-color: grey;"
+            " font-size: 20px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
+        self.date_approve.setFixedSize(150, 45)
+        # self.finish_button.clicked.connect(self.overdue_finish)
+        hbox2.addWidget(self.date_approve)
+
+        hbox2.addStretch()
+        self.main_layout.addLayout(hbox2)
+
+
+
+
+
 
 
 
@@ -175,35 +228,26 @@ class OverdueRentalsWidget(QWidget):
         self.overdue_rental_detail.clear()
 
         obj = item.data(Qt.UserRole)
-        if isinstance(obj, RentalHistory):
-            print(obj.actual_return_date, obj.total_cost)
-        elif isinstance(obj, RepairHistory):
-            print(obj.actual_return_date, obj.repair_type)
 
-        if isinstance(obj, RentalHistory):
-            end_date = obj.actual_return_date or obj.planned_return_date
-            id_number = obj.reservation_id
-            cost = obj.total_cost
-        elif isinstance(obj, RepairHistory):
-            end_date = obj.planned_return_date
-            id_number = obj.repair_id
-            cost = obj.cost
-        else:
-            end_date = None
-            id_number = None
-            cost = None
+        id_number = getattr(obj, 'reservation_id', None) if isinstance(obj, RentalHistory) else getattr(obj,
+            'repair_id', None)
+        cost = getattr(obj, 'total_cost', None) if isinstance(obj, RentalHistory) else getattr(obj, 'cost', None)
 
         overdues_text = (
             f"Czy chcesz zakończyć?\n\n"
             f"ID: {id_number}\n"
             f"Pojazd: {obj.vehicle.brand} {obj.vehicle.vehicle_model}\n"
             f"Wynajęty od: {obj.start_date.strftime('%d-%m-%Y')} "
-            f"do: {end_date.strftime('%d-%m-%Y')}\n"
-            f"Do zapłaty: {obj.total_cost} zł")
-
+            f"do: {obj.planned_return_date.strftime('%d-%m-%Y')}\n"
+            f"Do zapłaty: {cost} zł")
 
         self.overdue_rental_detail.setText(overdues_text)
-        self.overdue_rental_detail.show()
+        for widget in (self.overdue_rental_detail, self.cancel_button, self.finish_button):
+            widget.show()
+
+    def overdue_finish(self):
+        for widget in (self.calendar_comment_label, self.calendar_input, self.date_approve):
+            widget.show()
 
 
 

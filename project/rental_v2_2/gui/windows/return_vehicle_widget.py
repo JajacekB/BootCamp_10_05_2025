@@ -86,10 +86,7 @@ class ReturnVehicleWidget(QWidget):
 
         self.grid_layout = QGridLayout()
         self.grid_widget = QWidget()
-        # self.grid_widget.setStyleSheet("background-color: #2e2e2e;")
         self.grid_widget.setLayout(self.grid_layout)
-        # placeholder = QLabel("")
-        # self.grid_layout.addWidget(placeholder, 0, 0)
         self.main_layout.addWidget(self.grid_widget)
 
         self.finish_rental_label = QLabel()

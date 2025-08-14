@@ -14,9 +14,12 @@ class CalendarCombo(QWidget):
 
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
+        self.setFixedWidth(150)
+        self.layout.setSpacing(0)
 
         # Pole tekstowe
         self.line_edit = QLineEdit()
+        # self.line_edit.setFixedWidth(120)
         self.line_edit.setText(self.selected_date.toString("dd-MM-yyyy"))
         self.layout.addWidget(self.line_edit)
 
@@ -24,8 +27,9 @@ class CalendarCombo(QWidget):
         self.button = QToolButton()
         self.button.setText("▼")
         self.layout.addWidget(self.button)
-
         self.button.clicked.connect(self.show_calendar)
+
+        self.layout.addStretch(0)
 
     def show_calendar(self):
         dlg = QDialog(self)
@@ -56,6 +60,7 @@ class CalendarCombo(QWidget):
     def update_date(self, dlg):
         self.selected_date = self.cal.selectedDate()
         self.line_edit.setText(self.selected_date.toString("dd-MM-yyyy"))
+        dlg.accept()
 
     def get_date(self):
         """Zwraca aktualnie wybraną datę jako QDate"""
