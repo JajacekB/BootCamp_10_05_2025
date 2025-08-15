@@ -187,11 +187,11 @@ class AppController(QObject):
 
         print(f"Wyświetlam menu dla roli: {user.role}")
 
-        if user.role in ("seller", "admin"):
-            try:
-                check_overdue_vehicles(self.db_session, user)
-            except Exception as e:
-                print(f"❌ Błąd podczas sprawdzania zaległości: {e}")
+        # if user.role in ("seller", "admin"):
+        #     try:
+        #         check_overdue_vehicles(self.db_session, user)
+        #     except Exception as e:
+        #         print(f"❌ Błąd podczas sprawdzania zaległości: {e}")
 
         if user.role == "admin":
             self._show_admin_menu()

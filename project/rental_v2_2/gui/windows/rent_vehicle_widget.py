@@ -135,7 +135,7 @@ class RentVehicleWidget(QWidget):
         self.main_layout.addLayout(layout, 3, 3, 1, 1)
 
         self.list_widget = QListWidget()
-        font = self.rentals_list.font()
+        font = self.list_widget.font()
         system = platform.system()
         if system == "Windows":
             font.setFamily("Consolas")
@@ -144,7 +144,7 @@ class RentVehicleWidget(QWidget):
         else:  # Linux i inne
             font.setFamily("DejaVu Sans Mono")
 
-        self.rentals_list.setFont(font)
+        self.list_widget.setFont(font)
         self.list_widget.itemClicked.connect(
             lambda item: self.handle_single_vehicle_click(item)
             if item.data(Qt.UserRole) is not None else None

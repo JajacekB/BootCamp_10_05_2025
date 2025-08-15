@@ -2,7 +2,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QLabel, QVBoxLayout,
     QPushButton, QGridLayout, QFrame
 )
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from gui.windows.register_wiget import RegisterWidget
 
 
@@ -20,10 +20,7 @@ class AdminDialog(QMainWindow):
         self.dynamic_area = QFrame()
         self.current_widget = None
 
-        try:
-            self.controller.show_overdue_rentals_widget()
-        except Exception as e:
-            print(f"❌ Błąd podczas sprawdzania zaległości: {e}")
+
 
         self.setWindowTitle("Menu Admina")
         self.setStyleSheet("""
@@ -108,6 +105,8 @@ class AdminDialog(QMainWindow):
         self.dynamic_area.setLayout(QVBoxLayout())
         self.grid_layout.addWidget(self.dynamic_area, 0, 1, 1, 2)  # kolumny 1 i 2
 
+        QTimer.singleShot(0, lambda: self._safe_show_overdue_rentals())
+
     def show_register_widget(self, role: str = None, auto: bool = False):
         self.register_widget = RegisterWidget(
             session=self.session,
@@ -154,3 +153,9 @@ class AdminDialog(QMainWindow):
         self.clear_dynamic_area()
         self.dynamic_area.layout().addWidget(widget)
         self.current_widget = widget
+
+    def _safe_show_overdue_rentals(self):
+        try:
+            self.controller.show_overdue_rentals_widget()
+        except Exception as e:
+            print(f"❌ Błąd podczas sprawdzania zaległości: {e}")

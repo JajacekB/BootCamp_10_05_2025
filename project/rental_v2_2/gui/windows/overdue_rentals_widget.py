@@ -120,29 +120,20 @@ class OverdueRentalsWidget(QWidget):
             " font-size: 20px; color: white;"
             " border-radius: 8px; padding: 6px; ")
         self.date_approve.setFixedSize(150, 45)
-        self.finish_button.clicked.connect(self.overdue_update_database)
+        self.date_approve.clicked.connect(self.overdue_update_database)
         hbox2.addWidget(self.date_approve)
 
         hbox2.addStretch()
         self.main_layout.addLayout(hbox2)
-
-
-
-
-
-
 
         self.main_layout.addStretch()
 
         self.setLayout(self.main_layout)
 
 
-
-
-
     def overdue_vehicle_rentals(self):
-        # if self.user.role not in ("seller", "admin"):
-        #     return
+        if self.user.role not in ("seller", "admin"):
+            return
 
         try:
             today = date.today()
@@ -229,13 +220,17 @@ class OverdueRentalsWidget(QWidget):
             'repair_id', None)
         cost = getattr(obj, 'total_cost', None) if isinstance(obj, RentalHistory) else getattr(obj, 'cost', None)
 
+        self.user = self.session.query(User).filter(User.id == obj.user_id).first()
+
         overdues_text = (
             f"Czy chcesz zakończyć?\n\n"
             f"ID: {id_number}\n"
             f"Pojazd: {obj.vehicle.brand} {obj.vehicle.vehicle_model}\n"
             f"Wynajęty od: {obj.start_date.strftime('%d-%m-%Y')} "
             f"do: {obj.planned_return_date.strftime('%d-%m-%Y')}\n"
-            f"Do zapłaty: {cost} zł")
+            f"Do zapłaty: {cost} zł\n"
+            f"Wynajęty przez: {self.user.first_name} {self.user.last_name}."
+        )
 
         self.overdue_rental_detail.setText(overdues_text)
         for widget in (self.overdue_rental_detail, self.cancel_button, self.finish_button):
@@ -250,9 +245,10 @@ class OverdueRentalsWidget(QWidget):
         actual_return_date_input = self.calendar_input.get_date()
         actual_return_date = actual_return_date_input.toPython()
 
-        obj = item.data(Qt.UserRole)
+        for item in self.rentals_list.selectedItems():
+            obj = item.data(Qt.UserRole)
 
-        if isinstance(obj, RentalHistory):
+        if isinstance(obj, RepairHistory):
             obj.actual_return_date = actual_return_date
             obj.vehicle.is_available = True
             obj.vehicle.borrower_id = None
@@ -265,13 +261,12 @@ class OverdueRentalsWidget(QWidget):
                 "pojazd wrócił z naprawy."
             )
 
-        elif isinstance(obj, RepairHistory):
+        elif isinstance(obj, RentalHistory):
 
-            user = self.session.query(User).filter(User.id == obj.user_id).first()
 
             total_cost, extra_fee, summary_text = recalculate_cost(
                 self.session,
-                user,
+                self.user,
                 obj.vehicle,
                 actual_return_date,
                 obj.reservation_id
