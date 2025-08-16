@@ -1,5 +1,4 @@
-import sys
-import platform
+import sys, platform
 
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox,
         QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox
@@ -36,7 +35,7 @@ class OverdueRentalsWidget(QWidget):
             }
             QPushButton {
                 background-color: #555;
-                border-radius: 5px;
+                border-radius: 6px;
                 padding: 5px;
             }
             QLineEdit {
@@ -84,7 +83,7 @@ class OverdueRentalsWidget(QWidget):
         self.cancel_button.setStyleSheet(
             "background-color: red;"
             " font-size: 20px; color: white;"
-            " border-radius: 8px; padding: 6px; ")
+            )
         self.cancel_button.setFixedSize(150, 45)
         # self.cancel_button.clicked.connect(self.cancel_rentals)
         hbox1.addWidget(self.cancel_button)
@@ -94,7 +93,7 @@ class OverdueRentalsWidget(QWidget):
         self.finish_button.setStyleSheet(
             "background-color: green;"
             " font-size: 20px; color: white;"
-            " border-radius: 8px; padding: 6px; ")
+            )
         self.finish_button.setFixedSize(150, 45)
         self.finish_button.clicked.connect(self.overdue_finish)
         hbox1.addWidget(self.finish_button)
@@ -118,7 +117,7 @@ class OverdueRentalsWidget(QWidget):
         self.date_approve.setStyleSheet(
             "background-color: grey;"
             " font-size: 20px; color: white;"
-            " border-radius: 8px; padding: 6px; ")
+            )
         self.date_approve.setFixedSize(150, 45)
         self.date_approve.clicked.connect(self.overdue_update_database)
         hbox2.addWidget(self.date_approve)
