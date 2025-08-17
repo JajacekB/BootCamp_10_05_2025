@@ -182,12 +182,21 @@ class GetVehicleWidget(QWidget):
             pass
 
     def adjust_list_height(self):
-        row_height = self.vehicle_list.sizeHintForRow(0) if self.vehicle_list.count() > 0 else 20
-        visible_rows = max(5, min(self.vehicle_list.count(), 10))
-        spacing = self.vehicle_list.spacing() if hasattr(self.vehicle_list, "spacing") else 2
+        count = self.vehicle_list.count()
+        row_height = self.vehicle_list.sizeHintForRow(0) if count > 0 else 20
         frame = 2 * self.vehicle_list.frameWidth()
-        new_height = visible_rows * row_height + (visible_rows - 1) * spacing + frame
-        self.vehicle_list.setFixedHeight(new_height)
+        new_height = min(10, max(5, count)) * row_height + frame
+        self.vehicle_list.setMinimumHeight(new_height)
+        self.vehicle_list.setMaximumHeight(new_height)
+
+    # def adjust_list_height(self):
+    #     row_height = self.vehicle_list.sizeHintForRow(0) if self.vehicle_list.count() > 0 else 20
+    #     visible_rows = max(5, min(self.vehicle_list.count(), 10))
+    #     spacing = self.vehicle_list.spacing() if hasattr(self.vehicle_list, "spacing") else 2
+    #     frame = 2 * self.vehicle_list.frameWidth()
+    #     new_height = visible_rows * row_height + (visible_rows - 1) * spacing + frame
+    #     count = self.vehicle_list.count()
+    #     self.vehicle_list.setFixedHeight(new_height)
 
 
 

@@ -325,7 +325,6 @@ class RepairVehicleWidget(QWidget):
         item = f"Wybrano: {self.vehicle.brand} {self.vehicle.vehicle_model}  [{self.vehicle.individual_id}]"
         self.description = self.input_area_3.text()
 
-
         for text in [item, work_user_str, self.description, f"Liczba dni w naprawie: {repair_days}",
                     f"Całkowity koszt naprawy: {self.total_cost} zł"]:
             self.get_vehicle_widget.vehicle_list.addItem(text)
@@ -340,12 +339,13 @@ class RepairVehicleWidget(QWidget):
         ).first()
 
         if not broken_rent:
+            self.finalize_repair(self.session)
+            return True
 
-            self.mark_as_repair(self.session)
 
         self.get_vehicle_widget.vehicle_list.addItem("PYRAŻKA !!!")
 
-    def mark_as_repair(self, session):
+    def finalize_repair(self, session):
         self.container_hbox0.hide()
         self.container_hbox1.hide()
         self.container_hbox2.hide()
@@ -369,16 +369,29 @@ class RepairVehicleWidget(QWidget):
         self.vehicle.borrower_id = self.work_user.id
         self.vehicle.return_date = self.planned_return_date
 
-        session.commit()
+        try:
+            self.session.commit()
 
-        final_text = (
-            f"\nPojazd: {self.vehicle.brand} {self.vehicle.vehicle_model} {self.vehicle.individual_id}\n"
-            f"\nprzekazany do warsztatu: {self.work_user.first_name} {self.work_user.last_name} do dnia {self.planned_return_date}."
-        )
-        self.get_vehicle_widget.vehicle_list.clear()
-        self.get_vehicle_widget.vehicle_list.addItem(final_text)
-        self.get_vehicle_widget.vehicle_list.adjustSize()
-        return True
+            final_text_0 = " "
+            final_text_1 = (
+                f"Pojazd: {self.vehicle.brand} {self.vehicle.vehicle_model} {self.vehicle.individual_id}"
+            )
+            final_text_2 = (
+                f"przekazany do warsztatu: {self.work_user.first_name} {self.work_user.last_name} do dnia {self.planned_return_date}."
+            )
+            self.get_vehicle_widget.vehicle_list.addItem(final_text_0)
+            self.get_vehicle_widget.vehicle_list.addItem(final_text_1)
+            self.get_vehicle_widget.vehicle_list.addItem(final_text_2)
+            self.get_vehicle_widget.adjust_list_height()
+
+        except Exception as e:
+            self.session.rollback()
+            QMessageBox.critical(
+                self,
+                "Błąd zapisu",
+                f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
+            )
+
 
 
 
