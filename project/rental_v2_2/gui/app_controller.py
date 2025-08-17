@@ -20,9 +20,7 @@ from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
 from gui.windows.overdue_rentals_widget import OverdueRentalsWidget
 
 from services.repair import repair_vehicle
-from services.overdue_check import check_overdue_vehicles
-from services.user_service import remove_user, get_clients, update_profile
-from services.vehicle_management import add_vehicles_batch, remove_vehicle, get_vehicle
+from services.user_service import update_profile
 from services.rental_process import rent_vehicle_for_client, return_vehicle, rent_vehicle
 
 
@@ -186,12 +184,6 @@ class AppController(QObject):
             return
 
         print(f"Wyświetlam menu dla roli: {user.role}")
-
-        # if user.role in ("seller", "admin"):
-        #     try:
-        #         check_overdue_vehicles(self.db_session, user)
-        #     except Exception as e:
-        #         print(f"❌ Błąd podczas sprawdzania zaległości: {e}")
 
         if user.role == "admin":
             self._show_admin_menu()

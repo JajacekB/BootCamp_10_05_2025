@@ -1,5 +1,6 @@
 import sys
 import platform
+from sqlalchemy import func
 
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox,
         QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox, QLineEdit, QSizePolicy
@@ -8,11 +9,13 @@ from PySide6.QtCore import Qt, QTimer
 from datetime import date, timedelta
 from gui.app_controller import AppController
 from gui.windows.get_vehicle_widget import GetVehicleWidget
+from models.user import User
 
 from database.base import SessionLocal
 from models.repair_history import RepairHistory
 from models.vehicle import Vehicle
 from models.rental_history import RentalHistory
+from services.user_service import get_users_by_role
 
 
 class RepairVehicleWidget(QWidget):
@@ -100,8 +103,7 @@ class RepairVehicleWidget(QWidget):
         self.hbox1 = QHBoxLayout(self.container_hbox1)
 
         self.comment_label_1 = QLabel(
-            "Wybierz pojazd, który chcesz oddac do naprawy z listy "
-            "lub wpisz jego numer katalogowy (vehicle_id):"
+            "Wybierz warsztat do którego oddajesz pojazd:"
         )
         self.comment_label_1.setWordWrap(True)
         self.comment_label_1.setStyleSheet("font-size: 18px; ")
@@ -110,7 +112,7 @@ class RepairVehicleWidget(QWidget):
         self.hbox1.addWidget(self.comment_label_1, alignment=Qt.AlignRight)
 
         self.combo_area_1 = QComboBox()
-        self.combo_area_1.addItems(["a", "b", "c"])
+        self.combo_area_1.addItems([])
         self.combo_area_1.setStyleSheet("font-size: 18px")
         self.combo_area_1.setFixedWidth(270)
         self.combo_area_1.setFixedHeight(30)
@@ -123,7 +125,7 @@ class RepairVehicleWidget(QWidget):
             "background-color: grey;"
             " font-size: 22px; color: white;"
         )
-        self.confirm_button_1_1.clicked.connect(self.handle_input_id)
+        # self.confirm_button_1_1.clicked.connect(self.handle_input_id)
         self.hbox1.addWidget(self.confirm_button_1_1)
 
         self.confirm_button_1_2 = QPushButton("Zatwierdź")
@@ -133,12 +135,57 @@ class RepairVehicleWidget(QWidget):
             " font-size: 22px; color: white;"
         )
         self.confirm_button_1_2.hide()
-        self.confirm_button_1_2.clicked.connect(self.handle_data_2)
+        # self.confirm_button_1_2.clicked.connect(self.handle_data_2)
         self.hbox1.addWidget(self.confirm_button_1_2)
 
         self.hbox1.addStretch()
+        self.container_hbox1.hide()
 
         self.main_layout.addWidget(self.container_hbox1)
+
+
+        self.container_hbox2 = QWidget()
+        self.hbox2 = QHBoxLayout(self.container_hbox2)
+
+        self.comment_label_2 = QLabel(
+            "Podaj koszt naprawy liczony za jeden dzień:"
+        )
+        self.comment_label_2.setWordWrap(True)
+        self.comment_label_2.setStyleSheet("font-size: 18px; ")
+        self.comment_label_2.setFixedWidth(500)
+        self.comment_label_2.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
+        self.hbox2.addWidget(self.comment_label_2, alignment=Qt.AlignRight)
+
+        self.input_area_2 = QLineEdit()
+        self.input_area_2.setStyleSheet("font-size: 18px")
+        self.input_area_2.setFixedWidth(270)
+        self.input_area_2.setFixedHeight(30)
+        self.input_area_2.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.hbox2.addWidget(self.input_area_2)
+
+        self.confirm_button_2_1 = QPushButton("Zatwierdź")
+        self.confirm_button_2_1.setFixedSize(150, 45)
+        self.confirm_button_2_1.setStyleSheet(
+            "background-color: grey;"
+            " font-size: 22px; color: white;"
+        )
+        self.confirm_button_2_1.clicked.connect(self.handle_data_1)
+        self.hbox2.addWidget(self.confirm_button_2_1)
+
+        self.confirm_button_2_2 = QPushButton("Zatwierdź")
+        self.confirm_button_2_2.setFixedSize(150, 45)
+        self.confirm_button_2_2.setStyleSheet(
+            "background-color: grey;"
+            " font-size: 22px; color: white;"
+        )
+        self.confirm_button_2_2.hide()
+        # self.confirm_button_2_2.clicked.connect(self.handle_data_2)
+        self.hbox2.addWidget(self.confirm_button_2_2)
+
+        self.hbox2.addStretch()
+        self.container_hbox2.hide()
+
+        self.main_layout.addWidget(self.container_hbox2)
 
 
 
@@ -153,7 +200,7 @@ class RepairVehicleWidget(QWidget):
         self.process_vehicle(vehicle)
 
     def handle_input_id(self):
-        vehicle_id = self.input_area_1.text().capitalize()
+        vehicle_id = self.input_area_0.text().capitalize()
         vehicle = self.session.query(Vehicle).filter_by(vehicle_id=vehicle_id).first()
 
         if vehicle:
@@ -162,54 +209,105 @@ class RepairVehicleWidget(QWidget):
             QMessageBox.warning(self, "Błąd", f"Nie znaleziono pojazdu o id {vehicle_id}")
 
     def process_vehicle(self, vehicle: Vehicle):
+        self.vehicle = vehicle
         self.get_vehicle_widget.vehicle_list.clear()
 
         print(f"Przetwarzam pojazd: {vehicle.brand} {vehicle.vehicle_model}")
 
-        display_text = f"Wybrano: {vehicle.brand} {vehicle.vehicle_model}  [{vehicle.individual_id}]"
+        display_text = f"Wybrano: {self.vehicle.brand} {self.vehicle.vehicle_model}  [{self.vehicle.individual_id}]"
         item = QListWidgetItem(display_text)
         item.setFlags(Qt.NoItemFlags)
         self.get_vehicle_widget.vehicle_list.addItem(item)
         self.get_vehicle_widget.adjust_list_height()
 
-        today = date.today()
-        planned_start_date = date.today() + timedelta(days=7)
-        broken_rent = self.session.query(RentalHistory).filter(
-            RentalHistory.vehicle_id == vehicle.vehicle_id,
-            today <= RentalHistory.planned_return_date,
-            RentalHistory.start_date <= planned_start_date
-        ).first()
+        self.workshops = get_users_by_role(self.session, "workshop")
+        for w in self.workshops:
+            workshop_name = f"{w.first_name} {w.last_name}"
+            self.combo_area_1.addItem(workshop_name, userData=w)
 
+        self.comment_label_0.clear()
+        self.comment_label_0.setText("Podaj ilość dni naprawy: ")
+        self.input_area_0.clear()
+        self.confirm_button_0_1.hide()
 
-        if not broken_rent:
-            self.handle_data_1(self.session)
+        self.container_hbox1.show()
+        self.confirm_button_1_1.hide()
+        self.confirm_button_1_2.hide()
+
+        self.container_hbox2.show()
+        self.confirm_button_2_2.hide()
 
 
     def handle_data_1(self, session):
-        self.comment_label_1.clear()
-        self.comment_label_1.setText("Podaj ilość dni naprawy: ")
-        self.input_area_1.clear()
-        self.confirm_button_1.hide()
-        self.confirm_button_2.show()
+        self.get_vehicle_widget.vehicle_list.clear()
 
-    def handle_data_2(self, session):
-        repair_days_input = self.input_area_1.text()
+        repair_days_input = self.input_area_0.text()
         try:
             repair_days = int(repair_days_input)
             if repair_days <= 0:
                 self.comment_label_1.setText("Błąd, liczba dni musi być większa od 0")
-                self.input_area_1.clear()
+                self.input_area_0.clear()
                 return
             self.repair_days = repair_days
         except ValueError:
             self.comment_label_1.setText("Błąd, Podaj prawidłową liczbę dni naprawy")
-            self.input_area_1.clear()
+            self.input_area_0.clear()
             return
 
-        # text_1 = f"Liczba dni w naprawie: {repair_days}"
-        self.get_vehicle_widget.vehicle_list.addItem(f"Liczba dni w naprawie: {repair_days}")
+        repair_rates_input = self.input_area_2.text()
+        try:
+            repair_rates = int(repair_rates_input)
+            if repair_rates <= 0:
+                self.comment_label_1.setText("Błąd, liczba dni musi być większa od 0")
+                self.input_area_0.clear()
+                return
+            self.repair_rates = repair_rates
+        except ValueError:
+            self.comment_label_1.setText("Błąd, Podaj prawidłową liczbę dni naprawy")
+            self.input_area_0.clear()
+            return
+
+        index = self.combo_area_1.currentIndex()
+        self.work_user = self.combo_area_1.itemData(index)
+        work_user_str = f"Wybrano: {self.work_user.first_name} {self.work_user.last_name}"
+        self.total_cost =  repair_rates * repair_days
+        item = f"Wybrano: {self.vehicle.brand} {self.vehicle.vehicle_model}  [{self.vehicle.individual_id}]"
+
+
+        for text in [item, work_user_str, f"Liczba dni w naprawie: {repair_days} zł",
+                    f"Całkowity koszt naprawy: {self.total_cost}"]:
+            self.get_vehicle_widget.vehicle_list.addItem(text)
         self.get_vehicle_widget.adjust_list_height()
-        self.comment_label_1.clear()
+
+        today = date.today()
+        self.planned_return_date = date.today() + timedelta(days=repair_days)
+        broken_rent = self.session.query(RentalHistory).filter(
+            RentalHistory.vehicle_id == self.vehicle.id,
+            func.date(RentalHistory.start_date) <= self.planned_return_date,
+            func.date(RentalHistory.planned_return_date) >= today
+        ).first()
+
+        if not broken_rent:
+
+            self.get_vehicle_widget.vehicle_list.addItem("SYKCES !!!")
+            self.handle_data_2(self.session)
+
+        self.get_vehicle_widget.vehicle_list.addItem("PYRAŻKA !!!")
+
+
+
+        """
+
+        :param session:
+        :return:
+        """
+
+
+
+
+    def handle_data_2(self, session):
+        self.get_vehicle_widget.vehicle_list.addItem("SYKCES !!!")
+
 
 
 
