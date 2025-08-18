@@ -19,7 +19,7 @@ from services.user_service import get_users_by_role
 from services.id_generators import generate_repair_id
 # from services.rental_costs import calculate_rental_cost
 from services.vehicle_avability import get_available_vehicles
-
+from repositories.get_methods import get_rental_for_vehicle
 from repositories.repair_service import finalize_repair, finish_after_vehicle_swap
 
 
@@ -303,6 +303,7 @@ class RepairVehicleWidget(QWidget):
 
 
     def handle_data_1(self):
+        # Wywołana przez: self.confirm_button_3_1.clicked.connect(self.handle_data_1)
 
         print("🔧 step 3")
 
@@ -348,20 +349,16 @@ class RepairVehicleWidget(QWidget):
 
         today = date.today()
         self.planned_return_date = date.today() + timedelta(days=repair_days)
-        self.rental = self.session.query(RentalHistory).filter(
-            RentalHistory.vehicle_id == self.vehicle.id,
-            func.date(RentalHistory.start_date) <= self.planned_return_date,
-            func.date(RentalHistory.planned_return_date) >= today
-        ).first()
+        self.rental = get_rental_for_vehicle(
+            session=self.session,
+            vehicle_id=self.vehicle.id,
+            planned_return_date=self.planned_return_date
+        )
 
         if not self.rental:
 
             print("🔧 step 4a")
-            finalize_repair(
-                self.session, self.vehicle,
-                self.work_user, self.planned_return_date,
-                self.total_cost, self.description
-            )
+            self.on_finalize_clicked()
             return True
 
         print("🔧 step 4b")
@@ -376,10 +373,42 @@ class RepairVehicleWidget(QWidget):
         self.combo_area_1.clear()
         self.combo_area_1.addItems(["Kontynuuje wynajem", "Kończy wynajem"])
         self.confirm_button_1_1.show() # button przekierowuje do handle_choice_rental
-
-
         return None
 
+
+    def on_finalize_clicked(self):
+        try:
+            repair = finalize_repair(
+                self.session,
+                self.vehicle,
+                self.work_user,
+                self.planned_return_date,
+                self.total_cost,
+                self.description
+            )
+
+            # 👇 teraz GUI robi swoje
+            self.container_hbox0.hide()
+            self.container_hbox1.hide()
+            self.container_hbox2.hide()
+            self.container_hbox3.hide()
+
+            self.get_vehicle_widget.vehicle_list.addItem(" ")
+            self.get_vehicle_widget.vehicle_list.addItem(
+                f"Pojazd: {self.vehicle.brand} {self.vehicle.vehicle_model} {self.vehicle.individual_id}"
+            )
+            self.get_vehicle_widget.vehicle_list.addItem(
+                f"przekazany do warsztatu: {self.work_user.first_name} {self.work_user.last_name} "
+                f"do dnia {self.planned_return_date}."
+            )
+            self.get_vehicle_widget.adjust_list_height()
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Błąd zapisu - naprawa",
+                f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
+            )
 
 
     def handle_choice_rental(self):
@@ -389,7 +418,6 @@ class RepairVehicleWidget(QWidget):
         index = self.combo_area_1.currentText()
 
         if index == "Kończy wynajem":
-
             self.finish_broken_rental()
             pass
 
@@ -410,8 +438,8 @@ class RepairVehicleWidget(QWidget):
             self.get_vehicle_widget.vehicle_list.addItem(final_text_1)
             self.get_vehicle_widget.adjust_list_height()
 
-            self.finish_after_vehicle_swap(self.session, self.vehicle, self.replacement_vehicle, False)
-            self.finalize_repair(self.session)
+            self.on_finish_swap_clicked(self.session, self.vehicle, self.replacement_vehicle, False)
+            self.on_finalize_clicked(self.session)
             return True
 
 
@@ -420,89 +448,42 @@ class RepairVehicleWidget(QWidget):
 
         pass
 
-    # def finish_after_vehicle_swap(self): # (self, session, vehicle, replacement_vehicle, rental, different_price: bool):
-    #     today = date.today()
-    #
-    #     old_rental_cost = self.rental.total_cost
-    #     old_rental_period = (self.rental.planned_return_date - self.rental.start_date).days
-    #     real_rental_days_old = (today - self.rental.start_date).days
-    #     real_rental_days_new = (self.rental.planned_return_date - today).days
-    #
-    #     if real_rental_days_old < 1:
-    #         real_rental_days_old = 1
-    #     if real_rental_days_new < 0:
-    #         real_rental_days_new = 0
-    #
-    #     # Oblicz koszt pojazdu zepsutego
-    #     broken_veh_cost = old_rental_cost * real_rental_days_old / old_rental_period
-    #
-    #     different_price = False
-    #
-    #     # Oblicz koszt pojazdu zastępczego
-    #     if different_price:
-    #         user = self.session.query(User).filter(User.id == self.vehicle.user_id).first()
-    #         replacement_full_cost, _, _ = self.calculate_rental_cost(user, self.replacement_vehicle.cash_per_day, old_rental_period)
-    #         replacement_partial_cost = replacement_full_cost * real_rental_days_new / old_rental_period
-    #
-    #     else:
-    #         replacement_veh_cost = old_rental_cost - broken_veh_cost
-    #
-    #     # Aktualizacja statusu pojazdu zwracanego
-    #     self.vehicle.is_available = True
-    #     self.vehicle.borrower_id = None
-    #     self.vehicle.return_date = None
-    #
-    #     # Aktualizacja statusu pojazdu zastępczego
-    #     self.replacement_vehicle.is_available = False
-    #     self.replacement_vehicle.borrower_id = self.rental.user_id
-    #     self.replacement_vehicle.return_date = self.rental.planned_return_date
-    #
-    #     # Korekta historii najmu pojazdu popsutego
-    #     self.rental.actual_return_date = today
-    #     self.rental.total_cost = round(broken_veh_cost, 2)
-    #
-    #     # Nowa rezerwacja dla pojazdu zastępczego
-    #     base_res_id = self.rental.reservation_id
-    #     existing = self.session.query(RentalHistory).filter(
-    #         RentalHistory.reservation_id.like(f"{base_res_id}%")
-    #     ).all()
-    #
-    #     new_suffix = chr(65 + len(existing))  # 'A', 'B', 'C', ...
-    #     new_res_id = f"{base_res_id}{new_suffix}"
-    #
-    #     new_rental = RentalHistory(
-    #         reservation_id=new_res_id,
-    #         user_id=self.rental.user_id,
-    #         vehicle_id=self.replacement_vehicle.id,
-    #         start_date=today,
-    #         planned_return_date=self.rental.planned_return_date,
-    #         base_cost=round(replacement_veh_cost, 2),
-    #         total_cost=round(replacement_veh_cost, 2),
-    #     )
-    #     self.session.add(new_rental)
-    #     try:
-    #         self.session.commit()
-    #
-    #         final_text_0 = " "
-    #         final_text_1 = (
-    #             f"Wydano pojazd zastępczy: {self.replacement_vehicle.brand} {self.replacement_vehicle.vehicle_model} "
-    #             f"{self.replacement_vehicle.individual_id}"
-    #         )
-    #
-    #         self.get_vehicle_widget.vehicle_list.addItem(final_text_0)
-    #         self.get_vehicle_widget.vehicle_list.addItem(final_text_1)
-    #         self.get_vehicle_widget.adjust_list_height()
-    #
-    #     except Exception as e:
-    #         self.session.rollback()
-    #         QMessageBox.critical(
-    #             self,
-    #             "Błąd zapisu",
-    #             f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
-    #         )
-    #
-    #     self.finalize_repair(self.session)
-    #     return True
+    def on_finish_swap_clicked(self):
+        try:
+            result = finish_after_vehicle_swap(
+                self.session,
+                self.vehicle,
+                self.replacement_vehicle,
+                different_price=False
+            )
+
+            replacement_vehicle = result["replacement_vehicle"]
+            broken_cost = result["broken_veh_cost"]
+
+            # GUI: aktualizacja listy i informacji
+            self.get_vehicle_widget.vehicle_list.addItem(" ")
+            self.get_vehicle_widget.vehicle_list.addItem(
+                f"Wydano pojazd zastępczy: {replacement_vehicle.brand} "
+                f"{replacement_vehicle.vehicle_model} {replacement_vehicle.individual_id}"
+            )
+            self.get_vehicle_widget.adjust_list_height()
+
+            # wywołujesz finalize_repair (też w wersji serwisowej)
+            finalize_repair(
+                self.session,
+                self.vehicle,
+                self.work_user,
+                self.planned_return_date,
+                self.total_cost,
+                self.description
+            )
+
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Błąd zapisu",
+                f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
+            )
 
 
     def finish_broken_rental(self):
@@ -519,9 +500,9 @@ class RepairVehicleWidget(QWidget):
             Invoice.rental_id == rental_id
         ).first()
 
-        # if not invoice:
-        #     print("Nie ma faktury o podanym numerze id.")
-        #     return False
+        if not invoice:
+            print("Nie ma faktury o podanym numerze id.")
+            return False
 
         self.vehicle.is_available = True
         self.vehicle.borrower_id = None
@@ -554,60 +535,9 @@ class RepairVehicleWidget(QWidget):
                 f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
             )
 
-        self.finalize_repair(self.session)
+        self.on_finalize_clicked()
         pass
 
-
-
-    # def finalize_repair(self, session):
-    #
-    #     print("🔧 step 5a")
-    #
-    #     self.container_hbox0.hide()
-    #     self.container_hbox1.hide()
-    #     self.container_hbox2.hide()
-    #     self.container_hbox3.hide()
-    #
-    #     repair_id = generate_repair_id(self.session)
-    #
-    #     # Generowanie naprawy
-    #     repair = RepairHistory(
-    #         repair_id=repair_id,
-    #         vehicle_id=self.vehicle.id,
-    #         mechanic_id=self.work_user.id,
-    #         start_date=date.today(),
-    #         planned_return_date=self.planned_return_date,
-    #         cost=self.total_cost,
-    #         description=self.description)
-    #     self.session.add(repair)
-    #
-    #     # Aktualizacja pojazdu
-    #     self.vehicle.is_available = False
-    #     self.vehicle.borrower_id = self.work_user.id
-    #     self.vehicle.return_date = self.planned_return_date
-    #
-    #     try:
-    #         self.session.commit()
-    #
-    #         final_text_0 = " "
-    #         final_text_1 = (
-    #             f"Pojazd: {self.vehicle.brand} {self.vehicle.vehicle_model} {self.vehicle.individual_id}"
-    #         )
-    #         final_text_2 = (
-    #             f"przekazany do warsztatu: {self.work_user.first_name} {self.work_user.last_name} do dnia {self.planned_return_date}."
-    #         )
-    #         self.get_vehicle_widget.vehicle_list.addItem(final_text_0)
-    #         self.get_vehicle_widget.vehicle_list.addItem(final_text_1)
-    #         self.get_vehicle_widget.vehicle_list.addItem(final_text_2)
-    #         self.get_vehicle_widget.adjust_list_height()
-    #
-    #     except Exception as e:
-    #         self.session.rollback()
-    #         QMessageBox.critical(
-    #             self,
-    #             "Błąd zapisu - naprawa",
-    #             f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
-    #         )
 
     def calculate_rental_cost(self, user, daily_rate, rental_days):
 
