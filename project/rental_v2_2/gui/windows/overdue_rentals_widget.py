@@ -219,19 +219,23 @@ class OverdueRentalsWidget(QWidget):
             'repair_id', None)
         cost = getattr(obj, 'total_cost', None) if isinstance(obj, RentalHistory) else getattr(obj, 'cost', None)
 
-        self.user = self.session.query(User).filter(User.id == obj.user_id).first()
+        id_user = getattr(obj, 'user_id', None) if isinstance(obj, RentalHistory) else getattr(obj, 'mechanic_id', None)
+
+        self.user =  self.session.query(User).filter(User.id == id_user).first()
 
         overdues_text = (
             f"Czy chcesz zakończyć?\n\n"
             f"ID: {id_number}\n"
             f"Pojazd: {obj.vehicle.brand} {obj.vehicle.vehicle_model}\n"
-            f"Wynajęty od: {obj.start_date.strftime('%d-%m-%Y')} "
+            f"Wynajęty/w naprawie od: {obj.start_date.strftime('%d-%m-%Y')} "
             f"do: {obj.planned_return_date.strftime('%d-%m-%Y')}\n"
             f"Do zapłaty: {cost} zł\n"
             f"Wynajęty przez: {self.user.first_name} {self.user.last_name}."
         )
 
         self.overdue_rental_detail.setText(overdues_text)
+        self.adjust_list_height()
+
         for widget in (self.overdue_rental_detail, self.cancel_button, self.finish_button):
             widget.show()
 

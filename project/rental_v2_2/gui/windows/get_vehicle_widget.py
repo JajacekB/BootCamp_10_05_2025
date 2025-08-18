@@ -2,7 +2,7 @@ import platform
 import sys
 from collections import defaultdict
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox,
-        QApplication, QListWidget, QListWidgetItem, QMessageBox
+        QApplication, QListWidget, QListWidgetItem, QMessageBox, QGroupBox, QHBoxLayout
     )
 from PySide6.QtCore import Qt, QTimer, Signal
 
@@ -49,23 +49,49 @@ class GetVehicleWidget(QWidget):
 
         self.main_layout = QVBoxLayout()
 
+        # Tytuł
         self.title_label = QLabel("Przegląd pojazdów w wypozyczalni:" )
         self.title_label.setStyleSheet("font-size: 28px; color: white; ")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label)
 
+        # Comboboxy
         self.status_combo_box = QComboBox()
         self.status_combo_box.addItems(["Wszystkie", "Dostępne", "Niedostępne"])
 
         self.type_combo_box = QComboBox()
         self.type_combo_box.addItems(["Wszystkie", "Samochody", "Skutery", "Rowery"])
 
+        # Grupa filtrów
+        self.filters_group = QGroupBox("Filtry wyszukiwania")
+
         self.form_layout = QFormLayout()
-        self.form_layout.addRow("Wybierz czy chcez przeglądać pojazdy dostępne", self.status_combo_box)
+        self.form_layout.addRow("Wybierz czy chcesz przeglądać pojazdy dostępne:", self.status_combo_box)
         self.form_layout.addRow("Jaki rodzaj pojazdów chcesz przeglądać:", self.type_combo_box)
 
-        self.main_layout.addLayout(self.form_layout)
+        # przycisk Pokaż
+        self.search_button = QPushButton("Pokaż")
+        self.search_button.setStyleSheet(
+            "background-color: green;"
+            " font-size: 18px; color: white;"
+            " border-radius: 8px; padding: 6px; ")
+        self.search_button.setFixedSize(120, 35)
+        self.search_button.clicked.connect(self.get_vehicles_list)
 
+        # poziomy layout na przycisk
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.search_button)
+        button_layout.addStretch()
+        self.form_layout.addRow("", button_layout)
+
+        # scalone w pionie: filtry + przycisk
+        filters_layout = QVBoxLayout()
+        filters_layout.addLayout(self.form_layout)
+
+        self.filters_group.setLayout(filters_layout)
+        self.main_layout.addWidget(self.filters_group)
+
+        # Lista pojazdów
         self.vehicle_list = QListWidget()
         font = self.vehicle_list.font()
         system = platform.system()
@@ -80,18 +106,8 @@ class GetVehicleWidget(QWidget):
         self.vehicle_list.setFont(font)
         self.adjust_list_height()
         self.vehicle_list.itemClicked.connect(self.handle_item_clicked)
+
         self.main_layout.addWidget(self.vehicle_list)
-
-
-        self.search_button = QPushButton("Pokaż")
-        self.search_button.setStyleSheet(
-            "background-color: green;"
-            " font-size: 24px; color: white;"
-            " border-radius: 8px; padding: 10px; ")
-        self.search_button.setFixedSize(150, 45)
-        self.search_button.clicked.connect(self.get_vehicles_list)
-        self.main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
-
         self.main_layout.addStretch()
 
         self.setLayout(self.main_layout)

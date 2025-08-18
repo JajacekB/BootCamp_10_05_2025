@@ -125,7 +125,7 @@ class RepairVehicleWidget(QWidget):
             " font-size: 22px; color: white;"
         )
         self.confirm_button_1_1.hide()
-        # self.confirm_button_1_1.clicked.connect(self.handle_input_id)
+        self.confirm_button_1_1.clicked.connect(self.is_continued_rental)
         self.hbox1.addWidget(self.confirm_button_1_1)
 
         self.confirm_button_1_2 = QPushButton("Zatwierdź")
@@ -242,9 +242,14 @@ class RepairVehicleWidget(QWidget):
 
     def handle_list_selection(self, vehicle):
 
+        print("🔧 step 1a")
+
         self.process_vehicle(vehicle)
 
     def handle_input_id(self):
+
+        print("🔧 step 1b")
+
         vehicle_id = self.input_area_0.text().capitalize()
         vehicle = self.session.query(Vehicle).filter_by(vehicle_id=vehicle_id).first()
 
@@ -254,8 +259,19 @@ class RepairVehicleWidget(QWidget):
             QMessageBox.warning(self, "Błąd", f"Nie znaleziono pojazdu o id {vehicle_id}")
 
     def process_vehicle(self, vehicle: Vehicle):
+
+        print("🔧 step 2")
+
+        print("DEBUG vehicle:", vehicle)
+        print("DEBUG type:", type(vehicle))
+        print("DEBUG dict:", vehicle.__dict__)
+
         self.vehicle = vehicle
         self.get_vehicle_widget.vehicle_list.clear()
+        self.get_vehicle_widget.search_button.hide()
+        self.get_vehicle_widget.status_combo_box.hide()
+        self.get_vehicle_widget.type_combo_box.hide()
+        self.get_vehicle_widget.form_layout.
 
         print(f"Przetwarzam pojazd: {vehicle.brand} {vehicle.vehicle_model}")
 
@@ -290,6 +306,9 @@ class RepairVehicleWidget(QWidget):
 
 
     def handle_data_1(self):
+
+        print("🔧 step 3")
+
         self.get_vehicle_widget.vehicle_list.clear()
 
         repair_days_input = self.input_area_0.text()
@@ -339,13 +358,43 @@ class RepairVehicleWidget(QWidget):
         ).first()
 
         if not broken_rent:
+
+            print("🔧 step 4a")
+
             self.finalize_repair(self.session)
             return True
 
+        print("🔧 step 4b")
 
-        self.get_vehicle_widget.vehicle_list.addItem("PYRAŻKA !!!")
+        self.container_hbox0.hide()
+        self.container_hbox2.hide()
+        self.container_hbox3.hide()
+
+
+        self.container_hbox1.show()
+        self.comment_label_1.setText("Czy klient kontynuuje wynajem?")
+        self.combo_area_1.clear()
+        self.combo_area_1.addItems(["Kontynuuje wynajem", "Kończy wynajem"])
+        self.confirm_button_1_1.show() # button przekierowuje do is_continued_rental
+
+
+        return None
+
+
+
+    def is_continued_rental(self):
+
+        print("🔧 step 5b")
+
+        print("Pyrażka !!!")
+
+        pass
+
 
     def finalize_repair(self, session):
+
+        print("🔧 step 5a")
+
         self.container_hbox0.hide()
         self.container_hbox1.hide()
         self.container_hbox2.hide()
