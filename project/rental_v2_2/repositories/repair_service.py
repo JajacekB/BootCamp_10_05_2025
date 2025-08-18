@@ -108,7 +108,7 @@ def finish_broken_rental(session: Session, vehicle: Vehicle):
     Zwraca RentalHistory i ewentualnie Invoice po aktualizacji.
     """
     today = date.today()
-    rental = vehicle.rental  # zakładamy, że vehicle.rental jest dostępne
+    rental = vehicle.rental_history  # zakładamy, że vehicle.rental jest dostępne
 
     old_period = (rental.planned_return_date - rental.start_date).days
     new_period = (today - rental.start_date).days

@@ -20,7 +20,7 @@ from services.id_generators import generate_repair_id
 # from services.rental_costs import calculate_rental_cost
 from services.vehicle_avability import get_available_vehicles
 from repositories.get_methods import get_rental_for_vehicle
-from repositories.repair_service import finalize_repair, finish_after_vehicle_swap
+from repositories.repair_service import finalize_repair, finish_after_vehicle_swap, finish_broken_rental
 
 
 class RepairVehicleWidget(QWidget):
@@ -418,7 +418,7 @@ class RepairVehicleWidget(QWidget):
         index = self.combo_area_1.currentText()
 
         if index == "Kończy wynajem":
-            self.finish_broken_rental()
+            self.handle_finish_broken_rental()
             pass
 
         start_date = date.today()
@@ -485,50 +485,21 @@ class RepairVehicleWidget(QWidget):
                 f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
             )
 
-
-    def finish_broken_rental(self):
-        print("🔧 step 6a")
-
-        old_period = (self.rental.planned_return_date - self.rental.start_date).days
-        new_period = (date.today() - self.rental.start_date).days
-
-        new_total_cost = self.rental.total_cost * new_period / old_period
-
-        rental_id = self.rental.id
-
-        invoice = self.session.query(Invoice).filter(
-            Invoice.rental_id == rental_id
-        ).first()
-
-        if not invoice:
-            print("Nie ma faktury o podanym numerze id.")
-            return False
-
-        self.vehicle.is_available = True
-        self.vehicle.borrower_id = None
-        self.vehicle.return_date = None
-
-        self.rental.actual_return_date = date.today()
-        self.rental.total_cost = new_total_cost
-
-        invoice.amount = new_total_cost
-
-        self.session.add_all([self.vehicle, self.rental, invoice])
+    def handle_finish_broken_rental(self):
 
         try:
-            self.session.commit()
+            rental, invoice = finish_broken_rental(self.session, self.vehicle)
+            if not rental or not invoice:
+                QMessageBox.warning(self, "Błąd", "Nie znaleziono faktury dla tego wynajmu.")
+                return
 
             final_text_0 = " "
-            final_text_1 = (
-                f"Zakończono wynajem pojazdu: {self.vehicle.brand} {self.vehicle.vehicle_model} {self.vehicle.individual_id}"
-            )
-
+            final_text_1 = f"Zakończono wynajem pojazdu: {self.vehicle.brand} {self.vehicle.vehicle_model} {self.vehicle.individual_id}"
             self.get_vehicle_widget.vehicle_list.addItem(final_text_0)
             self.get_vehicle_widget.vehicle_list.addItem(final_text_1)
             self.get_vehicle_widget.adjust_list_height()
 
         except Exception as e:
-            self.session.rollback()
             QMessageBox.critical(
                 self,
                 "Błąd zapisu zakończenia wynajmu przed czasem",
@@ -536,7 +507,59 @@ class RepairVehicleWidget(QWidget):
             )
 
         self.on_finalize_clicked()
-        pass
+
+
+    # def finish_broken_rental(self):
+    #     print("🔧 step 6a")
+    #
+    #     old_period = (self.rental.planned_return_date - self.rental.start_date).days
+    #     new_period = (date.today() - self.rental.start_date).days
+    #
+    #     new_total_cost = self.rental.total_cost * new_period / old_period
+    #
+    #     rental_id = self.rental.id
+    #
+    #     invoice = self.session.query(Invoice).filter(
+    #         Invoice.rental_id == rental_id
+    #     ).first()
+    #
+    #     if not invoice:
+    #         print("Nie ma faktury o podanym numerze id.")
+    #         return False
+    #
+    #     self.vehicle.is_available = True
+    #     self.vehicle.borrower_id = None
+    #     self.vehicle.return_date = None
+    #
+    #     self.rental.actual_return_date = date.today()
+    #     self.rental.total_cost = new_total_cost
+    #
+    #     invoice.amount = new_total_cost
+    #
+    #     self.session.add_all([self.vehicle, self.rental, invoice])
+    #
+    #     try:
+    #         self.session.commit()
+    #
+    #         final_text_0 = " "
+    #         final_text_1 = (
+    #             f"Zakończono wynajem pojazdu: {self.vehicle.brand} {self.vehicle.vehicle_model} {self.vehicle.individual_id}"
+    #         )
+    #
+    #         self.get_vehicle_widget.vehicle_list.addItem(final_text_0)
+    #         self.get_vehicle_widget.vehicle_list.addItem(final_text_1)
+    #         self.get_vehicle_widget.adjust_list_height()
+    #
+    #     except Exception as e:
+    #         self.session.rollback()
+    #         QMessageBox.critical(
+    #             self,
+    #             "Błąd zapisu zakończenia wynajmu przed czasem",
+    #             f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
+    #         )
+    #
+    #     self.on_finalize_clicked()
+    #     pass
 
 
     def calculate_rental_cost(self, user, daily_rate, rental_days):
