@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QLabel, QVBoxLayout,
-    QPushButton, QGridLayout, QFrame
+    QPushButton, QGridLayout, QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, QTimer
 from gui.windows.register_wiget import RegisterWidget
@@ -38,7 +38,7 @@ class AdminDialog(QMainWindow):
         """)
 
         self._build_ui()
-        self.showMaximized()
+        QTimer.singleShot(0, self.showMaximized)
 
     def _build_ui(self):
         central_widget = QWidget()
@@ -103,6 +103,9 @@ class AdminDialog(QMainWindow):
 
         self.dynamic_area = QWidget()
         self.dynamic_area.setLayout(QVBoxLayout())
+        self.dynamic_area.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding
+        )
         self.grid_layout.addWidget(self.dynamic_area, 0, 1, 1, 2)  # kolumny 1 i 2
 
         QTimer.singleShot(0, lambda: self._safe_show_overdue_rentals())

@@ -10,27 +10,28 @@ def hash_password(password: str) -> str:
     hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     return hashed.decode('utf-8')
 
+
 def add_workshop_users():
     session = SessionLocal()
 
     workshops = [
         {
-            "login": "blacharz",
-            "password": "blacharz",
-            "first_name": "Blacharz",
-            "last_name": "AutoSerwis",
-            "phone": "600111222",
-            "email": "blacharz.krakow@gmail.com",
-            "address": "ul. Wadowicka 12, Kraków"
+            "login": "scooter",
+            "password": "Scooter1",
+            "first_name": "Mechanik",
+            "last_name": "Szumni_Motor",
+            "phone": "600555666",
+            "email": "szumny.motors@gmail.com",
+            "address": "ul. Krakowska 130, 32-088 Brzozówka"
         },
         {
-            "login": "mechanik",
-            "password": "mechanik",
-            "first_name": "Mechanik",
-            "last_name": "AutoNaprawa",
-            "phone": "600333444",
-            "email": "mechanik.krakow@gmail.com",
-            "address": "ul. Wrocławska 15, Kraków"
+            "login": "biker",
+            "password": "Biker1",
+            "first_name": "Serwis",
+            "last_name": "Bike - Service",
+            "phone": "600777888",
+            "email": "service.bike@gmail.com",
+            "address": "ul. Lwowska 23, 30-831 Kraków"
         }
     ]
 
@@ -56,9 +57,8 @@ def add_workshop_users():
 
     session.commit()
     print("Dodano użytkowników warsztatu do bazy.")
+    session.close()
 
-# if __name__ == "__main__":
-#     add_workshop_users()
-#
-#
-# session.close()
+
+if __name__ == "__main__":
+    add_workshop_users()

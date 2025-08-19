@@ -2,7 +2,7 @@ import sys
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 
-from database.base import SessionLocal, Session
+from database.base import SessionLocal #, Session
 
 from gui.windows.start_window import StartWindow
 from gui.windows.login_window import LoginDialog
@@ -17,6 +17,7 @@ from gui.windows.rent_vehicle_widget import RentVehicleWidget
 from gui.windows.delete_client_widget import DeleteUsersWidget
 from gui.windows.return_vehicle_widget import ReturnVehicleWidget
 from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
+from gui.windows.repair_vehicle_widget import RepairVehicleWidget
 from gui.windows.overdue_rentals_widget import OverdueRentalsWidget
 
 from services.repair import repair_vehicle
@@ -46,7 +47,7 @@ class AppController(QObject):
 
 
         self.current_user = None
-        self.db_session: Session = None
+        self.db_session: SessionLocal = None
 
         try:
             self.db_session = SessionLocal()
@@ -213,7 +214,7 @@ class AppController(QObject):
 
             "9": lambda: self.show_rent_vehicle_widget(),
             "10": lambda: return_vehicle(self.db_session, self.current_user),
-            "11": lambda: repair_vehicle(self.db_session),
+            "11": lambda: self.show_repair_vehicle_widget(),
 
             "12": lambda: update_profile(self.db_session, self.current_user)
         }
@@ -254,7 +255,7 @@ class AppController(QObject):
 
             "7": lambda: self.show_rent_vehicle_widget(),
             "8": lambda: return_vehicle(self.db_session, self.current_user),
-            "9": lambda: repair_vehicle(self.db_session),
+            "9": lambda: self.show_repair_vehicle_widget(),
 
             "10": lambda: update_profile(self.db_session, self.current_user)
         }
@@ -358,6 +359,11 @@ class AppController(QObject):
         print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")
         self.overdue_vehicle_rentals = OverdueRentalsWidget(self.db_session, self.current_user)
         self.show_widget(self.overdue_vehicle_rentals)
+
+    def show_repair_vehicle_widget(self):
+        print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
+        self.repair_vehicle_widget = RepairVehicleWidget(self.db_session, self.current_user)
+        self.show_widget(self.repair_vehicle_widget)
 
     def show_widget(self, widget: QWidget):
         if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):

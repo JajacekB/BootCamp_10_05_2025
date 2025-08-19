@@ -59,15 +59,15 @@ class StartWindow(QWidget):
         logo_label.setAlignment(Qt.AlignCenter)
 
         self.title_label = QLabel("🚗  MOTO VIBE 3000  🚗\nWYPOŻYCZALNIA POJAZDÓW")
-        self.title_label.setFont(QFont("Arial", 32, QFont.Bold))
+        self.title_label.setFont(QFont("Arial", 36, QFont.Bold))
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setStyleSheet("color: white;")
 
-        btn_login = QPushButton("Zaloguj się")
-        btn_register = QPushButton("Zarejestruj się")
+        self.btn_login = QPushButton("Zaloguj się")
+        self.btn_register = QPushButton("Zarejestruj się")
         self.btn_exit = QPushButton("Zamknij program")
 
-        for btn in [btn_login, btn_register, self.btn_exit]:
+        for btn in [self.btn_login, self.btn_register, self.btn_exit]:
             btn.setFont(QFont("Arial", 18))
             btn.setFixedHeight(50)
             btn.setStyleSheet(
@@ -77,8 +77,8 @@ class StartWindow(QWidget):
             )
 
 
-        btn_login.clicked.connect(self.login_requested.emit)
-        btn_register.clicked.connect(lambda: self.register_requested.emit(self))
+        self.btn_login.clicked.connect(self.login_requested.emit)
+        self.btn_register.clicked.connect(lambda: self.register_requested.emit(self))
         # Connect the exit button to the handle_exit_program function
         self.btn_exit.clicked.connect(self.handle_exit_program)
 
@@ -86,8 +86,8 @@ class StartWindow(QWidget):
         layout.addSpacerItem(QSpacerItem(20, 75, QSizePolicy.Minimum, QSizePolicy.Fixed))
         layout.addWidget(self.title_label)
         layout.addSpacerItem(QSpacerItem(20, 100, QSizePolicy.Minimum, QSizePolicy.Fixed))
-        layout.addWidget(btn_login)
-        layout.addWidget(btn_register)
+        layout.addWidget(self.btn_login)
+        layout.addWidget(self.btn_register)
         layout.addWidget(self.btn_exit)
         layout.setAlignment(Qt.AlignTop)
         self.setLayout(layout)
@@ -100,11 +100,17 @@ class StartWindow(QWidget):
         for widget in self.findChildren(QPushButton):
             widget.setEnabled(False)
 
-        self.title_label.setText("Do widzenia!")
+        self.title_label.setText(
+            f"🚗  MOTO VIBE 3000  🚗\n\n"
+            f">>> Do widzenia <<<"
+        )
         self.title_label.setFont(QFont("Arial", 40, QFont.Bold)) # Make it larger for emphasis
         self.title_label.setStyleSheet("color: #FFD700;") # Change color for visibility
+        self.btn_login.hide()
+        self.btn_register.hide()
+        self.btn_exit.hide()
 
-        QTimer.singleShot(1000, QApplication.instance().quit)
+        QTimer.singleShot(1500, QApplication.instance().quit)
 
 
 if __name__ == '__main__':
