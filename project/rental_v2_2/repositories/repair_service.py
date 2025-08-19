@@ -49,7 +49,7 @@ def finish_broken_rental(session: Session, vehicle: Vehicle):
 
     session.add_all([vehicle, rental])
 
-    print("Zakończono stry rental")
+    print("Zakończono stary rental")
 
     # nic nie commitujemy tutaj
     return rental, invoice
