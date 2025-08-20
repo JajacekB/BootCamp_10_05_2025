@@ -7,8 +7,9 @@ from sqlalchemy import func
 from datetime import date
 
 
-def find_replacement_vehicle(session, reference_vehicle, planned_return_date, prefer_cheaper: bool):
+def get_replacement_vehicle(session, reference_vehicle, planned_return_date, prefer_cheaper: bool):
     # szukanie pojazdu z flagą preffer_cheeper
+
     available_vehicles = get_available_vehicles(
         session, date.today(), planned_return_date, reference_vehicle.type
     )
@@ -31,18 +32,17 @@ def find_replacement_vehicle(session, reference_vehicle, planned_return_date, pr
     return vehicle
 
 def get_rental_for_vehicle(session, vehicle_id, planned_return_date):
-    """
-    Zwraca aktualną rezerwację dla pojazdu w podanym okresie.
-    Zwraca obiekt RentalHistory lub None.
-    """
+    # szukanie rezerwacji w podanm okresie
+
     today = date.today()
     rental = session.query(RentalHistory).filter(
         RentalHistory.vehicle_id == vehicle_id,
         func.date(RentalHistory.start_date) <= planned_return_date,
         func.date(RentalHistory.planned_return_date) >= today
     ).first()
+
     return rental
 
 def get_vehicle_by_id(session, vehicle_id):
-    """Zwraca pojazd po ID lub None."""
+    # Szukanie pojazdów po numerze katalogowym (vehicle_id)
     return session.query(Vehicle).filter(Vehicle.vehicle_id == vehicle_id).one_or_none()

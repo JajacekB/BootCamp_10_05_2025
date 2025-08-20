@@ -11,7 +11,7 @@ from models.vehicle import Vehicle
 from database.base import SessionLocal
 from services.user_service import get_users_by_role
 from services.vehicle_avability import get_available_vehicles
-from repositories.get_methods import get_rental_for_vehicle, get_vehicle_by_id, find_replacement_vehicle
+from repositories.get_methods import get_rental_for_vehicle, get_vehicle_by_id, get_replacement_vehicle
 from repositories.repair_service import finalize_repair, finish_after_vehicle_swap, finish_broken_rental
 
 
@@ -123,7 +123,7 @@ class RepairVehicleWidget(QWidget):
             " font-size: 22px; color: white;"
         )
         self.confirm_button_1_1.hide()
-        self.confirm_button_1_1.clicked.connect(self.handle_choice_rental())
+        # self.confirm_button_1_1.clicked.connect(self.handle_choice_rental())
         self.hbox1.addWidget(self.confirm_button_1_1)
 
         self.confirm_button_1_2 = QPushButton("Zatwierdź")
@@ -133,8 +133,18 @@ class RepairVehicleWidget(QWidget):
             " font-size: 22px; color: white;"
         )
         self.confirm_button_1_2.hide()
-        self.confirm_button_1_2.clicked.connect(self.on_replacement_option_selected())
+        # self.confirm_button_1_2.clicked.connect(self.on_replacement_option_selected())
         self.hbox1.addWidget(self.confirm_button_1_2)
+
+        self.confirm_button_1_3 = QPushButton("Zatwierdź")
+        self.confirm_button_1_3.setFixedSize(150, 45)
+        self.confirm_button_1_3.setStyleSheet(
+            "background-color: grey;"
+            " font-size: 22px; color: white;"
+        )
+        self.confirm_button_1_3.hide()
+        # self.confirm_button_1_3.clicked.connect(self.on_cheaper_decision())
+        self.hbox1.addWidget(self.confirm_button_1_3)
 
         self.hbox1.addStretch()
         self.container_hbox1.hide()
@@ -210,7 +220,6 @@ class RepairVehicleWidget(QWidget):
             "background-color: grey;"
             " font-size: 22px; color: white;"
         )
-        self.confirm_button_3_1.clicked.connect(self.handle_data_1)
         self.hbox3.addWidget(self.confirm_button_3_1)
 
         self.confirm_button_3_2 = QPushButton("Zatwierdź")
@@ -233,8 +242,6 @@ class RepairVehicleWidget(QWidget):
         self.setLayout(self.main_layout)
 
     def handle_list_selection(self, vehicle):
-
-        print("🔧 step 1a")
 
         self.process_vehicle(vehicle)
 
@@ -278,6 +285,7 @@ class RepairVehicleWidget(QWidget):
 
         self.container_hbox1.show()
         self.container_hbox2.show()
+        self.confirm_button_3_1.clicked.connect(self.handle_data_1)
         self.container_hbox3.show()
 
 
@@ -326,7 +334,6 @@ class RepairVehicleWidget(QWidget):
             self.get_vehicle_widget.vehicle_list.addItem(text)
             self.get_vehicle_widget.adjust_list_height()
 
-        today = date.today()
         self.planned_return_date = date.today() + timedelta(days=repair_days)
         self.rental = get_rental_for_vehicle(
             session=self.session,
@@ -337,6 +344,7 @@ class RepairVehicleWidget(QWidget):
         if not self.rental:
 
             print("🔧 step 4a")
+            print("Tylko początek naprawy")
             self.on_finalize_clicked()
             return True
 
@@ -351,6 +359,7 @@ class RepairVehicleWidget(QWidget):
         self.comment_label_1.setText("Czy klient kontynuuje wynajem?")
         self.combo_area_1.clear()
         self.combo_area_1.addItems(["Kontynuuje wynajem", "Kończy wynajem"])
+        self.confirm_button_1_1.clicked.connect(self.handle_choice_rental)
         self.confirm_button_1_1.show() # button przekierowuje do handle_choice_rental
         return None
 
@@ -362,11 +371,13 @@ class RepairVehicleWidget(QWidget):
         index = self.combo_area_1.currentText()
 
         if index == "Kończy wynajem":
-            self.handle_finish_broken_rental()
-            pass
+            print("Koniec najmu i początek naprawy")
+            return self.handle_finish_broken_rental()
+
 
         self.start_date = date.today()
-        self.planned_return_date = self.rental.planned_return_date
+        self.planned_return_date = date.today() + timedelta(days=self.repair_days)
+        # self.planned_return_date = self.planned_return_date
 
         replacement_vehicle_list = get_available_vehicles(self.session, self.start_date, self.planned_return_date, self.vehicle.type)
         self.replacement_vehicle = next(
@@ -376,14 +387,17 @@ class RepairVehicleWidget(QWidget):
         if self.replacement_vehicle:
             final_text_0 = " "
             final_text_1 = (
-                f"Wydano klientowi pojazd zastępczy: {self.vehicle.brand} {self.vehicle.vehicle_model} {self.vehicle.individual_id}"
+                f"Wydano klientowi pojazd zastępczy 1: {self.replacement_vehicle.brand} "
+                f"{self.replacement_vehicle.vehicle_model} {self.replacement_vehicle.individual_id}"
             )
             self.get_vehicle_widget.vehicle_list.addItem(final_text_0)
             self.get_vehicle_widget.vehicle_list.addItem(final_text_1)
             self.get_vehicle_widget.adjust_list_height()
 
+            print("Nowy rental -  pojazd z tej samej kategori cenowej, koniec najmu i początek naprawy")
             self.on_finish_swap_clicked()
-            self.on_finalize_clicked()
+
+            # self.on_finalize_clicked()
             return True
 
         self.container_hbox0.hide()
@@ -396,10 +410,12 @@ class RepairVehicleWidget(QWidget):
         self.combo_area_1.clear()
         self.combo_area_1.addItems(["Droższy", "Tańszy", "Anuluje wynajem"])
 
+        self.confirm_button_1_1.hide()
+        self.confirm_button_1_2.clicked.connect(self.on_replacement_option_selected)
         self.confirm_button_1_2.show()
         print("Pyrażka !!!")
 
-        pass
+        return True
 
     def on_replacement_option_selected(self):
 
@@ -410,30 +426,30 @@ class RepairVehicleWidget(QWidget):
 
         elif index == "Tańszy":
 
-            lower_price_vehicle = find_replacement_vehicle(self.session, self.vehicle, self.planned_return_date, True)
+            lower_price_vehicle = get_replacement_vehicle(self.session, self.vehicle, self.planned_return_date, True)
             if lower_price_vehicle:
-                print(f"\nWydano klientowi pojazd zastępczy: {lower_price_vehicle} \nOddano do naprawy: {self.vehicle}")
+                print(f"\nWydano klientowi pojazd zastępczy - lower: {lower_price_vehicle} \nOddano do naprawy: {self.vehicle}")
                 self.on_finish_swap_clicked()
-                self.on_finalize_clicked()
+                # self.on_finalize_clicked()
                 return True
             else:
-                higher_price_vehicle = find_replacement_vehicle(self.session, self.vehicle, self.planned_return_date, False)
+                higher_price_vehicle = get_replacement_vehicle(self.session, self.vehicle, self.planned_return_date, False)
                 print("\nBrak tańszego pojazdu. Wydano droższy bez naliczania dodatkowych kosztów.")
                 if higher_price_vehicle:
                     print(
-                        f"\nWydano klientowi pojazd zastępczy: {higher_price_vehicle} \nOddano do naprawy: {self.broken_veh}")
+                        f"\nWydano klientowi pojazd zastępczy  higher a miał byc lower: {higher_price_vehicle} \nOddano do naprawy: {self.broken_veh}")
                     self.on_finish_swap_clicked()
-                    self.on_finalize_clicked()
+                    # self.on_finalize_clicked()
                     return True
                 else:
                     return self.handle_finish_broken_rental()
 
         elif index == "Droższy":
-            higher_price_vehicle = find_replacement_vehicle(self.session, self.vehicle, self.planned_return_date, False)
+            higher_price_vehicle = get_replacement_vehicle(self.session, self.vehicle, self.planned_return_date, False)
             if higher_price_vehicle:
-                print(f"\nWydano klientowi pojazd zastępczy: {higher_price_vehicle} \nOddano do naprawy: {self.broken_veh}")
+                print(f"\nWydano klientowi pojazd zastępczy higher: {higher_price_vehicle} \nOddano do naprawy: {self.vehicle}")
                 self.on_finish_swap_clicked()
-                self.on_finalize_clicked()
+                # self.on_finalize_clicked()
                 return True
             else:
 
@@ -443,35 +459,28 @@ class RepairVehicleWidget(QWidget):
                 self.combo_area_1.clear()
                 self.combo_area_1.addItems(["Decyduje się na tańszy", "Anuluje wynajem"])
 
-                self.confirm_button_1_1.hide()
-                self.confirm_button_1_2.show()
+                self.confirm_button_1_2.hide()
+                self.confirm_button_1_3.clicked.connect(self.on_cheaper_decision)
+                self.confirm_button_1_3.show()
 
 
     def on_cheaper_decision(self):
 
+        index = self.combo_area_1.currentText()
 
+        if index == "Anuluje wynajem":
+            return self.handle_finish_broken_rental()
 
-        alt_choice = yes_or_not_menu(
-            "Brak pojazdów o wyższym standardzie. Czy klient decyduje się na tańszy z rabatem?")
-        if not alt_choice:
-            return finalize_rental_and_repair(session, broken_veh, broken_rental, repair_days)
         else:
-            lower_price_vehicle = find_replacement_vehicle(session, broken_veh, planned_return_date, True)
+            lower_price_vehicle = get_replacement_vehicle(self.session, self.vehicle, self.planned_return_date, True)
             if lower_price_vehicle:
                 print(
-                    f"\nWydano klientowi pojazd zastępczy: {lower_price_vehicle} \nOddano do naprawy: {broken_veh}")
-                update_database_after_vehicle_swap(session, broken_veh, lower_price_vehicle, broken_rental,
-                                                   True)
-                mark_as_under_repair(session, broken_veh, repair_days)
+                    f"\nWydano klientowi pojazd zastępczy lower a miał byc higher: {lower_price_vehicle} \nOddano do naprawy: {self.vehicle}")
+                self.on_finish_swap_clicked()
+                # self.on_finalize_clicked()
                 return True
             else:
-                return finalize_rental_and_repair(session, broken_veh, broken_rental, repair_days)
-
-        return True  # na wszelki wypadek fallback
-        """
-
-        :return:
-        """
+                return self.on_finalize_clicked()
 
 
     def on_finish_swap_clicked(self):
@@ -483,19 +492,20 @@ class RepairVehicleWidget(QWidget):
                 self.rental,
                 different_price=False
             )
-
+            print("Knoniec starego najmu, początek nowego ")
             replacement_vehicle = result["replacement_vehicle"]
             broken_cost = result["broken_veh_cost"]
 
             # GUI: aktualizacja listy i informacji
             self.get_vehicle_widget.vehicle_list.addItem(" ")
             self.get_vehicle_widget.vehicle_list.addItem(
-                f"Wydano pojazd zastępczy: {replacement_vehicle.brand} "
+                f"Wydano pojazd zastępczy,  dlaczego drugi raz: {replacement_vehicle.brand} "
                 f"{replacement_vehicle.vehicle_model} {replacement_vehicle.individual_id}"
             )
             self.get_vehicle_widget.adjust_list_height()
 
-            # wywołujesz finalize_repair (też w wersji serwisowej)
+            # brak aktualizacji "Monitora"
+
             finalize_repair(
                 self.session,
                 self.vehicle,
@@ -511,6 +521,7 @@ class RepairVehicleWidget(QWidget):
                 "Błąd zapisu repair po wymianie",
                 f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
             )
+        return True
 
     def handle_finish_broken_rental(self):
 
@@ -533,7 +544,7 @@ class RepairVehicleWidget(QWidget):
                 f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
             )
 
-        self.on_finalize_clicked()
+        return self.on_finalize_clicked()
 
 
     def on_finalize_clicked(self):
@@ -569,6 +580,7 @@ class RepairVehicleWidget(QWidget):
                 "Błąd zapisu - tylko naprawa",
                 f"Nie udało się zapisać zmian w bazie.\n\nSzczegóły: {e}"
             )
+        return True
 
 
 
