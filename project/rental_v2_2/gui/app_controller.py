@@ -13,6 +13,7 @@ from gui.windows.register_wiget import RegisterWidget
 from gui.windows.get_users_widget import GetUsersWidget
 from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.add_vehicle_widget import AddVehicleWidget
+from gui.windows.update_user_widget import UpdateUserWidget
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
 from gui.windows.delete_client_widget import DeleteUsersWidget
 from gui.windows.return_vehicle_widget import ReturnVehicleWidget
@@ -216,7 +217,7 @@ class AppController(QObject):
             "10": lambda: self.show_return_vehicle_widget(),
             "11": lambda: self.show_repair_vehicle_widget(),
 
-            "12": lambda: update_profile(self.db_session, self.current_user)
+            "12": lambda: self.show_update_user_widget()
         }
         action = commands.get(command_num)
         if action:
@@ -257,7 +258,7 @@ class AppController(QObject):
             "8": lambda: self.show_return_vehicle_widget(),
             "9": lambda: self.show_repair_vehicle_widget(),
 
-            "10": lambda: update_profile(self.db_session, self.current_user)
+            "10": lambda: self.show_update_user_widget()
         }
         action = commands.get(command_num)
         if action:
@@ -289,7 +290,7 @@ class AppController(QObject):
             "1": lambda: self.show_get_vehicle_widget(),
             "2": lambda: self.show_rent_vehicle_widget(),
             "3": lambda: self.show_return_vehicle_widget(),
-            "4": lambda: update_profile(self.db_session, self.current_user)
+            "4": lambda: self.show_update_user_widget()
         }
         action = commands.get(command_num)
         if action:
@@ -364,6 +365,11 @@ class AppController(QObject):
         print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
         self.repair_vehicle_widget = RepairVehicleWidget(self.db_session, self.current_user)
         self.show_widget(self.repair_vehicle_widget)
+
+    def show_update_user_widget(self):
+        print("🔧🔧🔧 Uruchomiono update_user_widget()")
+        self.update_user_widget = UpdateUserWidget(self.db_session, self.current_user)
+        self.show_widget(self.update_user_widget)
 
     def show_widget(self, widget: QWidget):
         if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):

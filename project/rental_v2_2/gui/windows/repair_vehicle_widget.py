@@ -48,7 +48,7 @@ class RepairVehicleWidget(QWidget):
 
         self.get_vehicle_widget = GetVehicleWidget(self.session)
         self.get_vehicle_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        self.get_vehicle_widget.setMaximumHeight(385)
+        self.get_vehicle_widget.setMaximumHeight(435)
         self.get_vehicle_widget.vehicle_selected.connect(self.handle_list_selection)
         self.main_layout.addWidget(self.get_vehicle_widget)
 

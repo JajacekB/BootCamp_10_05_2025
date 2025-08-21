@@ -39,12 +39,17 @@ class RegisterWidget(QWidget):
         self.valid_style = "border: 1px solid #4CAF50;"
         self.invalid_style = "border: 1px solid #F44336;"
 
-        main_layout = QGridLayout(self)
+        self._build_ui()
 
-        title_label = QLabel("Podaj dane osobiste:", self)
-        title_label.setAlignment(Qt.AlignCenter)
-        title_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
-        main_layout.addWidget(title_label, 0, 0, 1, 2)
+    def _build_ui(self):
+
+
+        self.main_layout = QGridLayout(self)
+
+        self.title_label = QLabel("Podaj dane osobiste:", self)
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.title_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        self.main_layout.addWidget(self.title_label, 0, 0, 1, 2)
 
         self.first_name_input = QLineEdit()
         self.last_name_input = QLineEdit()
@@ -54,17 +59,17 @@ class RegisterWidget(QWidget):
         self.email_input = QLineEdit()
         self.email_input.editingFinished.connect(self._validate_email_input)
 
-        personal_data_layout = QFormLayout()
-        personal_data_layout.addRow("Imię:", self.first_name_input)
-        personal_data_layout.addRow("Nazwisko:", self.last_name_input)
-        personal_data_layout.addRow("Telefon:", self.phone_input)
-        personal_data_layout.addRow("Email:", self.email_input)
-        main_layout.addLayout(personal_data_layout, 1, 0, 1, 2)
+        self.personal_data_layout = QFormLayout()
+        self.personal_data_layout.addRow("Imię:", self.first_name_input)
+        self.personal_data_layout.addRow("Nazwisko:", self.last_name_input)
+        self.personal_data_layout.addRow("Telefon:", self.phone_input)
+        self.personal_data_layout.addRow("Email:", self.email_input)
+        self.main_layout.addLayout(self.personal_data_layout, 1, 0, 1, 2)
 
-        address_label = QLabel("Podaj adres zamieszkania:", self)
-        address_label.setAlignment(Qt.AlignCenter)
-        address_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
-        main_layout.addWidget(address_label, 2, 0, 1, 2)
+        self.address_label = QLabel("Podaj adres zamieszkania:", self)
+        self.address_label.setAlignment(Qt.AlignCenter)
+        self.address_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        self.main_layout.addWidget(self.address_label, 2, 0, 1, 2)
 
         self.street_input = QLineEdit()
         self.post_code_input = QLineEdit()
@@ -76,20 +81,20 @@ class RegisterWidget(QWidget):
         self.country_combo_box = QComboBox()
         self.country_combo_box.addItems(country_list)
 
-        address_layout = QFormLayout()
-        address_layout.addRow("Ulica i numer:", self.street_input)
-        address_layout.addRow("Kod pocztowy:", self.post_code_input)
-        address_layout.addRow("Miasto:", self.city_input)
-        address_layout.addRow("Państwo:", self.country_combo_box)
-        main_layout.addLayout(address_layout, 3, 0, 1, 2)
+        self.address_layout = QFormLayout()
+        self.address_layout.addRow("Ulica i numer:", self.street_input)
+        self.address_layout.addRow("Kod pocztowy:", self.post_code_input)
+        self.address_layout.addRow("Miasto:", self.city_input)
+        self.address_layout.addRow("Państwo:", self.country_combo_box)
+        self.main_layout.addLayout(self.address_layout, 3, 0, 1, 2)
 
-        login_label = QLabel("Podaj dane logowania:", self)
-        login_label.setAlignment(Qt.AlignCenter)
-        login_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
-        main_layout.addWidget(login_label, 4, 0, 1, 2)
+        self.login_label = QLabel("Podaj dane logowania:", self)
+        self.login_label.setAlignment(Qt.AlignCenter)
+        self.login_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        self.main_layout.addWidget(self.login_label, 4, 0, 1, 2)
 
-        if auto and self.role == "seller":
-            count = session.query(User).filter_by(role="seller").count()
+        if self.auto and self.role == "seller":
+            count = self.session.query(User).filter_by(role="seller").count()
             seller_number = str(count + 1).zfill(2)
             seller_login = f"Seller{seller_number}"
             raw_password = seller_login
@@ -105,7 +110,7 @@ class RegisterWidget(QWidget):
             login_layout = QFormLayout()
             login_layout.addRow("Login:", self.login_input)
             login_layout.addRow("Hasło:", self.password_input)
-            main_layout.addLayout(login_layout, 5, 0, 1, 2)
+            self.main_layout.addLayout(login_layout, 5, 0, 1, 2)
 
         else:
             self.login_input = QLineEdit()
@@ -118,11 +123,11 @@ class RegisterWidget(QWidget):
             self.confirm_password_input.setEchoMode(QLineEdit.Password)
             self.confirm_password_input.editingFinished.connect(self._validate_confirm_password)
 
-            login_layout = QFormLayout()
-            login_layout.addRow("Login:", self.login_input)
-            login_layout.addRow("Hasło:", self.password_input)
-            login_layout.addRow("Potwierdź hasło:", self.confirm_password_input)
-            main_layout.addLayout(login_layout, 5, 0, 1, 2)
+            self.login_layout = QFormLayout()
+            self.login_layout.addRow("Login:", self.login_input)
+            self.login_layout.addRow("Hasło:", self.password_input)
+            self.login_layout.addRow("Potwierdź hasło:", self.confirm_password_input)
+            self.main_layout.addLayout(self.login_layout, 5, 0, 1, 2)
 
         self.cancel1_button = QPushButton("Anuluj")
         self.cancel1_button.setFixedSize(150, 45)
@@ -132,7 +137,7 @@ class RegisterWidget(QWidget):
             " border-radius: 8px; padding: 10px;"
         )
         self.cancel1_button.clicked.connect(self._cancel_registration)
-        main_layout.addWidget(self.cancel1_button, 6, 0, 1, 1, alignment=Qt.AlignLeft)
+        self.main_layout.addWidget(self.cancel1_button, 6, 0, 1, 1, alignment=Qt.AlignLeft)
 
         self.confirm_button = QPushButton("Zatwierdź")
         self.confirm_button.setFixedSize(150, 45)
@@ -142,12 +147,12 @@ class RegisterWidget(QWidget):
             " border-radius: 8px; padding: 10px;"
         )
         self.confirm_button.clicked.connect(self._show_summary)
-        main_layout.addWidget(self.confirm_button, 6, 1, 1, 1, alignment=Qt.AlignRight)
+        self.main_layout.addWidget(self.confirm_button, 6, 1, 1, 1, alignment=Qt.AlignRight)
 
         self.summary_label = QLabel()
         self.summary_label.setStyleSheet("color: white; font-size: 14px;")
         self.summary_label.setVisible(False)
-        main_layout.addWidget(self.summary_label, 7, 0, 1, 2)
+        self.main_layout.addWidget(self.summary_label, 7, 0, 1, 2)
 
         self.cancel2_button = QPushButton("Anuluj")
         self.cancel2_button.setFixedSize(150, 45)
@@ -156,7 +161,7 @@ class RegisterWidget(QWidget):
         )
         self.cancel2_button.setVisible(False)
         self.cancel2_button.clicked.connect(self._hide_summary)
-        main_layout.addWidget(self.cancel2_button, 8, 0, 1, 1, alignment=Qt.AlignLeft)
+        self.main_layout.addWidget(self.cancel2_button, 8, 0, 1, 1, alignment=Qt.AlignLeft)
 
         self.add_user_button = QPushButton("Dodaj użytkownika")
         self.add_user_button.setFixedSize(150, 45)
@@ -165,14 +170,14 @@ class RegisterWidget(QWidget):
         )
         self.add_user_button.setVisible(False)
         self.add_user_button.clicked.connect(self.register_client_gui)
-        main_layout.addWidget(self.add_user_button, 8, 1, 1, 1, alignment=Qt.AlignRight)
+        self.main_layout.addWidget(self.add_user_button, 8, 1, 1, 1, alignment=Qt.AlignRight)
 
-        col_count = main_layout.columnCount()
+        col_count = self.main_layout.columnCount()
         for col in range(col_count):
-            main_layout.setColumnStretch(col, 1)
+            self.main_layout.setColumnStretch(col, 1)
 
-        last_row = main_layout.rowCount()
-        main_layout.setRowStretch(last_row, 1)
+        last_row = self.main_layout.rowCount()
+        self.main_layout.setRowStretch(last_row, 1)
 
 
     def _get_full_address(self):
