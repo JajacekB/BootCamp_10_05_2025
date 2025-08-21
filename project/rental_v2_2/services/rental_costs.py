@@ -80,7 +80,7 @@ def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, r
     else:
         new_period = (return_date - start_date).days
         extra_fee = 0
-        price, discount_percent, discount_type = calculate_rental_cost(user, cash_per_day, new_period)
+        price, discount_percent, discount_type = calculate_rental_cost(session, user, cash_per_day, new_period)
         total_cost = price
         discount_info = (
             f" Rabat: {discount_percent:.0f}% ({discount_type})." if discount_type != "brak" else ""

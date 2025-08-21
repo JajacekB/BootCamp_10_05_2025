@@ -84,9 +84,9 @@ class AppController(QObject):
         self.current_active_window = self.start_window
 
 
-    def show_admin_menu(self, user):
-        self.admin_dialog = AdminDialog(user=user, session=self.db_session, controller=self)
-        self.admin_dialog.show()
+    # def show_admin_menu(self, user):
+    #     self.admin_dialog = AdminDialog(user=user, session=self.db_session, controller=self)
+    #     self.admin_dialog.show()
 
 
     def _handle_login_request(self):
@@ -213,7 +213,7 @@ class AppController(QObject):
             "8": lambda: self.show_get_vehicle_widget(),
 
             "9": lambda: self.show_rent_vehicle_widget(),
-            "10": lambda: return_vehicle(self.db_session, self.current_user),
+            "10": lambda: self.show_return_vehicle_widget(),
             "11": lambda: self.show_repair_vehicle_widget(),
 
             "12": lambda: update_profile(self.db_session, self.current_user)
@@ -254,7 +254,7 @@ class AppController(QObject):
             "6": lambda: self.show_get_vehicle_widget(),
 
             "7": lambda: self.show_rent_vehicle_widget(),
-            "8": lambda: return_vehicle(self.db_session, self.current_user),
+            "8": lambda: self.show_return_vehicle_widget(),
             "9": lambda: self.show_repair_vehicle_widget(),
 
             "10": lambda: update_profile(self.db_session, self.current_user)

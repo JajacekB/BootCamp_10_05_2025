@@ -431,7 +431,7 @@ class RentVehicleWidget(QWidget):
         rent_days = (self.planned_return_date - self.start_date).days
         self.base_cost = rent_days * self.chosen_vehicle.cash_per_day
         self.total_cost, discount_value, discount_type = calculate_rental_cost(
-            self.user, self.chosen_vehicle.cash_per_day, rent_days
+            self.session, self.user, self.chosen_vehicle.cash_per_day, rent_days
         )
         total_cost_str = (
             f"Całkowity koszt {self.total_cost} zł\n"

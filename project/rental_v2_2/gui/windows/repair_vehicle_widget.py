@@ -390,9 +390,9 @@ class RepairVehicleWidget(QWidget):
                 f"Wydano klientowi pojazd zastępczy 1: {self.replacement_vehicle.brand} "
                 f"{self.replacement_vehicle.vehicle_model} {self.replacement_vehicle.individual_id}"
             )
-            self.get_vehicle_widget.vehicle_list.addItem(final_text_0)
-            self.get_vehicle_widget.vehicle_list.addItem(final_text_1)
-            self.get_vehicle_widget.adjust_list_height()
+            # self.get_vehicle_widget.vehicle_list.addItem(final_text_0)
+            # self.get_vehicle_widget.vehicle_list.addItem(final_text_1)
+            # self.get_vehicle_widget.adjust_list_height()
 
             print("Nowy rental -  pojazd z tej samej kategori cenowej, koniec najmu i początek naprawy")
             self.on_finish_swap_clicked()
@@ -499,21 +499,12 @@ class RepairVehicleWidget(QWidget):
             # GUI: aktualizacja listy i informacji
             self.get_vehicle_widget.vehicle_list.addItem(" ")
             self.get_vehicle_widget.vehicle_list.addItem(
-                f"Wydano pojazd zastępczy,  dlaczego drugi raz: {replacement_vehicle.brand} "
+                f"Wydano pojazd zastępczy: {replacement_vehicle.brand} "
                 f"{replacement_vehicle.vehicle_model} {replacement_vehicle.individual_id}"
             )
             self.get_vehicle_widget.adjust_list_height()
 
-            # brak aktualizacji "Monitora"
-
-            finalize_repair(
-                self.session,
-                self.vehicle,
-                self.work_user,
-                self.planned_return_date,
-                self.total_cost,
-                self.description
-            )
+            self.on_finalize_clicked()
 
         except Exception as e:
             QMessageBox.critical(
