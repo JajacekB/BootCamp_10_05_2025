@@ -1,4 +1,4 @@
-# repositories/post_methods.py
+# repositories/write_methods.py
 from models.user import User
 from database.base import SessionLocal
 

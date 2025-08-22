@@ -143,10 +143,3 @@ def finalize_repair(session, vehicle, work_user, planned_return_date, total_cost
     vehicle.return_date = planned_return_date
 
     print("Utworzono nowy object RepairHistory")
-
-    # try:
-    #     session.commit()
-    #     return repair
-    # except Exception as e:
-    #     session.rollback()
-    #     raise e

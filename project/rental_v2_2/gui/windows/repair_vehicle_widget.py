@@ -11,7 +11,7 @@ from models.vehicle import Vehicle
 from database.base import SessionLocal
 from services.user_service import get_users_by_role
 from services.vehicle_avability import get_available_vehicles
-from repositories.get_methods import get_rental_for_vehicle, get_vehicle_by_id, get_replacement_vehicle
+from repositories.read_methods import get_rental_for_vehicle, get_vehicle_by_id, get_replacement_vehicle
 from repositories.repair_service import finalize_repair, finish_after_vehicle_swap, finish_broken_rental
 
 

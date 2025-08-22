@@ -1,4 +1,4 @@
-# repositories/get_methods.py
+# repositories/read_methods.py
 
 from services.vehicle_avability import get_available_vehicles
 from models.user import User

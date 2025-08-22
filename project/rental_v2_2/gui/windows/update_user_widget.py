@@ -10,8 +10,8 @@ from sqlalchemy.exc import IntegrityError
 from models.user import User
 from validation.validation import is_valid_phone, is_valid_email
 from database.base import SessionLocal
-from repositories.get_methods import get_user_by
-from repositories.post_methods import update_user
+from repositories.read_methods import get_user_by
+from repositories.write_methods import update_user
 
 
 class UpdateUserWidget(QWidget):
