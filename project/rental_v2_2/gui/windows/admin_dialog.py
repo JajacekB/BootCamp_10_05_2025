@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QLabel, QVBoxLayout,
+    QMainWindow, QWidget, QLabel, QVBoxLayout, QSpacerItem,
     QPushButton, QGridLayout, QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, QTimer
@@ -19,8 +19,7 @@ class AdminDialog(QMainWindow):
         self.controller = controller
         self.dynamic_area = QFrame()
         self.current_widget = None
-
-
+        self.active_menu_button = None
 
         self.setWindowTitle("Menu Admina")
         self.setStyleSheet("""
@@ -63,6 +62,11 @@ class AdminDialog(QMainWindow):
         hello_label.setAlignment(Qt.AlignCenter)
         menu_layout.addWidget(hello_label)
 
+        info_label = QLabel("Wybierz co chcesz robić:")
+        info_label.setStyleSheet("color: #A9C1D9; font-size: 20px; font-weight: bold;")
+        info_label.setAlignment(Qt.AlignCenter)
+        menu_layout.addWidget(info_label)
+
         menu_list = [
             "1. Dodaj nowego sprzedawcę",
             "2. Usuń sprzedawcę",
@@ -80,20 +84,20 @@ class AdminDialog(QMainWindow):
 
         for item_text in menu_list:
             button = QPushButton(item_text)
-            button.setFixedSize(300, 45)
+            button.setFixedSize(275, 45)
             button.setStyleSheet("color: white; border-radius: 8px; padding-left: 10px;")
-            menu_layout.addWidget(button, alignment=Qt.AlignCenter)
-            command_num = item_text.split(".")[0]
-            button.clicked.connect(lambda checked, num=command_num: self._on_dynamic_button_clicked(num))
 
-        info_label = QLabel("Wybierz co chcesz robić:")
-        info_label.setStyleSheet("color: purple; font-size: 20px; font-weight: bold;")
-        info_label.setAlignment(Qt.AlignCenter)
-        menu_layout.addWidget(info_label)
+            command_num = item_text.split(".")[0]
+            button.clicked.connect(
+                lambda checked, b=button, num=command_num: self._on_dynamic_button_clicked_with_highlight(b, num))
+
+            menu_layout.addWidget(button, alignment=Qt.AlignCenter)
+
+        menu_layout.addSpacerItem(QSpacerItem(40, 40, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
         logoff_button = QPushButton("Wyloguj się")
         logoff_button.setFixedSize(255, 50)
-        logoff_button.setStyleSheet("color: white; font-size: 18px; border-radius: 8px; padding: 10px;")
+        logoff_button.setStyleSheet("background-color: brown; color: white; font-size: 18px; border-radius: 8px; padding: 10px;")
         logoff_button.clicked.connect(self._on_logout_clicked)
         menu_layout.addWidget(logoff_button, alignment=Qt.AlignCenter)
 
@@ -143,10 +147,26 @@ class AdminDialog(QMainWindow):
 
         self.current_widget = None
 
+    def _on_dynamic_button_clicked_with_highlight(self, button, command_num):
+        # Podświetlenie aktywnego przycisku
+        if self.active_menu_button:
+            self.active_menu_button.setStyleSheet(
+                "color: white; border-radius: 8px; padding-left: 10px; background-color: #555;"
+            )
 
-    def _on_dynamic_button_clicked(self, command_num: str):
+        # Ustaw bieżący jako aktywny
+        self.active_menu_button = button
+        self.active_menu_button.setStyleSheet(
+            "color: black; border-radius: 8px; padding-left: 10px; background-color: beige;"
+        )
+
+        # Wywołanie logiki menu, przekazując przycisk
+        self._on_dynamic_button_clicked(command_num, button)
+
+    def _on_dynamic_button_clicked(self, command_num: str, button):
         print(f"Emituję command_selected: {command_num}")
         self.command_selected.emit(command_num)
+        self._set_active_menu_button(button)
 
     def _on_logout_clicked(self):
         print("Emituję sygnał logout")
@@ -162,3 +182,16 @@ class AdminDialog(QMainWindow):
             self.controller.show_overdue_rentals_widget()
         except Exception as e:
             print(f"❌ Błąd podczas sprawdzania zaległości: {e}")
+
+    def _set_active_menu_button(self, button):
+
+        if self.active_menu_button:
+            self.active_menu_button.setStyleSheet(
+                "color: white; border-radius: 8px; padding-left: 10px; background-color: #555;"
+            )
+
+        self.active_menu_button = button
+        self.active_menu_button.setStyleSheet(
+            "color: black; border-radius: 8px; padding-left: 10px; background-color: beige;"
+        )
+

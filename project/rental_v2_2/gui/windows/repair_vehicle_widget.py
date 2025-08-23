@@ -29,7 +29,7 @@ class RepairVehicleWidget(QWidget):
                     QWidget {
                         background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
                         color: #eee; /* Jasny kolor tekstu */
-                        font-size: 16px;
+                        font-size: 18px;
                     }
                     QPushButton {
                         background-color: #555;
@@ -37,7 +37,7 @@ class RepairVehicleWidget(QWidget):
                         padding: 5px;
                     }
                     QLineEdit {
-                        font-size: 14px;
+                        font-size: 16px;
                     }
                 """)
 
@@ -62,7 +62,7 @@ class RepairVehicleWidget(QWidget):
         )
         self.comment_label_0.setWordWrap(True)
         self.comment_label_0.setStyleSheet("font-size: 18px; ")
-        self.comment_label_0.setFixedWidth(500)
+        self.comment_label_0.setFixedWidth(400)
         self.comment_label_0.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self.hbox0.addWidget(self.comment_label_0, alignment=Qt.AlignRight)
 
@@ -104,7 +104,7 @@ class RepairVehicleWidget(QWidget):
         )
         self.comment_label_1.setWordWrap(True)
         self.comment_label_1.setStyleSheet("font-size: 18px; ")
-        self.comment_label_1.setFixedWidth(500)
+        self.comment_label_1.setFixedWidth(400)
         self.comment_label_1.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self.hbox1.addWidget(self.comment_label_1, alignment=Qt.AlignRight)
 
@@ -159,7 +159,7 @@ class RepairVehicleWidget(QWidget):
         )
         self.comment_label_2.setWordWrap(True)
         self.comment_label_2.setStyleSheet("font-size: 18px; ")
-        self.comment_label_2.setFixedWidth(500)
+        self.comment_label_2.setFixedWidth(400)
         self.comment_label_2.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self.hbox2.addWidget(self.comment_label_2, alignment=Qt.AlignRight)
 
@@ -203,7 +203,7 @@ class RepairVehicleWidget(QWidget):
         )
         self.comment_label_3.setWordWrap(True)
         self.comment_label_3.setStyleSheet("font-size: 18px; ")
-        self.comment_label_3.setFixedWidth(500)
+        self.comment_label_3.setFixedWidth(400)
         self.comment_label_3.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
         self.hbox3.addWidget(self.comment_label_3, alignment=Qt.AlignRight)
 

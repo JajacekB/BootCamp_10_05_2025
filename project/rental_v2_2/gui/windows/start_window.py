@@ -22,6 +22,21 @@ class StartWindow(QWidget):
         self.setAutoFillBackground(True)
 
         self.title_label = None
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
+                color: #eee; /* Jasny kolor tekstu */
+                font-size: 18px;
+            }
+            QPushButton {
+                background-color: #555;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QLineEdit {
+                font-size: 16px;
+            }
+        """)
 
         self.setup_ui()
 
@@ -59,27 +74,23 @@ class StartWindow(QWidget):
         logo_label.setAlignment(Qt.AlignCenter)
 
         self.title_label = QLabel("🚗  MOTO VIBE 3000  🚗\nWYPOŻYCZALNIA POJAZDÓW")
-        self.title_label.setFont(QFont("Arial", 36, QFont.Bold))
+        # self.title_label.setFont(QFont("Arial", 36, QFont.Bold))
         self.title_label.setAlignment(Qt.AlignCenter)
-        self.title_label.setStyleSheet("color: white;")
+        self.title_label.setStyleSheet("font-family: Arial; color: white; font-size: 36px; font-weight: bold;")
 
         self.btn_login = QPushButton("Zaloguj się")
         self.btn_register = QPushButton("Zarejestruj się")
         self.btn_exit = QPushButton("Zamknij program")
+        self.btn_exit.setStyleSheet("font-family: Arial; font-size: 22px; background-color: #A52A2A;")
+        self.btn_exit.setFixedHeight(50)
 
-        for btn in [self.btn_login, self.btn_register, self.btn_exit]:
-            btn.setFont(QFont("Arial", 18))
+        for btn in [self.btn_login, self.btn_register]:
             btn.setFixedHeight(50)
-            btn.setStyleSheet(
-                "background-color: #444;"
-                "color: white;"
-                "border-radius: 8px;"
-            )
+            btn.setStyleSheet("font-family: Arial; font-size: 22px;")
 
 
         self.btn_login.clicked.connect(self.login_requested.emit)
         self.btn_register.clicked.connect(lambda: self.register_requested.emit(self))
-        # Connect the exit button to the handle_exit_program function
         self.btn_exit.clicked.connect(self.handle_exit_program)
 
         layout.addWidget(logo_label)
@@ -104,8 +115,8 @@ class StartWindow(QWidget):
             f"🚗  MOTO VIBE 3000  🚗\n\n"
             f">>> Do widzenia <<<"
         )
-        self.title_label.setFont(QFont("Arial", 40, QFont.Bold)) # Make it larger for emphasis
-        self.title_label.setStyleSheet("color: #FFD700;") # Change color for visibility
+        # self.title_label.setFont(QFont("Arial", 40, QFont.Bold))
+        self.title_label.setStyleSheet("font-family: Arial; color: #FFD700; font-size: 40px; font-weight: bold;")
         self.btn_login.hide()
         self.btn_register.hide()
         self.btn_exit.hide()

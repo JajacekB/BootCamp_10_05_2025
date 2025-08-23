@@ -1,13 +1,10 @@
 import sys
 from PySide6.QtWidgets import (
-    QWidget, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox, QGridLayout,
+    QWidget, QFormLayout, QPushButton, QLineEdit, QLabel, QGridLayout,
     QHBoxLayout ,QVBoxLayout, QApplication, QSizePolicy, QMessageBox
 )
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import Qt
 import bcrypt
-import pycountry
-from sqlalchemy.exc import IntegrityError
-from models.user import User
 from validation.validation import is_valid_phone, is_valid_email
 from database.base import SessionLocal
 from repositories.read_methods import get_user_by
@@ -20,9 +17,6 @@ class UpdateUserWidget(QWidget):
 
         self.session = session or SessionLocal()
         self.user = user
-        if not self.user:
-            user_id = 16
-            self.user = get_user_by(self.session, user_id = user_id)
         self.controller = controller
         self.user_data_dict = {}
 
@@ -32,7 +26,7 @@ class UpdateUserWidget(QWidget):
                     QWidget {
                         background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
                         color: #eee; /* Jasny kolor tekstu */
-                        font-size: 16px;
+                        font-size: 18px;
                     }
                     QPushButton {
                         background-color: #555;
@@ -40,7 +34,7 @@ class UpdateUserWidget(QWidget):
                         padding: 5px;
                     }
                     QLineEdit {
-                        font-size: 14px;
+                        font-size: 16px;
                     }
                 """)
 
@@ -51,8 +45,6 @@ class UpdateUserWidget(QWidget):
 
         self._build_ui()
         self.populate_user_data(user)
-
-        # QTimer.singleShot(0, self._build_ui)
 
     def _build_ui(self):
 
@@ -114,16 +106,11 @@ class UpdateUserWidget(QWidget):
         update_user_grid.addWidget(self.title_label, 0, 0, 1, 2)
 
         self.first_name_input = QLineEdit()
-        self.first_name_input.setPlaceholderText(self.user.first_name)
         self.last_name_input = QLineEdit()
-        self.last_name_input.setPlaceholderText(self.user.last_name)
         self.login_input = QLineEdit()
-        self.login_input.setPlaceholderText(self.user.login)
         self.phone_input = QLineEdit()
         self.phone_input.setPlaceholderText(self.user.phone)
-        self.phone_input.textChanged.connect(self._validate_phone_input)
         self.email_input = QLineEdit()
-        self.email_input.setPlaceholderText(self.user.email)
         self.email_input.editingFinished.connect(self._validate_email_input)
 
         self.personal_data_layout = QFormLayout()
@@ -141,7 +128,6 @@ class UpdateUserWidget(QWidget):
 
         self.address_input = QLineEdit()
         self.address_layout = QFormLayout()
-        self.address_input.setPlaceholderText(self.user.address)
         self.address_layout.addRow("Podaj nowy adres:", self.address_input)
         update_user_grid.addLayout(self.address_layout, 3, 0, 1, 2)
 
@@ -181,7 +167,7 @@ class UpdateUserWidget(QWidget):
         self.container_2 = QWidget()
         self.container_2.setLayout(update_user_grid)
         self.container_2.hide()
-        self.main_layout.addWidget(self.container_2)
+        self.main_layout.addWidget(self.container_2, alignment=Qt.AlignLeft)
 
 
         password_grid = QGridLayout()
@@ -255,7 +241,7 @@ class UpdateUserWidget(QWidget):
         self.container_3.setLayout(password_grid)
         self.container_3.hide()
 
-        self.main_layout.addWidget(self.container_3)
+        self.main_layout.addWidget(self.container_3, alignment=Qt.AlignLeft)
 
 
         self.main_layout.addStretch()
@@ -263,9 +249,7 @@ class UpdateUserWidget(QWidget):
 
     def populate_user_data(self, user):
 
-        if not self.user:
-            user_id = 16
-            self.user = get_user_by(self.session, user_id = user_id)
+        self.user = get_user_by(self.session, user_id = user.id)
 
         excluded = {"id", "password_hash", "registration_day", "is_active"}
         user_dict = {
@@ -294,12 +278,21 @@ class UpdateUserWidget(QWidget):
 
 
     def on_update_profile(self):
+
+        self.first_name_input.setPlaceholderText(self.user.first_name)
+        self.last_name_input.setPlaceholderText(self.user.last_name)
+        self.login_input.setPlaceholderText(self.user.login)
+        self.phone_input.setPlaceholderText(self.user.phone)
+        self.email_input.setPlaceholderText(self.user.email)
+        self.address_input.setPlaceholderText(self.user.address)
+
         self.header_label.clear()
-        self.header_label.setText(">>> EEDYCJA PROFILU <<<")
+        self.header_label.setText(">>> EDYCJA PROFILU <<<")
         self.container_1.hide()
         self.container_2.show()
 
     def handle_summary_data(self):
+
 
         def get_field_value(widget):
 
@@ -352,6 +345,7 @@ class UpdateUserWidget(QWidget):
         success, msg = update_user(self.session, self.user, self.summary_data)
         if success:
             self._reset_edit_mode()
+            self.user = get_user_by(self.session, user_id=self.user.id)
             QMessageBox.information(self, "Sukces", "✅ Zaktualizowano pomyślnie!")
         else:
             QMessageBox.critical(self, "Błąd", f"❌ Wystąpił problem przy zapisie:\n{msg}")

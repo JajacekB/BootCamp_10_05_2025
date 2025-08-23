@@ -85,11 +85,6 @@ class AppController(QObject):
         self.current_active_window = self.start_window
 
 
-    # def show_admin_menu(self, user):
-    #     self.admin_dialog = AdminDialog(user=user, session=self.db_session, controller=self)
-    #     self.admin_dialog.show()
-
-
     def _handle_login_request(self):
         print("\n--- Obsługa żądania logowania z GUI ---")
 

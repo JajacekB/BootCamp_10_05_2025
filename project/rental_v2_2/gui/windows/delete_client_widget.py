@@ -52,7 +52,9 @@ class DeleteUsersWidget(QWidget):
 
         self.list_widget = QListWidget()
         main_layout.addWidget(self.list_widget)
+        self.adjust_list_height()
         self.list_widget.itemClicked.connect(self._confirm_end_delete_client)
+
 
         self.search_button = QPushButton("Pokaż")
         self.search_button.setFixedSize(150, 45)
@@ -125,6 +127,7 @@ class DeleteUsersWidget(QWidget):
                 item = QListWidgetItem(user_strs)
                 item.setData(Qt.UserRole, u.id)
                 self.list_widget.addItem(item)
+                self.adjust_list_height()
 
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas pobierania danych:\n{e}")
@@ -178,6 +181,15 @@ class DeleteUsersWidget(QWidget):
 
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas dezaktywacji użytkownika:\n{e}")
+
+
+    def adjust_list_height(self):
+        count = self.list_widget.count()
+        row_height = self.list_widget.sizeHintForRow(0) if count > 0 else 20
+        frame = 2 * self.list_widget.frameWidth()
+        new_height = min(10, max(5, count)) * row_height + frame
+        self.list_widget.setMinimumHeight(new_height)
+        self.list_widget.setMaximumHeight(new_height)
 
 
 

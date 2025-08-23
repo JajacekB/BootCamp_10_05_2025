@@ -130,91 +130,14 @@ class OverdueRentalsWidget(QWidget):
         self.setLayout(self.main_layout)
 
 
-    # def overdue_vehicle_rentals(self):
-    #     if self.user.role not in ("seller", "admin"):
-    #         return
-    #
-    #     try:
-    #         today = date.today()
-    #         overdue_rentals = self.session.query(RentalHistory).filter(
-    #             RentalHistory.planned_return_date < today,
-    #             RentalHistory.actual_return_date == None
-    #         ).order_by(RentalHistory.planned_return_date.asc()).all()
-    #
-    #
-    #         overdue_repairs = self.session.query(RepairHistory).filter(
-    #             RepairHistory.planned_return_date < today,
-    #             RepairHistory.actual_return_date == None
-    #         ).order_by(RepairHistory.planned_return_date.asc()).all()
-    #
-    #         self.overdues = overdue_repairs + overdue_rentals
-    #         self.overdues = sorted(self.overdues, key=lambda x: x.planned_return_date)
-    #
-    #         for obj in self.overdues:
-    #             if isinstance(obj, RentalHistory):
-    #                 text = f"Rental: {obj.reservation_id} - {obj.vehicle.brand} {obj.vehicle.vehicle_model}"
-    #             elif isinstance(obj, RepairHistory):
-    #                 text = f"Repair: {obj.repair_id} - {obj.vehicle.brand} {obj.vehicle.vehicle_model}"
-    #
-    #             item = QListWidgetItem(text)
-    #             item.setData(Qt.UserRole, obj)  # przechowujesz cały obiekt
-    #             self.rentals_list.addItem(item)
-    #
-    #         if not self.overdues:
-    #             self.title_label.hide()
-    #             self.rentals_list.hide()
-    #             QMessageBox.information(
-    #                 self,
-    #                 "Brak zaległości",
-    #                 "Ponowne sprawdzenie jutro."
-    #             )
-    #             self.close()
-    #         else:
-    #             self.overdues_action()
-    #
-    #     except Exception as e:
-    #         QMessageBox.critical(
-    #             self,
-    #             "Błąd",
-    #             f"Bład odczytu bazy danych.\n{str(e)}"
-    #         )
-
-
-    def overdues_action(self):
-        self.rentals_list.clear()
-
-        for obj in self.overdues:
-            if isinstance(obj, RentalHistory):
-                end_date = obj.actual_return_date or obj.planned_return_date
-                id_number = obj.reservation_id
-                cost = obj.total_cost
-            elif isinstance(obj, RepairHistory):
-                end_date = obj.actual_return_date or obj.planned_return_date
-                id_number = obj.repair_id
-                cost = obj.cost
-            else:
-                end_date = None
-                id_number = None
-                cost = None
-            text = (
-                f"|{id_number:>7} "
-                f"|{obj.vehicle.brand:>15} "
-                f"|{obj.vehicle.vehicle_model:>15} "
-                f"|{getattr(obj.vehicle, 'type', ''):>9} "
-                f"|{obj.start_date.strftime('%d-%m-%Y'):>11} → "
-                f"{end_date.strftime('%d-%m-%Y'):<11} "
-                f"|{cost:>11} zł |"
-            )
-
-            item = QListWidgetItem(text)
-            item.setData(Qt.UserRole, obj)
-            self.rentals_list.addItem(item)
-
-        self.adjust_list_height()
-
     def overdue_vehicle_rentals(self):
+
         if self.user.role not in ("seller", "admin"):
             return
+
+        self.rentals_list.clear()
+        self.title_label.show()
+        self.rentals_list.show()
 
         try:
             today = date.today()
@@ -260,6 +183,39 @@ class OverdueRentalsWidget(QWidget):
                 "Błąd",
                 f"Bład odczytu bazy danych.\n{str(e)}"
             )
+
+
+    def overdues_action(self):
+        self.rentals_list.clear()
+
+        for obj in self.overdues:
+            if isinstance(obj, RentalHistory):
+                end_date = obj.actual_return_date or obj.planned_return_date
+                id_number = obj.reservation_id
+                cost = obj.total_cost
+            elif isinstance(obj, RepairHistory):
+                end_date = obj.actual_return_date or obj.planned_return_date
+                id_number = obj.repair_id
+                cost = obj.cost
+            else:
+                end_date = None
+                id_number = None
+                cost = None
+            text = (
+                f"|{id_number:>7} "
+                f"|{obj.vehicle.brand:>15} "
+                f"|{obj.vehicle.vehicle_model:>15} "
+                f"|{getattr(obj.vehicle, 'type', ''):>9} "
+                f"|{obj.start_date.strftime('%d-%m-%Y'):>11} → "
+                f"{end_date.strftime('%d-%m-%Y'):<11} "
+                f"|{cost:>11} zł |"
+            )
+
+            item = QListWidgetItem(text)
+            item.setData(Qt.UserRole, obj)
+            self.rentals_list.addItem(item)
+
+        self.adjust_list_height()
 
     def overdue_rental_details(self, item):
         self.overdue_rental_detail.clear()
