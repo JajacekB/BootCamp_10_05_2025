@@ -46,6 +46,7 @@ class UpdateUserWidget(QWidget):
 
         self.valid_style = "border: 1px solid #4CAF50;"
         self.invalid_style = "border: 1px solid #F44336;"
+        self.regular_style =""
 
 
         self._build_ui()
@@ -103,6 +104,7 @@ class UpdateUserWidget(QWidget):
         self.container_1 = QWidget()
         self.container_1.setLayout(layout)
         self.main_layout.addWidget(self.container_1)
+
 
         update_user_grid = QGridLayout()
 
@@ -182,11 +184,81 @@ class UpdateUserWidget(QWidget):
         self.main_layout.addWidget(self.container_2)
 
 
+        password_grid = QGridLayout()
+        self.old_password_input = QLineEdit()
+        self.old_password_input.setEchoMode(QLineEdit.Password)
 
+
+        self.new_password_input = QLineEdit()
+        self.new_password_input.setEchoMode(QLineEdit.Password)
+        self.new_password_input.setPlaceholderText("Musi zawierać 6 znaków, 1 wielką literę, 1 cyfrę")
+        self.new_password_input.textChanged.connect(self._validate_password_input)
+
+        self.confirm_new_password_input = QLineEdit()
+        self.confirm_new_password_input.setEchoMode(QLineEdit.Password)
+        self.confirm_new_password_input.editingFinished.connect(self._validate_confirm_password)
+
+        self.login_layout = QFormLayout()
+        self.login_layout.addRow("Podaj stare hasło:", self.old_password_input)
+
+        self.container_login = QWidget()
+        self.container_login.setLayout(self.login_layout)
+        self.container_login.hide()
+        password_grid.addWidget(self.container_login, 0, 0, 1, 2)
+
+        self.cancel_1_button = QPushButton("Anuluj")
+        self.cancel_1_button.setFixedSize(140, 30)
+        self.cancel_1_button.setStyleSheet(
+            "background-color: lightgreen;"
+            " font-size: 18px; color: white;"
+        )
+        self.cancel_1_button.clicked.connect(self.on_click_clear_data)
+        password_grid.addWidget(self.cancel_1_button, 1, 0, 1, 1)
+
+        self.confirm_1_button = QPushButton("Potwierdź hasło")
+        self.confirm_1_button.setFixedSize(140, 30)
+        self.confirm_1_button.setStyleSheet(
+            "background-color: grey;"
+            " font-size: 18px; color: white;"
+        )
+        self.confirm_1_button.clicked.connect(self.on_click_old_password)
+        password_grid.addWidget(self.confirm_1_button, 1, 1, 1, 1)
+
+        self.password_confirm_layout = QFormLayout()
+        self.password_confirm_layout.addRow("Podaj nowe hasło:", self.new_password_input)
+        self.password_confirm_layout.addRow("Potwierdź nowe hasło:", self.confirm_new_password_input)
+
+        self.container_password = QWidget()
+        self.container_password.setLayout(self.password_confirm_layout)
+        self.container_password.hide()
+        password_grid.addWidget(self.container_password, 2, 0, 1, 2)
+
+        self.cancel_2_button = QPushButton("Anuluj")
+        self.cancel_2_button.setFixedSize(140, 30)
+        self.cancel_2_button.setStyleSheet(
+            "background-color: lightgreen;"
+            " font-size: 18px; color: white;"
+        )
+        self.cancel_2_button.clicked.connect(self.on_click_clear_data)
+        password_grid.addWidget(self.cancel_2_button, 3, 0, 1, 1)
+
+        self.confirm_2_button = QPushButton("Zmień")
+        self.confirm_2_button.setFixedSize(140, 30)
+        self.confirm_2_button.setStyleSheet(
+            "background-color: grey;"
+            " font-size: 18px; color: white;"
+        )
+        self.confirm_2_button.clicked.connect(self.handle_update_password)
+        password_grid.addWidget(self.confirm_2_button, 3, 1, 1, 1)
+
+        self.container_3 = QWidget()
+        self.container_3.setLayout(password_grid)
+        self.container_3.hide()
+
+        self.main_layout.addWidget(self.container_3)
 
 
         self.main_layout.addStretch()
-
         self.setLayout(self.main_layout)
 
     def populate_user_data(self, user):
@@ -289,10 +361,54 @@ class UpdateUserWidget(QWidget):
 
 
     def on_change_password(self):
-        """
+        self.container_1.hide()
+        self.container_2.hide()
+        self.container_3.show()
+        self.cancel_1_button.show()
+        self.confirm_1_button.show()
+        self.cancel_2_button.hide()
+        self.confirm_2_button.hide()
+        self.container_login.show()
 
-        :return:
-        """
+
+    def on_click_old_password(self):
+        password = self.old_password_input.text().strip()
+        if not bcrypt.checkpw(password.encode("utf-8"), self.user.password_hash.encode("utf-8")):
+            QMessageBox.critical(self, "Błąd", f"❌ błędne hasło.")
+            self.old_password_input.clear()
+            return
+
+        self.container_login.hide()
+        self.cancel_1_button.hide()
+        self.confirm_1_button.hide()
+        self.container_password.show()
+        self.cancel_2_button.show()
+        self.confirm_2_button.show()
+
+    def handle_update_password(self):
+        new_password = self.new_password_input.text().strip()
+        confirm_new_password = self.confirm_new_password_input.text().strip()
+        if not new_password == confirm_new_password:
+            QMessageBox.critical(self, "Błąd", f"❌ Hasła nie są jednakowe.")
+            self.confirm_new_password_input.clear()
+            return
+
+        new_password_hash = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        self.summary_data = {
+            "password_hash": new_password_hash
+        }
+        success, msg = update_user(self.session, self.user, self.summary_data)
+        if success:
+            self.new_password_input.setStyleSheet(self.regular_style)
+            self.new_password_input.clear()
+            self.confirm_new_password_input.setStyleSheet(self.regular_style)
+            self.confirm_new_password_input.clear()
+            self._reset_edit_mode()
+            QMessageBox.information(self, "Sukces", "✅ Zaktualizowano pomyślnie!")
+        else:
+            QMessageBox.critical(self, "Błąd", f"❌ Wystąpił problem przy zapisie:\n{msg}")
+
+
 
     def _validate_phone_input(self, text):
         print("Sprawdzam numer_1:", text, "=>", is_valid_phone(text))
@@ -310,28 +426,54 @@ class UpdateUserWidget(QWidget):
         else:
             self.email_input.setStyleSheet(self.invalid_style)
 
-    def _is_form_valid(self):
-        password = self.password_input.text()
+    def _validate_password_input(self, text):
+        is_long_enough = len(text) >= 6
+        has_upper_case = any(char.isupper() for char in text)
+        has_digit = any(char.isdigit() for char in text)
+        if is_long_enough and has_upper_case and has_digit:
+            self.new_password_input.setStyleSheet(self.valid_style)
+        else:
+            self.new_password_input.setStyleSheet(self.invalid_style)
 
-        phone_valid = is_valid_phone(self.phone_input.text())
-        email_valid = is_valid_email(self.email_input.text())
-        password_valid = (
-            len(password) >= 6 and
-            any(char.isupper() for char in password) and
-            any(char.isdigit() for char in password)
-        )
-        confirm_password_valid = password == self.confirm_password_input.text()
-
-        return phone_valid and email_valid and password_valid and confirm_password_valid
+    def _validate_confirm_password(self):
+        password = self.new_password_input.text()
+        confirm_password = self.confirm_new_password_input.text()
+        if password == confirm_password and password:
+            self.confirm_new_password_input.setStyleSheet(self.valid_style)
+        else:
+            self.confirm_new_password_input.setStyleSheet(self.invalid_style)
 
     def _reset_edit_mode(self):
 
         self.populate_user_data(self.user)
+        self.container_3.hide()
         self.container_2.hide()
         self.container_1.show()
         self.save_data_button.hide()
         self.confirm_button.show()
+        self.cancel_1_button.hide()
+        self.confirm_1_button.hide()
+        self.cancel_2_button.hide()
+        self.confirm_2_button.hide()
+        self.container_password.hide()
+        self.old_password_input.clear()
+
+        inputs = [
+            self.first_name_input,
+            self.last_name_input,
+            self.login_input,
+            self.phone_input,
+            self.email_input,
+            self.old_password_input,
+            self.new_password_input,
+            self.confirm_new_password_input,
+        ]
+        for widget in inputs:
+            widget.clear()
+            widget.setStyleSheet(self.regular_style)
+
         self.summary_label.setText("")
+
 
 
 
