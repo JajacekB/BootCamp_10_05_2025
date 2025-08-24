@@ -2,7 +2,7 @@
 from PySide6.QtWidgets import QMessageBox
 
 from gui.widgets.delete_users_view import DeleteUsersWidget
-from logic.delete_users_service import DeleteUsersService
+from repositories.delete_users_service import DeleteUsersService
 
 class DeleteUsersController:
     def __init__(self, view: DeleteUsersWidget, service: DeleteUsersService):

@@ -2,8 +2,8 @@
 from PySide6.QtWidgets import QApplication
 from database.base import SessionLocal
 from gui.widgets.get_users_view import GetUsersWidget
-from logic.get_users_service import GetUsersService
-from gui.controllers.get_users_controller import GetUsersController
+from repositories.get_users_service import GetUsersService
+from controllers.get_users_controller import GetUsersController
 
 def main():
     app = QApplication([])

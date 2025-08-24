@@ -5,9 +5,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal, QTimer
 from gui.windows.register_wiget import RegisterWidget
 
-from logic.delete_users_service import DeleteUsersService
+from repositories.delete_users_service import DeleteUsersService
 from gui.widgets.delete_users_view import DeleteUsersWidget
-from gui.controllers.delete_users_controller import DeleteUsersController
+from controllers.delete_users_controller import DeleteUsersController
 
 
 

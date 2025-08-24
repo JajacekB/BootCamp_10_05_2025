@@ -4,13 +4,13 @@ from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 
 from database.base import SessionLocal
 
-from logic.delete_users_service import DeleteUsersService
+from repositories.delete_users_service import DeleteUsersService
 from gui.widgets.delete_users_view import DeleteUsersWidget
-from gui.controllers.delete_users_controller import DeleteUsersController
+from controllers.delete_users_controller import DeleteUsersController
 
-from logic.get_users_service import GetUsersService
+from repositories.get_users_service import GetUsersService
 from gui.widgets.get_users_view import GetUsersWidget
-from gui.controllers.get_users_controller import GetUsersController
+from controllers.get_users_controller import GetUsersController
 
 
 from gui.windows.start_window import StartWindow
@@ -28,11 +28,6 @@ from gui.windows.return_vehicle_widget import ReturnVehicleWidget
 from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
 from gui.windows.repair_vehicle_widget import RepairVehicleWidget
 from gui.windows.overdue_rentals_widget import OverdueRentalsWidget
-
-from services.repair import repair_vehicle
-from services.user_service import update_profile
-from services.rental_process import rent_vehicle_for_client, return_vehicle, rent_vehicle
-
 
 
 class UserLoggedInSignal(QObject):
