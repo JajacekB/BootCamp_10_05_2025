@@ -43,8 +43,15 @@ class DeleteUsersWidget(QWidget):
         self.list_widget = QListWidget()
         self.list_widget.itemClicked.connect(self._on_item_clicked)
         main_layout.addWidget(self.list_widget)
+        self.adjust_list_height()
 
         self.search_button = QPushButton("Pokaż")
+        self.search_button.setFixedSize(155, 45)
+        self.search_button.setStyleSheet(
+            "background-color: green;"
+            "font-size: 24px; color: white;"
+            "border-radius: 8px; padding: 5px;"
+        )
         self.search_button.clicked.connect(lambda: self.request_users.emit())
         main_layout.addWidget(self.search_button, alignment=Qt.AlignLeft)
 
@@ -56,17 +63,26 @@ class DeleteUsersWidget(QWidget):
         btn_layout = QHBoxLayout()
 
         self.cancel_button = QPushButton("Anuluj")
+        self.cancel_button.setFixedSize(155, 40)
+        self.cancel_button.setStyleSheet(
+            "background-color: #F44336; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
+        )
         self.cancel_button.setVisible(False)
         self.cancel_button.clicked.connect(lambda: self.cancel_requested.emit())
         btn_layout.addWidget(self.cancel_button)
 
         self.delete_user_button = QPushButton("Usuń użytkownika")
+        self.delete_user_button.setFixedSize(155, 40)
+        self.delete_user_button.setStyleSheet(
+            "background-color: #4CAF50; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
+        )
         self.delete_user_button.setVisible(False)
         self.delete_user_button.clicked.connect(self._on_delete_clicked)
         btn_layout.addWidget(self.delete_user_button)
 
         btn_layout.addStretch()
         main_layout.addLayout(btn_layout)
+        main_layout.addStretch()
 
         self.setLayout(main_layout)
 
@@ -81,6 +97,7 @@ class DeleteUsersWidget(QWidget):
             item = QListWidgetItem(f"ID: [{u['id']:03d}] - {u['first_name']} {u['last_name']}, login: {u['login']}")
             item.setData(Qt.UserRole, u["id"])
             self.list_widget.addItem(item)
+            self.adjust_list_height()
 
     def show_user_summary(self, user_info: str):
         self.summary_label.setText(user_info)
@@ -104,4 +121,12 @@ class DeleteUsersWidget(QWidget):
         if self.list_widget.currentItem():
             uid = self.list_widget.currentItem().data(Qt.UserRole)
             self.delete_requested.emit(uid)
+
+    def adjust_list_height(self):
+        count = self.list_widget.count()
+        row_height = self.list_widget.sizeHintForRow(0) if count > 0 else 20
+        frame = 2 * self.list_widget.frameWidth()
+        new_height = min(10, max(5, count)) * row_height + frame
+        self.list_widget.setMinimumHeight(new_height)
+        self.list_widget.setMaximumHeight(new_height)
 

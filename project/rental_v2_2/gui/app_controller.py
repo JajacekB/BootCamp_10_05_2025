@@ -2,7 +2,7 @@ import sys
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 
-from database.base import SessionLocal #, Session
+from database.base import SessionLocal
 
 from logic.delete_users_service import DeleteUsersService
 from gui.widgets.delete_users_view import DeleteUsersWidget
@@ -19,7 +19,6 @@ from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.add_vehicle_widget import AddVehicleWidget
 from gui.windows.update_user_widget import UpdateUserWidget
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
-from gui.windows.delete_client_widget import DeleteUsersWidget
 from gui.windows.return_vehicle_widget import ReturnVehicleWidget
 from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
 from gui.windows.repair_vehicle_widget import RepairVehicleWidget
@@ -325,26 +324,21 @@ class AppController(QObject):
         self.get_users_widget = GetUsersWidget(self.db_session)
         self.show_widget(self.get_users_widget)
 
-    # def show_delete_client_widget(self):
-    #     print("🔧🔧🔧 Wywołano delete_client_widget()")
-    #     self.delete_client_widget = DeleteUsersWidget(self.db_session)
-    #     self.show_widget(self.delete_client_widget)
-
     def show_delete_client_widget(self):
         print("🔧 Wywołano delete_client_widget() - MVC wersja")
-
-        # Inicjalizacja MVC
         service = DeleteUsersService(session=self.db_session, role="client")
         view = DeleteUsersWidget(role="client")
         controller = DeleteUsersController(view, service)
-
-        # Wczytanie widoku do dynamic_area
-        self.load_widget(view)
+        self.delete_client_controller = controller
+        self.show_widget(view)
 
     def show_delete_seller_widget(self):
-        print("🔧🔧🔧 Wywołano delete_client_widget()")
-        self.delete_client_widget = DeleteUsersWidget(self.db_session, "seller")
-        self.show_widget(self.delete_client_widget)
+        print("🔧 Wywołano delete_client_widget() - MVC wersja")
+        service = DeleteUsersService(session=self.db_session, role="seller")
+        view = DeleteUsersWidget(role="seller")
+        controller = DeleteUsersController(view, service)
+        self.delete_seller_controller = controller
+        self.show_widget(view)
 
     def show_add_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano add_vehicle_widget()")

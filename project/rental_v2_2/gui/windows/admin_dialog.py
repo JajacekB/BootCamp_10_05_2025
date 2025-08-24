@@ -136,6 +136,15 @@ class AdminDialog(QMainWindow):
 
         self.load_widget(self.register_widget)
 
+    def show_delete_client_widget(self):
+        # MVC Delete Users
+        service = DeleteUsersService(session=self.session, role="client")
+        view = DeleteUsersWidget(role="client")
+        controller = DeleteUsersController(view, service)
+
+        # Podłącz sygnały kontrolera
+        self.load_widget(view)
+
 
     def clear_dynamic_area(self):
         layout = self.dynamic_area.layout()

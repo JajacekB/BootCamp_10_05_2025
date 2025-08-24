@@ -21,19 +21,9 @@ class DeleteUsersWidget(QWidget):
         self.setWindowTitle("Klienci")
 
         self.setStyleSheet("""
-                    QWidget {
-                        background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
-                        color: #eee; /* Jasny kolor tekstu */
-                        font-size: 16px;
-                    }
-                    QPushButton {
-                        background-color: #555;
-                        border-radius: 5px;
-                        padding: 5px;
-                    }
-                    QLineEdit {
-                        font-size: 14px;
-                    }
+                    QWidget {background-color: #2e2e2e; color: #eee; font-size: 16px; }
+                    QPushButton {background-color: #555; border-radius: 5px; padding: 5px; }
+                    QLineEdit {font-size: 14px; }
                 """)
         self._build_ui()
 
