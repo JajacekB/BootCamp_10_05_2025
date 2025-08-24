@@ -321,15 +321,10 @@ class AppController(QObject):
 
     def show_get_users_widget(self):
         print("🔧 Wywołano show_get_users_widget()")
-
         service = GetUsersService(self.db_session)
-
         view = GetUsersWidget(session=self.db_session)
-
         controller = GetUsersController(view=view, service=service)
-
         self.get_users_controller = controller
-
         if self.admin_dialog:
             self.admin_dialog.load_widget(view)
 

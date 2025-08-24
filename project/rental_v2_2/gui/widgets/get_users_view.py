@@ -1,15 +1,12 @@
 # get_users_view.py
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox, QListWidget, QListWidgetItem, QGroupBox, QHBoxLayout
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox, QListWidget,
-    QListWidgetItem, QGroupBox, QHBoxLayout
-)
-
-
+from datetime import date
 
 class GetUsersWidget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, session, parent=None):
         super().__init__(parent)
+        self.session = session
         self._build_ui()
 
     def _build_ui(self):
@@ -69,12 +66,13 @@ class GetUsersWidget(QWidget):
         self.list_widget.blockSignals(True)
         self.list_widget.clear()
 
+        # Użytkownik
         user_item = QListWidgetItem(f"Użytkownik: {details['user']}" if details["user"] else "Użytkownik: brak danych")
         user_item.setFlags(Qt.NoItemFlags)
         user_item.setData(Qt.UserRole, None)
-        self.adjust_list_height()
         self.list_widget.addItem(user_item)
 
+        # Pojazd / wypożyczenie
         rent = details["rent"]
         if not rent:
             vehicle_item = QListWidgetItem("Nigdy nie wypożyczał żadnego pojazdu")

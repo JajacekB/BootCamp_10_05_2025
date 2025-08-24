@@ -35,7 +35,7 @@ class GetUsersController:
                     QMessageBox.information(self.view, "Informacja", "Brak nieaktywnych klientów.")
                     return
 
-            else:
+            else:  # Wszyscy
                 users = self.service.get_all_clients()
                 if not users:
                     QMessageBox.information(self.view, "Informacja", "Brak klientów w bazie.")

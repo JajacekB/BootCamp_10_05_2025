@@ -10,6 +10,7 @@ class GetUsersService:
         self.session = session
 
     def get_users_with_rent(self):
+        """Klienci mający aktywne wypożyczenie (niezależnie od aktywności)."""
         vehicles = self.session.query(Vehicle).filter(Vehicle.is_available == False).all()
         if not vehicles:
             return []
@@ -22,6 +23,7 @@ class GetUsersService:
         )
 
     def get_users_without_rent(self):
+        """Aktywni klienci bez wypożyczenia."""
         vehicles = self.session.query(Vehicle).filter(Vehicle.is_available == False).all()
         user_ids = [v.borrower_id for v in vehicles] if vehicles else []
         return (
@@ -32,6 +34,7 @@ class GetUsersService:
         )
 
     def get_all_clients(self):
+        """Wszyscy klienci: aktywni na górze, nieaktywni na dole."""
         active = (
             self.session.query(User)
             .filter(User.role == "client", User.is_active == True)
@@ -47,6 +50,7 @@ class GetUsersService:
         return active + inactive
 
     def get_inactive_users(self):
+        """Wyłącznie nieaktywni klienci."""
         return (
             self.session.query(User)
             .filter(User.role == "client", User.is_active == False)
@@ -55,6 +59,7 @@ class GetUsersService:
         )
 
     def format_users(self, users):
+        """Tworzy czytelne stringi do wyświetlenia w liście."""
         user_view = defaultdict(list)
         for u in users:
             key = (u.id, u.first_name, u.last_name, u.login)
@@ -65,6 +70,7 @@ class GetUsersService:
         ]
 
     def get_user_details(self, user_id: int) -> dict:
+        """Zwraca dane o użytkowniku i ostatnim wypożyczeniu"""
         user = self.session.query(User).filter_by(id=user_id).first()
         vehicle = self.session.query(Vehicle).filter_by(borrower_id=user_id).first()
         rent = (
