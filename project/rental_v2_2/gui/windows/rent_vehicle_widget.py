@@ -94,7 +94,7 @@ class RentVehicleWidget(QWidget):
         btn_cancel = QPushButton("Anuluj")
         btn_cancel.clicked.connect(self.handle_cancel_button)
         btn_cancel.setStyleSheet(
-            "background-color: green;"
+            "background-color: red;"
             " font-size: 18px; color: white;"
             " border-radius: 8px; padding: 6px; ")
 
@@ -121,7 +121,7 @@ class RentVehicleWidget(QWidget):
         btn_confirm = QPushButton("Zatwierdź")
         btn_confirm.clicked.connect(self.handle_confirm_button)
         btn_confirm.setStyleSheet(
-            "background-color: red;"
+            "background-color: green;"
             " font-size: 18px; color: white;"
             " border-radius: 8px; padding: 6px; ")
 
@@ -182,33 +182,34 @@ class RentVehicleWidget(QWidget):
         self.info_5_label.setWordWrap(True)
 
         self.btn_rent_cancel = QPushButton("Anuluj")
-        # self.btn_rent_cancel.clicked.connect(self.handle_rent_cancel_button)
+        self.btn_rent_cancel.clicked.connect(self.handle_cancel_button)
         self.btn_rent_cancel.setStyleSheet(
-            "background-color: green;"
+            "background-color: red;"
             " font-size: 18px; color: white;"
             " border-radius: 8px; padding: 6px; ")
 
         self.btn_rent_accept = QPushButton("Wypożycz")
         self.btn_rent_accept.clicked.connect(self.handle_rent_accept_button)
         self.btn_rent_accept.setStyleSheet(
-            "background-color: red;"
+            "background-color: green;"
             " font-size: 18px; color: white;"
             " border-radius: 8px; padding: 6px; ")
 
         self.summary_label = QLabel()
         self.summary_label.setWordWrap(True)
 
+
         self.btn_rent_final_cancel = QPushButton("Anuluj")
-        # self.btn_rent_cancel.clicked.connect(self.handle_rent_cancel_button)
+        self.btn_rent_final_cancel.clicked.connect(self.handle_cancel_button)
         self.btn_rent_final_cancel.setStyleSheet(
-            "background-color: green;"
+            "background-color: red;"
             " font-size: 18px; color: white;"
             " border-radius: 8px; padding: 6px; ")
 
         self.btn_rent_final_accept = QPushButton("Zakończ")
         self.btn_rent_final_accept.clicked.connect(self.handle_rent_final_accept_button)
         self.btn_rent_final_accept.setStyleSheet(
-            "background-color: red;"
+            "background-color: green;"
             " font-size: 18px; color: white;"
             " border-radius: 8px; padding: 6px; ")
 
@@ -235,18 +236,6 @@ class RentVehicleWidget(QWidget):
             end_date = min_end_date
 
         self.label_end.setText(f"Wybrany koniec najmu: {end_date.toString('dd-MM-yyyy')}")
-
-    def handle_cancel_button(self):
-
-        self.calendar_start.setSelectedDate(self.today)
-        self.label_start.setText(f"Wybrany początek najmu: {self.today.toString('dd-MM-yyyy')}")
-
-
-        self.label_end.setText(f"Wybrany koniec najmu: {self.tomorrow.toString('dd-MM-yyyy')}")
-        self.calendar_end.setSelectedDate(self.tomorrow)
-
-        self.type_combo_box.setCurrentIndex(0)
-
 
     def handle_confirm_button(self):
         start_date_input = self.calendar_start.selectedDate()
@@ -415,6 +404,9 @@ class RentVehicleWidget(QWidget):
             self.chosen_vehicle = group[0] if group else None
             rental_count = 0
 
+        self.info_0_label.show()
+        self.info_label.show()
+        self.info_5_label.show()
         self.append_layout.addWidget(self.info_0_label, 0, 0, 1, 1)
         self.append_layout.addWidget(self.info_label, 0, 1, 1, 3)
         self.append_layout.addWidget(self.info_5_label, 0, 5, 1, 1)
@@ -422,7 +414,9 @@ class RentVehicleWidget(QWidget):
         self.info_label.setText(
             f"Czy na pewno chcesz wypozyczyć ten pojazd?\n\n{self.chosen_vehicle.get_display_info()}"
         )
+        self.btn_rent_cancel.show()
         self.append_layout.addWidget(self.btn_rent_cancel, 1, 1, 1, 1)
+        self.btn_rent_accept.show()
         self.append_layout.addWidget(self.btn_rent_accept, 1, 3, 1, 1)
 
     def handle_rent_accept_button(self, item):
@@ -437,13 +431,16 @@ class RentVehicleWidget(QWidget):
             f"Całkowity koszt {self.total_cost} zł\n"
             f"Kwota bazowa {self.base_cost} zł, udzielone rabaty {discount_value} zł {discount_type}"
         )
+        self.summary_label.show()
         self.append_layout.addWidget(self.summary_label, 2, 1, 1, 3)
 
         self.summary_label.setText(
             f"Całkowity koszt {self.total_cost} zł\n"
             f"Kwota bazowa {self.base_cost} zł, udzielone rabaty {discount_value}% {discount_type}"
         )
+        self.btn_rent_final_cancel.show()
         self.append_layout.addWidget(self.btn_rent_final_cancel, 3, 1, 1, 1)
+        self.btn_rent_final_accept.show()
         self.append_layout.addWidget(self.btn_rent_final_accept, 3, 3, 1, 1)
 
     def handle_rent_final_accept_button(self):
@@ -497,6 +494,31 @@ class RentVehicleWidget(QWidget):
                 "Błąd rezerwacji",
                 f"Wystąpił problem podczas zapisu rezerwacji.\nSzczegóły: {e}"
             )
+
+    def handle_cancel_button(self):
+        # reset kalendarza
+        self.calendar_start.setSelectedDate(self.today)
+        self.label_start.setText(f"Wybrany początek najmu: {self.today.toString('dd-MM-yyyy')}")
+        self.label_end.setText(f"Wybrany koniec najmu: {self.tomorrow.toString('dd-MM-yyyy')}")
+        self.calendar_end.setSelectedDate(self.tomorrow)
+        self.type_combo_box.setCurrentIndex(0)
+        # Czyszczenie listy
+        self.list_widget.clear()
+        # Czyszczenie podsumowania i przysisków sterujacych
+        self.info_0_label.setText("")
+        self.info_0_label.hide()
+        self.info_label.setText("")
+        self.info_label.hide()
+        self.btn_rent_cancel.hide()
+        self.btn_rent_accept.hide()
+        self.info_5_label.setText("")
+        self.info_5_label.hide()
+        # Czyszczenie pytania o potwierdzenie i przucsków steujacych
+        self.summary_label.setText("")
+        self.summary_label.hide()
+        self.btn_rent_final_cancel.hide()
+        self.btn_rent_final_accept.hide()
+
 
 
 

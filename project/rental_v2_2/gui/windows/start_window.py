@@ -82,10 +82,11 @@ class StartWindow(QWidget):
         self.btn_register = QPushButton("Zarejestruj się")
         self.btn_exit = QPushButton("Zamknij program")
         self.btn_exit.setStyleSheet("font-family: Arial; font-size: 22px; background-color: #A52A2A;")
-        self.btn_exit.setFixedHeight(50)
+        self.btn_exit.setFixedSize(550, 50)
+
 
         for btn in [self.btn_login, self.btn_register]:
-            btn.setFixedHeight(50)
+            btn.setFixedSize(550, 50)
             btn.setStyleSheet("font-family: Arial; font-size: 22px;")
 
 
@@ -97,9 +98,9 @@ class StartWindow(QWidget):
         layout.addSpacerItem(QSpacerItem(20, 75, QSizePolicy.Minimum, QSizePolicy.Fixed))
         layout.addWidget(self.title_label)
         layout.addSpacerItem(QSpacerItem(20, 100, QSizePolicy.Minimum, QSizePolicy.Fixed))
-        layout.addWidget(self.btn_login)
-        layout.addWidget(self.btn_register)
-        layout.addWidget(self.btn_exit)
+        layout.addWidget(self.btn_login, alignment=Qt.AlignCenter)
+        layout.addWidget(self.btn_register,alignment=Qt.AlignCenter)
+        layout.addWidget(self.btn_exit, alignment=Qt.AlignCenter)
         layout.setAlignment(Qt.AlignTop)
         self.setLayout(layout)
         self.showMaximized()
@@ -121,7 +122,7 @@ class StartWindow(QWidget):
         self.btn_register.hide()
         self.btn_exit.hide()
 
-        QTimer.singleShot(1500, QApplication.instance().quit)
+        QTimer.singleShot(500, QApplication.instance().quit)
 
 
 if __name__ == '__main__':

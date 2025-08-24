@@ -1,12 +1,9 @@
 import sys
-from collections import defaultdict
+
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox,
-        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox
+        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox, QHBoxLayout
     )
 from PySide6.QtCore import Qt, QTimer, Signal
-from requests import session
-from sqlalchemy import desc
-from datetime import date
 
 from models.vehicle import Vehicle, Car, Scooter, Bike
 from models.user import User
@@ -44,8 +41,11 @@ class DeleteUsersWidget(QWidget):
     def _build_ui(self):
 
         main_layout = QVBoxLayout()
+        if self.role == "seller":
+            title_label1 = QLabel("Przegląd pracowników wypożyczalni:")
+        else:
+            title_label1 = QLabel("Przegląd klientów wypozyczalni niemających wypożyczeń:")
 
-        title_label1 = QLabel("Przegląd klientów wypozyczalni niemających wypożyczeń:")
         title_label1.setStyleSheet("font-size: 28px; color: white; ")
         title_label1.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label1)
@@ -57,50 +57,51 @@ class DeleteUsersWidget(QWidget):
 
 
         self.search_button = QPushButton("Pokaż")
-        self.search_button.setFixedSize(150, 45)
+        self.search_button.setFixedSize(155, 45)
         self.search_button.setStyleSheet(
             "background-color: green;"
             "font-size: 24px; color: white;"
-            "border-radius: 8px; padding: 10px;"
+            "border-radius: 8px; padding: 5px;"
         )
-        self.search_button.clicked.connect(lambda: self._choice_client_to_delete(self.role))
-        main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
+        self.search_button.clicked.connect(self._choice_client_to_delete)
+        main_layout.addWidget(self.search_button, alignment=Qt.AlignLeft)
 
 
         self.summary_label = QLabel()
         self.summary_label.setStyleSheet("color: white; font-size: 14px;")
-        # self.summary_label.setAlignment(Qt.AlignCenter)
         self.summary_label.setVisible(False)
         main_layout.addWidget(self.summary_label, alignment=Qt.AlignLeft)
 
 
-        cancel_delete_layout = QGridLayout()
+        cancel_delete_layout = QHBoxLayout()
 
         self.cancel_button = QPushButton("Anuluj")
-        self.cancel_button.setFixedSize(150, 45)
+        self.cancel_button.setFixedSize(155, 40)
         self.cancel_button.setStyleSheet(
-            "background-color: #F44336; color: white; border-radius: 8px; padding: 10px;"
+            "background-color: #F44336; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
         )
         self.cancel_button.setVisible(False)
         self.cancel_button.clicked.connect(self._hide_summary)
-        cancel_delete_layout.addWidget(self.cancel_button, 0, 0, 1, 1, alignment=Qt.AlignLeft)
+        cancel_delete_layout.addWidget(self.cancel_button, alignment=Qt.AlignLeft)
 
 
         self.delete_user_button = QPushButton("Usuń użytkownika")
-        self.delete_user_button.setFixedSize(150, 45)
+        self.delete_user_button.setFixedSize(155, 40)
         self.delete_user_button.setStyleSheet(
-            "background-color: #4CAF50; color: white; border-radius: 8px; padding: 10px;"
+            "background-color: #4CAF50; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
         )
         self.delete_user_button.setVisible(False)
         self.delete_user_button.clicked.connect(self._delete_client)
-        cancel_delete_layout.addWidget(self.delete_user_button, 0, 1, 1, 1, alignment=Qt.AlignRight)
+        cancel_delete_layout.addWidget(self.delete_user_button, alignment=Qt.AlignLeft)
+
+        cancel_delete_layout.addStretch()
 
         main_layout.addLayout(cancel_delete_layout)
 
         main_layout.addStretch()
         self.setLayout(main_layout)
 
-    def _choice_client_to_delete(self, user_role="client"):
+    def _choice_client_to_delete(self):
         self.list_widget.clear()
 
         try:
@@ -114,7 +115,7 @@ class DeleteUsersWidget(QWidget):
 
             candidates_to_delete = self.session.query(User).filter(
                 User.id.notin_(active_renters_ids),
-                User.role == user_role,
+                User.role == self.role,
                 User.is_active == True
             ).all()
 
@@ -137,31 +138,40 @@ class DeleteUsersWidget(QWidget):
         uid = item.data(Qt.UserRole)
         try:
             self.user = self.session.query(User).filter(User.id == uid).first()
-            self.user_str = (
-                f"Czy chcesz usunąć?\n\n"
-                f"Użytkownik: {self.user.first_name} {self.user.last_name}\n"                
-                f"email: {self.user.email}\n"
-                f"zamieszkały: {self.user.address}\n"
-                f"login: {self.user.login}\n"
-                f""
-            )
+            if self.user.role == "seller":
+                self.user_str = (
+                    f"Czy chcesz usunąć?\n\n"
+                    f"Pracownik wypozyczalni: {self.user.first_name} {self.user.last_name}\n"                
+                    f"email: {self.user.email}\n"
+                    f"zamieszkały: {self.user.address}\n"
+                    f"login: {self.user.login}\n"
+                    f""
+                )
+            else:
+                self.user_str = (
+                    f"Czy chcesz usunąć?\n\n"
+                    f"Użytkownik: {self.user.first_name} {self.user.last_name}\n"                
+                    f"email: {self.user.email}\n"
+                    f"zamieszkały: {self.user.address}\n"
+                    f"login: {self.user.login}\n"
+                    f""
+                )
+
             self.summary_label.setText(self.user_str)
 
-            self.summary_label.setVisible(True)
-            self.delete_user_button.setVisible(True)
-            self.delete_user_button.setEnabled(True)
-            self.cancel_button.setVisible(True)
-            self.search_button.setEnabled(False)
+            self.summary_label.show()
+            self.delete_user_button.show()
+            self.cancel_button.show()
+            self.search_button.hide()
 
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas pobierania danych:\n{e}")
 
     def _hide_summary(self):
-        self.summary_label.setVisible(False)
-        self.delete_user_button.setVisible(False)
-        self.delete_user_button.setEnabled(False)
-        self.cancel_button.setVisible(False)
-        self.search_button.setEnabled(True)
+        self.summary_label.hide()
+        self.delete_user_button.hide()
+        self.cancel_button.hide()
+        # self.search_button.show()
         self.user = None
         self.list_widget.clearSelection()
 

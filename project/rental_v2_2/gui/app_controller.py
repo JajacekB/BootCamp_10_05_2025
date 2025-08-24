@@ -4,6 +4,10 @@ from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 
 from database.base import SessionLocal #, Session
 
+from logic.delete_users_service import DeleteUsersService
+from gui.widgets.delete_users_view import DeleteUsersWidget
+from gui.controllers.delete_users_controller import DeleteUsersController
+
 from gui.windows.start_window import StartWindow
 from gui.windows.login_window import LoginDialog
 from gui.windows.admin_dialog import AdminDialog
@@ -131,7 +135,7 @@ class AppController(QObject):
         self.register_widget = RegisterWidget(self.db_session)
         self.register_widget.registration_finished.connect(self.on_registration_finished_widget)
         self.register_widget.registration_cancelled.connect(self.on_registration_cancelled_widget)
-        self.admin_dialog.show_register_widget(self.register_widget)
+        self.admin_dialog.show_register_widget(role="client")
 
 
     def on_registration_finished_widget(self, success: bool):
@@ -321,10 +325,21 @@ class AppController(QObject):
         self.get_users_widget = GetUsersWidget(self.db_session)
         self.show_widget(self.get_users_widget)
 
+    # def show_delete_client_widget(self):
+    #     print("🔧🔧🔧 Wywołano delete_client_widget()")
+    #     self.delete_client_widget = DeleteUsersWidget(self.db_session)
+    #     self.show_widget(self.delete_client_widget)
+
     def show_delete_client_widget(self):
-        print("🔧🔧🔧 Wywołano delete_client_widget()")
-        self.delete_client_widget = DeleteUsersWidget(self.db_session)
-        self.show_widget(self.delete_client_widget)
+        print("🔧 Wywołano delete_client_widget() - MVC wersja")
+
+        # Inicjalizacja MVC
+        service = DeleteUsersService(session=self.db_session, role="client")
+        view = DeleteUsersWidget(role="client")
+        controller = DeleteUsersController(view, service)
+
+        # Wczytanie widoku do dynamic_area
+        self.load_widget(view)
 
     def show_delete_seller_widget(self):
         print("🔧🔧🔧 Wywołano delete_client_widget()")

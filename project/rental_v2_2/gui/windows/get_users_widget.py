@@ -1,7 +1,7 @@
 import sys
 from collections import defaultdict
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox,
-        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox
+        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox, QGroupBox, QHBoxLayout
     )
 from PySide6.QtCore import Qt, QTimer, Signal
 from sqlalchemy import desc
@@ -54,21 +54,36 @@ class GetUsersWidget(QWidget):
 
         form_layout = QFormLayout()
         form_layout.addRow("Kótych kientów chcesz przeglądać?", self.status_combo_box)
-        main_layout.addLayout(form_layout)
 
-        self.list_widget = QListWidget()
-        main_layout.addWidget(self.list_widget)
-        self.list_widget.itemClicked.connect(self.show_user_details)
 
         self.search_button = QPushButton("Pokaż")
         self.search_button.setStyleSheet(
             "background-color: green;"
-            "font-size: 24px; color: white;"
-            "border-radius: 8px; padding: 10px;"
+            "font-size: 20px; color: white;"
+            "border-radius: 8px; padding: 5px;"
         )
-        self.search_button.setFixedSize(150, 45)
+        self.search_button.setFixedSize(150, 35)
         self.search_button.clicked.connect(self.get_users_list)
-        main_layout.addWidget(self.search_button, alignment=Qt.AlignRight)
+
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.search_button)
+        button_layout.addStretch()
+        form_layout.addRow("", button_layout)
+
+        filters_layout = QVBoxLayout()
+        filters_layout.addLayout(form_layout)
+
+        self.filters_group = QGroupBox("Filtr wyszukiwania")
+        self.filters_group.setLayout(filters_layout)
+
+        main_layout.addWidget(self.filters_group)
+
+        self.list_widget = QListWidget()
+        self.list_widget.setWordWrap(True)
+
+        self.adjust_list_height()
+        main_layout.addWidget(self.list_widget)
+        self.list_widget.itemClicked.connect(self.show_user_details)
 
         main_layout.addStretch()
         self.setLayout(main_layout)
@@ -129,48 +144,75 @@ class GetUsersWidget(QWidget):
                 item = QListWidgetItem(user_strs)
                 item.setData(Qt.UserRole, uid)
                 self.list_widget.addItem(item)
+                self.adjust_list_height()
 
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas pobierania danych:\n{e}")
 
-
     def show_user_details(self, item):
-
+        # 1) Klik ignorujemy, jeśli to nie jest wiersz z listy użytkowników
         uid = item.data(Qt.UserRole)
+        if not isinstance(uid, int):  # brak uid -> klik w "szczegóły", nic nie rób
+            return
 
         try:
             vehicle_info = self.session.query(Vehicle).filter(Vehicle.borrower_id == uid).first()
             user_info = self.session.query(User).filter(User.id == uid).first()
             rent_info = self.session.query(RentalHistory).filter(
-                RentalHistory.user_id == int(uid)).order_by(
-                desc(RentalHistory.planned_return_date)
-            ).first()
+                RentalHistory.user_id == uid
+            ).order_by(desc(RentalHistory.planned_return_date)).first()
+
+            self.list_widget.blockSignals(True)
+            self.list_widget.clear()
+
+            if user_info:
+                user_item = QListWidgetItem(f"Użytkownik: {user_info}")
+            else:
+                user_item = QListWidgetItem("Użytkownik: brak danych")
+            user_item.setFlags(Qt.NoItemFlags)  # pasywny
+            user_item.setData(Qt.UserRole, None)  # brak uid -> przyszłe kliki zignorujemy
+            self.list_widget.addItem(user_item)
 
             if not rent_info:
-                user_details = f"Uzytkownik: {user_info}\nNigdy nie wypożyczał żadnego pojazdy"
-
+                vehicle_item = QListWidgetItem("Nigdy nie wypożyczał żadnego pojazdu")
             else:
                 start = rent_info.start_date
                 planned = rent_info.planned_return_date
-                start_str = start.strftime("%d.%m.%Y") # if start else "brak daty startu"
-                planned_str = planned.strftime("%d.%m.%Y") # if planned else "brak daty zwrotu"
+                start_str = start.strftime("%d.%m.%Y") if start else "brak daty startu"
+                planned_str = planned.strftime("%d.%m.%Y") if planned else "brak daty zwrotu"
 
-                if planned < date.today():
-                    user_details = f"Użytkownik: {user_info}\nObecnie nie wypozycza, żadnego ppojazdu."
-
+                if planned and planned < date.today():
+                    vehicle_item = QListWidgetItem("Obecnie nie wypożycza żadnego pojazdu")
                 else:
+                    vehicle_text = []
+                    vehicle_text.append(f"Pojazd: {vehicle_info}" if vehicle_info else "Pojazd: brak danych")
+                    vehicle_text.append(f"Wynajęty od {start_str} do {planned_str}")
+                    vehicle_item = QListWidgetItem("\n".join(vehicle_text))
 
-                    user_details = (f"{user_info}\n"
-                                    f"\n{vehicle_info}\n"
-                                    f"Wynajęty od {start_str} do {planned_str}")
+            vehicle_item.setFlags(Qt.NoItemFlags)  # pasywny
+            vehicle_item.setData(Qt.UserRole, None)  # brak uid -> przyszłe kliki zignorujemy
 
-            self.list_widget.clear()
-            item_1 = QListWidgetItem(user_details)
-            item_1.setFlags(Qt.ItemIsEnabled)
-            self.list_widget.addItem(item_1)
+            # Gdy vehicle bedzie klikalny
 
+            # vehicle_item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+            # vehicle_item.setData(Qt.UserRole, ("vehicle", id))
+
+            self.list_widget.addItem(vehicle_item)
+
+            self.adjust_list_height()
         except Exception as e:
             QMessageBox.critical(self, "Błąd", f"Wystąpił błąd podczas pobierania danych:\n{e}")
+        finally:
+            self.list_widget.blockSignals(False)
+
+
+    def adjust_list_height(self):
+        count = self.list_widget.count()
+        row_height = self.list_widget.sizeHintForRow(0) if count > 0 else 20
+        frame = 2 * self.list_widget.frameWidth()
+        new_height = min(10, max(5, count)) * row_height + frame
+        self.list_widget.setMinimumHeight(new_height)
+        self.list_widget.setMaximumHeight(new_height)
 
 
 if __name__ == '__main__':
