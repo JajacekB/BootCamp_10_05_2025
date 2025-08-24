@@ -8,13 +8,18 @@ from logic.delete_users_service import DeleteUsersService
 from gui.widgets.delete_users_view import DeleteUsersWidget
 from gui.controllers.delete_users_controller import DeleteUsersController
 
+from logic.get_users_service import GetUsersService
+from gui.widgets.get_users_view import GetUsersWidget
+from gui.controllers.get_users_controller import GetUsersController
+
+
 from gui.windows.start_window import StartWindow
 from gui.windows.login_window import LoginDialog
 from gui.windows.admin_dialog import AdminDialog
 from gui.windows.seller_dialog import SellerDialog
 from gui.windows.client_dialog import ClientDialog
 from gui.windows.register_wiget import RegisterWidget
-from gui.windows.get_users_widget import GetUsersWidget
+# from gui.windows.get_users_widget import GetUsersWidget
 from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.add_vehicle_widget import AddVehicleWidget
 from gui.windows.update_user_widget import UpdateUserWidget
@@ -320,9 +325,18 @@ class AppController(QObject):
         self.show_widget(self.get_vehicle_widget)
 
     def show_get_users_widget(self):
-        print("🔧🔧🔧 Wywołano show_get_users_widget()")
-        self.get_users_widget = GetUsersWidget(self.db_session)
-        self.show_widget(self.get_users_widget)
+        print("🔧 Wywołano show_get_users_widget()")
+
+        service = GetUsersService(self.db_session)
+
+        view = GetUsersWidget(session=self.db_session)
+
+        controller = GetUsersController(view=view, service=service)
+
+        self.get_users_controller = controller
+
+        if self.admin_dialog:
+            self.admin_dialog.load_widget(view)
 
     def show_delete_client_widget(self):
         print("🔧 Wywołano delete_client_widget() - MVC wersja")
