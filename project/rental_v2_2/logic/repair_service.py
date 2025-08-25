@@ -25,7 +25,6 @@ def finish_broken_rental(session: Session, vehicle: Vehicle):
 
     if not rental:
         print("Nie znależiono aktualnego wynajmu")
-        pass
         return None, None
 
     old_period = (rental.planned_return_date - rental.start_date).days

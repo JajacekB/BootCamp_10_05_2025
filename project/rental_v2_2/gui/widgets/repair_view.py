@@ -19,6 +19,7 @@ class RepairVehicleView(QWidget):
     vehicle_id_entered = Signal(str)
     submit_repair_info = Signal(str, int, int, str, int)  # vehicle_id, dni, koszt/dzień, opis, workshop_index
     rental_choice_selected = Signal(str)  # Kontynuuje/Kończy wynajem
+    click_summary_button = Signal() # Jeszcze nie wiem co będzie robił
     replacement_choice_selected = Signal(str)  # Droższy/Tańszy/Anuluje
     finalize_repair_signal = Signal()  # sygnał do finalizacji repair
 
@@ -151,8 +152,14 @@ class RepairVehicleView(QWidget):
         hbox_rental.addWidget(self.rental_choice_button)
         self.main_layout.addLayout(hbox_rental)
 
+        self.summary_button = QPushButton("Zatwierdź pojazd")
+        self.summary_button.hide()
+        self.summary_button.clicked.connect(self.on_click_summary_button)
+        self.main_layout.addWidget(self.summary_button)
+
         # --- Wybór pojazdu zastępczego ---
         self.combo_replacement_choice = QComboBox()
+        self.combo_replacement_choice.addItems(["Droższy", "Tańszy", "Anuluje wynajem"])
         self.combo_replacement_choice.hide()
         self.replacement_choice_button = QPushButton("Zatwierdź pojazd zastępczy")
         self.replacement_choice_button.hide()
@@ -164,7 +171,7 @@ class RepairVehicleView(QWidget):
         self.main_layout.addLayout(hbox_replacement)
 
         # --- Finalizacja ---
-        self.finalize_button = QPushButton("Zakończ naprawę")
+        self.finalize_button = QPushButton("Oddaj do naprawy")
         self.finalize_button.hide()
         self.finalize_button.clicked.connect(lambda: self.finalize_repair_signal.emit())
         self.main_layout.addWidget(self.finalize_button)
@@ -243,6 +250,9 @@ class RepairVehicleView(QWidget):
         choice = self.combo_replacement_choice.currentText()
         self.replacement_choice_selected.emit(choice)
 
+    def on_click_summary_button(self):
+        self.click_summary_button.emit()
+
     # ---------------- Metody do aktualizacji GUI ----------------
     def show_repair_inputs(self, vehicle: Vehicle):
         self.current_vehicle = vehicle
@@ -259,16 +269,35 @@ class RepairVehicleView(QWidget):
         self.submit_repair_button.show()
 
     def show_rental_choice(self, rental):
+        self.filters_group.hide()
+        self.container_1.hide()
+        self.container_2.hide()
         self.combo_rental_choice.show()
         self.rental_choice_button.show()
 
+    def show_rental_repair_summary(self, replacement_vehicle):
+        print(f"Strona view {replacement_vehicle=}")
+        if not replacement_vehicle:
+            self.list_widget.addItem("🚫 Brak równorzędnego pojazdu zastępczego.")
+            return
+
+        self.combo_replacement_choice.hide()
+        self.replacement_choice_button.hide()
+        self.list_widget.addItem(
+            f"Wydano pojazd zastępczy: {replacement_vehicle.brand} "
+            f"{replacement_vehicle.vehicle_model} [{replacement_vehicle.individual_id}]"
+        )
+        self.adjust_list_height()
+        self.summary_button.show()
+        self.finalize_button.show()
+
     def show_replacement_choice(self, replacement_vehicle):
-        self.combo_replacement_choice.clear()
-        self.combo_replacement_choice.addItem(f"{replacement_vehicle.brand} {replacement_vehicle.vehicle_model} [{replacement_vehicle.individual_id}]")
         self.combo_replacement_choice.show()
         self.replacement_choice_button.show()
 
     def show_finished_rental(self, rental, invoice):
+        print(f"{rental.reservation_id=}")
+        print(f"{invoice.amount=}")
         self.list_widget.addItem(f"Zakończono wynajem pojazdu. Faktura: {invoice.amount if invoice else 'Brak'}")
         self.finalize_button.show()
 
@@ -283,7 +312,9 @@ class RepairVehicleView(QWidget):
 
     def show_repair_finalized(self, repair):
         self.list_widget.addItem(f"Pojazd przekazany do warsztatu do dnia {repair.planned_return_date}")
-        self.finalize_button.hide()
+        self.container_1.hide()
+        self.container_2.hide()
+        self.filters_group.hide()
 
     def load_workshops(self, workshops):
         self.combo_workshop.clear()

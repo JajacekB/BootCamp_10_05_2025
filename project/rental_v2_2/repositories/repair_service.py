@@ -49,6 +49,7 @@ class RepairService:
     def finish_broken_rental(self, vehicle: Vehicle):
         """Zakończenie wynajmu pojazdu popsutego (bez commita)."""
         today = date.today()
+
         rental = self.session.query(RentalHistory).filter(
             RentalHistory.vehicle_id == vehicle.id,
             RentalHistory.actual_return_date == None
@@ -58,10 +59,13 @@ class RepairService:
             return None, None
 
         old_period = (rental.planned_return_date - rental.start_date).days
-        new_period = (today - rental.start_date).days
+        new_period = max(1, (today - rental.start_date).days)
         new_total_cost = rental.total_cost * new_period / old_period
 
         invoice = self.session.query(Invoice).filter(Invoice.rental_id == rental.id).first()
+
+        print(f"{new_total_cost=}")
+        print(f"{invoice=}")
 
         vehicle.is_available = True
         vehicle.borrower_id = None
@@ -78,61 +82,65 @@ class RepairService:
 
         return rental, invoice
 
-    def finish_after_vehicle_swap(self, vehicle: Vehicle, replacement_vehicle: Vehicle, rental: RentalHistory, different_price: bool):
+    def finish_after_vehicle_swap(self, broken_vehicle: Vehicle, replacement_vehicle: Vehicle,
+                                  old_rental: RentalHistory, different_price: bool):
+        """
+        Obsługa podmiany pojazdu:
+        - broken_vehicle -> warsztat (naprawa)
+        - replacement_vehicle -> klient na resztę okresu wynajmu
+        - old_rental: obecny rental popsutego pojazdu
+        - different_price: True -> liczymy proporcjonalnie do ceny nowego pojazdu
+        """
         today = date.today()
-        old_rental = rental
-        old_rental_cost = old_rental.total_cost
-        old_rental_period = (old_rental.planned_return_date - old_rental.start_date).days
-        real_rental_days_old = max((today - old_rental.start_date).days, 1)
-        real_rental_days_new = max((old_rental.planned_return_date - today).days, 0)
 
-        broken_veh_cost = old_rental_cost * real_rental_days_old / old_rental_period
+        # 🔹 Zamiana statusu starego pojazdu
+        broken_vehicle.is_available = False
+        broken_vehicle.borrower_id = None  # klient zwraca
+        broken_vehicle.return_date = old_rental.planned_return_date
+
+        # 🔹 Zakończenie starego rentalu
+        old_rental.actual_return_date = today
+        old_rental.total_cost = old_rental.total_cost  # zostawiamy jak było
+        self.session.add(old_rental)
+        self.session.add(broken_vehicle)
+
+        # 🔹 Konfiguracja nowego rentalu dla zastępczego pojazdu
+        rental_days_remaining = (old_rental.planned_return_date - today).days
+        rental_days_remaining = max(rental_days_remaining, 1)
 
         if different_price:
-            user = self.session.query(User).filter(User.id == vehicle.user_id).first()
-            replacement_full_cost, _, _ = calculate_rental_cost(
-                self.session, user, replacement_vehicle.cash_per_day, old_rental_period
-            )
-            replacement_veh_cost = replacement_full_cost * real_rental_days_new / old_rental_period
+            new_total_cost = replacement_vehicle.cash_per_day * rental_days_remaining
         else:
-            replacement_veh_cost = old_rental_cost - broken_veh_cost
-
-        vehicle.is_available = True
-        vehicle.borrower_id = None
-        vehicle.return_date = None
+            # koszt liczony po starej cenie pojazdu
+            new_total_cost = old_rental.base_cost * rental_days_remaining
 
         replacement_vehicle.is_available = False
-        replacement_vehicle.borrower_id = rental.user_id
-        replacement_vehicle.return_date = rental.planned_return_date
+        replacement_vehicle.borrower_id = old_rental.user_id
+        replacement_vehicle.return_date = old_rental.planned_return_date
+        self.session.add(replacement_vehicle)
 
-        old_rental.actual_return_date = today
-        old_rental.total_cost = round(broken_veh_cost, 2)
-
-        base_res_id = old_rental.reservation_id
-        existing = self.session.query(RentalHistory).filter(
-            RentalHistory.reservation_id.like(f"{base_res_id}%")
-        ).all()
-        new_suffix = chr(65 + len(existing))
-        new_res_id = f"{base_res_id}{new_suffix}"
-
+        new_res_id = old_rental.reservation_id + "_R"  # np. nowy suffix
         new_rental = RentalHistory(
             reservation_id=new_res_id,
             user_id=old_rental.user_id,
             vehicle_id=replacement_vehicle.id,
             start_date=today,
             planned_return_date=old_rental.planned_return_date,
-            base_cost=round(replacement_veh_cost, 2),
-            total_cost=round(replacement_veh_cost, 2),
+            base_cost=old_rental.base_cost,
+            total_cost=new_total_cost
         )
-
         self.session.add(new_rental)
+
         return {
+            "broken_vehicle": broken_vehicle,
             "replacement_vehicle": replacement_vehicle,
+            "old_rental": old_rental,
             "new_rental": new_rental,
-            "broken_veh_cost": broken_veh_cost
+            "total_cost_new": new_total_cost
         }
 
     def finalize_repair(self, vehicle: Vehicle, work_user, planned_return_date, total_cost, description):
+        print("🔧 finalize repair")
         repair_id = generate_repair_id(self.session)
         repair = RepairHistory(
             repair_id=repair_id,
@@ -149,4 +157,7 @@ class RepairService:
         vehicle.borrower_id = work_user.id
         vehicle.return_date = planned_return_date
 
+        # self.session.commit()
+
+        print("Utworzono nowy object RepairHistory")
         return repair

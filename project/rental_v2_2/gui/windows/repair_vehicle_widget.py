@@ -343,7 +343,7 @@ class RepairVehicleWidget(QWidget):
 
         if not self.rental:
 
-            print("🔧 step 4a")
+
             print("Tylko początek naprawy")
             self.on_finalize_clicked()
             return True
