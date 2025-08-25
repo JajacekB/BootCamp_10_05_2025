@@ -1,10 +1,10 @@
 import sys
 from datetime import date, timedelta
 
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox,
-        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox, QLineEdit, QSizePolicy
-    )
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QComboBox,
+                               QApplication, QListWidgetItem, QMessageBox, QLineEdit, QSizePolicy
+                               )
+from PySide6.QtCore import Qt
 
 from gui.windows.get_vehicle_widget import GetVehicleWidget
 from models.vehicle import Vehicle
@@ -12,7 +12,7 @@ from database.base import SessionLocal
 from services.user_service import get_users_by_role
 from services.vehicle_avability import get_available_vehicles
 from repositories.read_methods import get_rental_for_vehicle, get_vehicle_by_id, get_replacement_vehicle
-from repositories.repair_service import finalize_repair, finish_after_vehicle_swap, finish_broken_rental
+from logic.repair_service import finalize_repair, finish_after_vehicle_swap, finish_broken_rental
 
 
 class RepairVehicleWidget(QWidget):
