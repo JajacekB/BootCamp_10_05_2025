@@ -179,8 +179,6 @@ class RepairVehicleView(QWidget):
         self.main_layout.addStretch()
         self.setLayout(self.main_layout)
 
-
-
     # def _on_refresh_clicked(self):
     #     self.request_vehicle_list.emit()
 
@@ -284,12 +282,12 @@ class RepairVehicleView(QWidget):
         self.combo_replacement_choice.hide()
         self.replacement_choice_button.hide()
         self.list_widget.addItem(
-            f"Wydano pojazd zastępczy: {replacement_vehicle.brand} "
+            f"Wybrany pojazd zastępczy: {replacement_vehicle.brand} "
             f"{replacement_vehicle.vehicle_model} [{replacement_vehicle.individual_id}]"
         )
         self.adjust_list_height()
         self.summary_button.show()
-        self.finalize_button.show()
+        # self.finalize_button.show()
 
     def show_replacement_choice(self, replacement_vehicle):
         self.combo_replacement_choice.show()

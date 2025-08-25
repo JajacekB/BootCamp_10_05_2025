@@ -29,13 +29,9 @@ class RepairController:
 
     @Slot(str, str)
     def request_vehicle_list(self, status: str = "Wszystkie", v_type: str = "Wszystkie"):
-        """
-        Obsługuje żądanie pobrania listy pojazdów.
-        Jeśli brak argumentów – używa domyślnych.
-        """
+
         print(f"[RepairController] Filtry GUI: status={status}, v_type={v_type}")
 
-        # mapowanie nazw z GUI na wartości dla bazy
         type_map = {
             "Wszystkie": "all",
             "Samochody": "car",
@@ -44,10 +40,8 @@ class RepairController:
         }
         vehicle_type = type_map.get(v_type, "all")
 
-        # pobranie pojazdów z serwisu
         vehicles_grouped = self.service.get_filtered_vehicles(status, vehicle_type)
 
-        # aktualizacja widoku
         if vehicles_grouped:
             self.view.show_vehicle_list(vehicles_grouped)
         else:
@@ -59,8 +53,7 @@ class RepairController:
         self.view.show_repair_inputs(vehicle)
         # vehicle = item.data(Qt.UserRole)
         if not vehicle:
-            return  # element grupy lub coś innego
-        # Teraz vehicle to instancja Vehicle, możemy go ustawić jako current
+            return
         self.current_vehicle = vehicle
         self.view.show_repair_inputs(vehicle)
         workshops = get_users_by_role(self.session, "workshop")
@@ -95,11 +88,10 @@ class RepairController:
         self.total_cost = repair_days * repair_rates
         self.planned_return_date = date.today() + timedelta(days=repair_days)
 
-        # sprawdzamy czy pojazd ma aktywny wynajem
         self.rental = get_rental_for_vehicle(self.session, vehicle.id, self.planned_return_date)
 
         if not self.rental:
-            # 🚫 brak wynajmu, tylko początek naprawy
+
             repair = self.service.finalize_repair(
                 self.current_vehicle,
                 self.work_user,
@@ -109,7 +101,7 @@ class RepairController:
             )
             self.view.show_repair_finalized(repair)
             return
-        # jeśli jest wynajem – wyświetlamy opcję Kontynuuje/Kończy wynajem
+
         self.view.show_rental_choice(self.rental)
 
     def on_rental_choice_selected(self, choice):
@@ -125,20 +117,14 @@ class RepairController:
                 if v.cash_per_day == self.current_vehicle.cash_per_day),
                 None
             )
-
             if self.replacement_vehicle:
                 print(f"{self.replacement_vehicle=}")
-                # tylko jeśli jest pojazd zastępczy
                 self.view.show_rental_repair_summary(self.replacement_vehicle)
-                # self.view.show_replacement_choice(self.replacement_vehicle)
             else:
-                # 🚫 brak równorzędnego pojazdu, od razu pytamy o droższy/tańszy/anuluj
                 self.view.show_replacement_choice(None)
 
     def on_confirm_rental_replacement(self):
-        """
-        Scenariusz awarii + dostępny pojazd zastępczy.
-        """
+
         if not self.replacement_vehicle or not self.current_vehicle:
             return
 
@@ -149,16 +135,16 @@ class RepairController:
             different_price=False
         )
 
-        # 🔹 Aktualizacja GUI
         self.view.list_widget.addItem(
-            f"Stary pojazd: {self.current_vehicle.brand} {self.current_vehicle.vehicle_model} "
-            f"[{self.current_vehicle.individual_id}] -> wysłany do warsztatu"
+            f"Odany do warsztatu: {self.current_vehicle.brand} {self.current_vehicle.vehicle_model} "
+            f"[{self.current_vehicle.individual_id}]."
         )
         self.view.list_widget.addItem(
-            f"Nowy pojazd: {self.replacement_vehicle.brand} {self.replacement_vehicle.vehicle_model} "
-            f"[{self.replacement_vehicle.individual_id}] -> wydany klientowi do końca okresu wynajmu"
+            f"Wydany klientowi: {self.replacement_vehicle.brand} {self.replacement_vehicle.vehicle_model} "
+            f"[{self.replacement_vehicle.individual_id}]."
         )
         self.view.adjust_list_height()
+
         self.view.finalize_button.show()
 
     def on_replacement_choice_selected(self, choice):
