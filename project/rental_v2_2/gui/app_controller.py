@@ -12,6 +12,10 @@ from repositories.get_users_service import GetUsersService
 from gui.widgets.get_users_view import GetUsersWidget
 from controllers.get_users_controller import GetUsersController
 
+from repositories.get_vehicle_service import GetVehicleService
+from gui.widgets.get_vehicle_view import GetVehicleView
+from controllers.get_vehicle_controller import GetVehicleController
+
 from repositories.repair_service import RepairService
 from gui.widgets.repair_view import RepairVehicleView
 from controllers.repair_controller import RepairController
@@ -23,14 +27,11 @@ from gui.windows.admin_dialog import AdminDialog
 from gui.windows.seller_dialog import SellerDialog
 from gui.windows.client_dialog import ClientDialog
 from gui.windows.register_wiget import RegisterWidget
-# from gui.windows.get_users_widget import GetUsersWidget
-from gui.windows.get_vehicle_widget import GetVehicleWidget
 from gui.windows.add_vehicle_widget import AddVehicleWidget
 from gui.windows.update_user_widget import UpdateUserWidget
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
 from gui.windows.return_vehicle_widget import ReturnVehicleWidget
 from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
-# from gui.windows.repair_vehicle_widget import RepairVehicleWidget
 from gui.windows.overdue_rentals_widget import OverdueRentalsWidget
 
 
@@ -319,9 +320,16 @@ class AppController(QObject):
         self.current_active_window = self.client_dialog
 
     def show_get_vehicle_widget(self):
-        print("🔧🔧🔧 Wywołano show_get_vehicle_widget()")
-        self.get_vehicle_widget = GetVehicleWidget(self.db_session)
-        self.show_widget(self.get_vehicle_widget)
+        print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
+        role = self.current_user.role
+        view = GetVehicleView(role=role)
+
+        service = GetVehicleService(self.db_session, view)
+        controller = GetVehicleController(view=view, session=self.db_session)
+
+        self.repair_vehicle_controller = controller
+        self.show_widget(view)
+
 
     def show_get_users_widget(self):
         print("🔧 Wywołano show_get_users_widget()")

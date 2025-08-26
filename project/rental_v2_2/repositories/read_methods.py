@@ -1,15 +1,15 @@
 # repositories/read_methods.py
+from datetime import date
+from sqlalchemy import func
 
-from services.vehicle_avability import get_available_vehicles
 from models.user import User
 from models.vehicle import Vehicle
 from models.rental_history import RentalHistory
-from sqlalchemy import func
-from datetime import date
+from models.repair_history import RepairHistory
+from services.vehicle_avability import get_available_vehicles
 
 
 def get_replacement_vehicle(session, reference_vehicle, planned_return_date, prefer_cheaper: bool):
-    # szukanie pojazdu z flagą preffer_cheeper
 
     available_vehicles = get_available_vehicles(
         session, date.today(), planned_return_date, reference_vehicle.type
@@ -61,3 +61,20 @@ def get_user_by(session, **kwargs):
 
     column = allowed_keys[key]
     return session.query(User).filter(column == value).one_or_none()
+
+def get_rentals_by_vehicle_id(self, vehicle):
+    return list(
+        self.session.query(RentalHistory)
+        .filter(RentalHistory.vehicle_id == vehicle.id)
+        .order_by(RentalHistory.planned_return_date)
+        .all()
+    )
+
+
+def get_repairs_by_vehicle_id(self, vehicle):
+    return list(
+        self.session.query(RepairHistory)
+        .filter(RepairHistory.vehicle_id == vehicle.id)
+        .order_by(RepairHistory.planned_return_date)
+        .all()
+    )
