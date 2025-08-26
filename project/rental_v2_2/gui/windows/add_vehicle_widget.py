@@ -337,7 +337,7 @@ class AddVehicleWidget(QWidget):
             QMessageBox.information(self, "Sukces", "Dane zostały zapisane do bazy.")
 
             # Wyczyść listę pojazdów w pamięci
-            self.vehicles.clear()
+            self.vehicles = []
 
             # Wyczyść pola formularza
             self.veh_brand.clear()

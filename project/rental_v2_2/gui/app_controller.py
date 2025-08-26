@@ -12,6 +12,10 @@ from repositories.get_users_service import GetUsersService
 from gui.widgets.get_users_view import GetUsersWidget
 from controllers.get_users_controller import GetUsersController
 
+from repositories.repair_service import RepairService
+from gui.widgets.repair_view import RepairVehicleView
+from controllers.repair_controller import RepairController
+
 
 from gui.windows.start_window import StartWindow
 from gui.windows.login_window import LoginDialog
@@ -26,7 +30,7 @@ from gui.windows.update_user_widget import UpdateUserWidget
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
 from gui.windows.return_vehicle_widget import ReturnVehicleWidget
 from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
-from gui.windows.repair_vehicle_widget import RepairVehicleWidget
+# from gui.windows.repair_vehicle_widget import RepairVehicleWidget
 from gui.windows.overdue_rentals_widget import OverdueRentalsWidget
 
 
@@ -371,8 +375,11 @@ class AppController(QObject):
 
     def show_repair_vehicle_widget(self):
         print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
-        self.repair_vehicle_widget = RepairVehicleWidget(self.db_session, self.current_user)
-        self.show_widget(self.repair_vehicle_widget)
+        view = RepairVehicleView()
+        service = RepairService(self.db_session)
+        controller = RepairController(view=view, session=self.db_session)
+        self.repair_vehicle_controller = controller
+        self.show_widget(view)
 
     def show_update_user_widget(self):
         print("🔧🔧🔧 Uruchomiono update_user_widget()")

@@ -81,11 +81,10 @@ class RepairController:
 
         self.current_vehicle = vehicle
         self.repair_days = repair_days
-        self.repair_rates = repair_rates
+        self.total_cost = repair_rates
         self.description = description
         self.work_user = self.view.get_workshop_user(workshop_index)
 
-        self.total_cost = repair_days * repair_rates
         self.planned_return_date = date.today() + timedelta(days=repair_days)
 
         self.rental = get_rental_for_vehicle(self.session, vehicle.id, self.planned_return_date)
@@ -144,7 +143,9 @@ class RepairController:
             f"[{self.replacement_vehicle.individual_id}]."
         )
         self.view.adjust_list_height()
-
+        self.view.combo_rental_choice.hide()
+        self.view.rental_choice_button.hide()
+        self.view.summary_button.hide()
         self.view.finalize_button.show()
 
     def on_replacement_choice_selected(self, choice):
@@ -154,7 +155,7 @@ class RepairController:
                 self.session,
                 self.current_vehicle,
                 self.planned_return_date,
-                cheaper=cheaper
+                prefer_cheaper=cheaper
             )
 
             if replacement_vehicle:
@@ -166,15 +167,22 @@ class RepairController:
                     different_price=not cheaper  # droższy → True, tańszy → False
                 )
                 self.view.show_swap_finished(result)
+
+                if cheaper:
+                    self.view.list_widget.addItem("✅ Otrzymałeś tańszy pojazd – koszty zostały obniżone.")
+                    self.view.adjust_list_height()
+                else:
+                    self.view.list_widget.addItem("✅ Otrzymałeś droższy pojazd – koszty zostały podniesione.")
+                    self.view.adjust_list_height()
             else:
                 # fallback logic
                 if cheaper:
-                    # klient wybrał tańszy, brak → daj droższy po obecnych kosztach
+                    # klient chciał tańszy, brak → daj droższy po obecnych kosztach
                     replacement_vehicle = get_replacement_vehicle(
                         self.session,
                         self.current_vehicle,
                         self.planned_return_date,
-                        cheaper=False
+                        prefer_cheaper=False
                     )
                     if replacement_vehicle:
                         result = self.service.finish_after_vehicle_swap(
@@ -184,15 +192,18 @@ class RepairController:
                             different_price=False  # koszty po obecnym pojeździe
                         )
                         self.view.show_swap_finished(result)
+                        self.view.list_widget.addItem(
+                            "ℹ️ Nie było tańszego pojazdu – otrzymałeś droższy, ale koszty pozostają bez zmian.")
+                        self.view.adjust_list_height()
                     else:
                         self.view.show_no_vehicle_available("Brak pojazdu zastępczego")
                 else:
-                    # klient wybrał droższy, brak → daj tańszy i licz cały okres po tańszym
+                    # klient chciał droższy, brak → daj tańszy i licz cały okres po tańszym
                     replacement_vehicle = get_replacement_vehicle(
                         self.session,
                         self.current_vehicle,
                         self.planned_return_date,
-                        cheaper=True
+                        prefer_cheaper=True
                     )
                     if replacement_vehicle:
                         result = self.service.finish_after_vehicle_swap(
@@ -202,6 +213,10 @@ class RepairController:
                             different_price=False  # koszt całego okresu liczony po tańszym
                         )
                         self.view.show_swap_finished(result)
+                        self.view.list_widget.addItem(
+                            "ℹ️ Nie było droższego pojazdu – otrzymałeś tańszy, koszty policzono według tańszego pojazdu."
+                        )
+                        self.view.adjust_list_height()
                     else:
                         self.view.show_no_vehicle_available("Brak pojazdu zastępczego")
         else:  # Anuluje wynajem

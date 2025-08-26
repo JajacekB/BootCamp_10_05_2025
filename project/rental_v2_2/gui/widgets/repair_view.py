@@ -1,16 +1,13 @@
 # repair_view.py
 import platform
-from collections import defaultdict
-from datetime import date, timedelta
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QPushButton, QLabel, QGroupBox,
     QComboBox, QListWidget, QLineEdit, QSizePolicy, QListWidgetItem
 )
-from PySide6.QtCore import Qt, Signal, QTimer, QDate
+from PySide6.QtCore import Qt, Signal
 
-from services.user_service import get_users_by_role
 from models.vehicle import Vehicle
-from services.vehicle_avability import get_unavailable_vehicle, get_available_vehicles
+
 
 
 class RepairVehicleView(QWidget):
@@ -97,7 +94,6 @@ class RepairVehicleView(QWidget):
         self.list_widget.itemClicked.connect(self.handle_item_clicked)
 
         self.main_layout.addWidget(self.list_widget)
-        self.main_layout.addStretch()
 
         self.setLayout(self.main_layout)
 
@@ -119,7 +115,7 @@ class RepairVehicleView(QWidget):
         self.input_repair_days = QLineEdit()
         self.input_repair_days.setPlaceholderText("Liczba dni naprawy")
         self.input_repair_cost = QLineEdit()
-        self.input_repair_cost.setPlaceholderText("Koszt naprawy / dzień")
+        self.input_repair_cost.setPlaceholderText("Całkwity koszt naprawy")
         self.input_repair_desc = QLineEdit()
         self.input_repair_desc.setPlaceholderText("Opis naprawy")
         self.combo_workshop = QComboBox()
@@ -129,7 +125,7 @@ class RepairVehicleView(QWidget):
 
         form_layout = QFormLayout()
         form_layout.addRow("Dni naprawy:", self.input_repair_days)
-        form_layout.addRow("Koszt / dzień:", self.input_repair_cost)
+        form_layout.addRow("Całkowity koszt:", self.input_repair_cost)
         form_layout.addRow("Opis:", self.input_repair_desc)
         form_layout.addRow("Warsztat:", self.combo_workshop)
         form_layout.addRow("", self.submit_repair_button)
