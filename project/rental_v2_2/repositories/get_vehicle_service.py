@@ -1,4 +1,4 @@
-# repositories.get_vehicle_service import GetVehicleService
+# repositories.get_vehicle_service.py
 from collections import defaultdict
 
 from models.user import User

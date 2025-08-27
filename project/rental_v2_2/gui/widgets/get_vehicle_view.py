@@ -1,4 +1,4 @@
-# gui.widgets.get_users_view.py
+# gui.widgets.get_vehicle_view.py
 import sys
 import platform
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox,
@@ -10,9 +10,9 @@ from models.vehicle import Vehicle
 
 
 class GetVehicleView(QWidget):
+
     request_vehicle_list = Signal(str, str)
     vehicle_selected = Signal(object)
-
 
     def __init__(self, role = "client"):
         super().__init__()

@@ -4,21 +4,25 @@ from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 
 from database.base import SessionLocal
 
-from repositories.delete_users_service import DeleteUsersService
 from gui.widgets.delete_users_view import DeleteUsersWidget
+from repositories.delete_users_service import DeleteUsersService
 from controllers.delete_users_controller import DeleteUsersController
 
-from repositories.get_users_service import GetUsersService
 from gui.widgets.get_users_view import GetUsersWidget
+from repositories.get_users_service import GetUsersService
 from controllers.get_users_controller import GetUsersController
 
-from repositories.get_vehicle_service import GetVehicleService
 from gui.widgets.get_vehicle_view import GetVehicleView
+from repositories.get_vehicle_service import GetVehicleService
 from controllers.get_vehicle_controller import GetVehicleController
 
 from repositories.repair_service import RepairService
 from gui.widgets.repair_view import RepairVehicleView
 from controllers.repair_controller import RepairController
+
+from gui.widgets.return_vehicle_view import ReturnVehicleView
+from repositories.return_vehicle_service import ReturnVehicleService
+from controllers.return_vehicle_controller import ReturnVehicleController
 
 
 from gui.windows.start_window import StartWindow
@@ -373,8 +377,15 @@ class AppController(QObject):
 
     def show_return_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano return_vehicle_widget()")
-        self.return_vehicle_widget = ReturnVehicleWidget(self.db_session, self.current_user)
-        self.show_widget(self.return_vehicle_widget)
+        view = ReturnVehicleView(role="client")
+        service = ReturnVehicleService(self.db_session, self.current_user)
+        controller = ReturnVehicleController(self.db_session, view, service, self.current_user)
+        view.set_controller(controller)
+        self.show_widget(view)
+
+
+        # self.return_vehicle_widget = ReturnVehicleWidget(self.db_session, self.current_user)
+        # self.show_widget(self.return_vehicle_widget)
 
     def show_overdue_rentals_widget(self):
         print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")
