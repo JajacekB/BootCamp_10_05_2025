@@ -485,6 +485,7 @@ class RentVehicleWidget(QWidget):
                 f"od {self.start_date} do {self.planned_return_date}."
                 "\nMiłej jazdy!"
             )
+            self.handle_cancel_button()
 
         except Exception as e:
             self.session.rollback()
@@ -494,6 +495,7 @@ class RentVehicleWidget(QWidget):
                 "Błąd rezerwacji",
                 f"Wystąpił problem podczas zapisu rezerwacji.\nSzczegóły: {e}"
             )
+            self.handle_cancel_button()
 
     def handle_cancel_button(self):
         # reset kalendarza
