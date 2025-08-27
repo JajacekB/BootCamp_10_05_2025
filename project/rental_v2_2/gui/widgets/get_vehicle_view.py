@@ -134,14 +134,11 @@ class GetVehicleView(QWidget):
 
     def show_vehicle_list_readonly(self, vehicles_grouped):
         self.list_widget.clear()
-
-        # Odłącz wszystkie połączenia itemClicked
         try:
             self.list_widget.itemClicked.disconnect()
         except TypeError:
             pass  # jeśli nie było połączenia, ignorujemy
 
-        # Wyłącz zaznaczanie
         self.list_widget.setSelectionMode(QListWidget.NoSelection)
 
         for (brand, model, cash_per_day), group in vehicles_grouped.items():
@@ -151,16 +148,6 @@ class GetVehicleView(QWidget):
             item.setFlags(Qt.NoItemFlags)
             self.list_widget.addItem(item)
         self.adjust_list_height()
-
-    # def show_vehicle_list_readonly(self, vehicles_grouped):
-    #     self.list_widget.clear()
-    #     for (brand, model, cash_per_day), group in vehicles_grouped.items():
-    #         display_text = f"{brand} {model} – {cash_per_day:.2f} zł/dzień"
-    #         item = QListWidgetItem(display_text)
-    #         item.setData(Qt.UserRole, group)
-    #         item.setFlags(Qt.NoItemFlags)
-    #         self.list_widget.addItem(item)
-    #     self.adjust_list_height()
 
     def show_vehicle_history(self, vehicle, rentals=None, repairs=None):
         self.list_widget.clear()
@@ -188,18 +175,6 @@ class GetVehicleView(QWidget):
                 self.list_widget.addItem(rental_text)
 
         self.adjust_list_height()
-
-        """
-
-        :param rentals:
-        :param repairs:
-        :return:
-        """
-
-
-
-
-
 
     def show_errors(self, messages: list[str]):
         self.list_widget.clear()

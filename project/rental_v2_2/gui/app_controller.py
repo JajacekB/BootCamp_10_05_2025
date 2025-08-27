@@ -383,10 +383,6 @@ class AppController(QObject):
         view.set_controller(controller)
         self.show_widget(view)
 
-
-        # self.return_vehicle_widget = ReturnVehicleWidget(self.db_session, self.current_user)
-        # self.show_widget(self.return_vehicle_widget)
-
     def show_overdue_rentals_widget(self):
         print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")
         self.overdue_vehicle_rentals = OverdueRentalsWidget(self.db_session, self.current_user)
