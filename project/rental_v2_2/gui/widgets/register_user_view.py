@@ -2,23 +2,25 @@
 import bcrypt
 import pycountry
 from sqlalchemy.exc import IntegrityError
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QFormLayout, QComboBox, QPushButton
+from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QFormLayout, QComboBox, QPushButton, QDialog
 
 from models.user import User
 from validation.validation import is_valid_phone, is_valid_email
 
 
-class RegisterUserView(QWidget):
+class RegisterUserView(QDialog):
 
     registration_cancelled = Signal()
     registration_finished = Signal(object)
+    handle_login_password = Signal()
 
     def __init__(self, parent=None, role="client", auto=False):
         super().__init__(parent)
 
         self.role = role
         self.auto = auto
+        self.controller = None
 
         self.setStyleSheet("""
             QWidget {
@@ -40,6 +42,9 @@ class RegisterUserView(QWidget):
         self.invalid_style = "border: 1px solid #F44336;"
 
         self._build_ui()
+
+    # def set_controller(self, controller):
+    #     self.controller = controller
 
     def _build_ui(self):
 
@@ -93,23 +98,18 @@ class RegisterUserView(QWidget):
         self.main_layout.addWidget(self.login_label, 4, 0, 1, 2)
 
         if self.auto and self.role == "seller":
-            count = self.session.query(User).filter_by(role="seller").count()
-            seller_number = str(count + 1).zfill(2)
-            seller_login = f"Seller{seller_number}"
-            raw_password = seller_login
-            print(f"\nUtworzono login: {seller_login} | hasło: {raw_password}")
 
-            self.login_input = QLineEdit(seller_login)
-            self.login_input.setReadOnly(True)
-
-            self.password_input = QLineEdit(raw_password)
+            self.login_input = QLineEdit()
+            self.password_input = QLineEdit()
             self.password_input.setEchoMode(QLineEdit.Password)
+
+            self.login_input.setReadOnly(True)
             self.password_input.setReadOnly(True)
 
-            login_layout = QFormLayout()
-            login_layout.addRow("Login:", self.login_input)
-            login_layout.addRow("Hasło:", self.password_input)
-            self.main_layout.addLayout(login_layout, 5, 0, 1, 2)
+            self.login_layout = QFormLayout()
+            self.login_layout.addRow("Login:", self.login_input)
+            self.login_layout.addRow("Hasło:", self.password_input)
+            self.main_layout.addLayout(self.login_layout, 5, 0, 1, 2)
 
         else:
             self.login_input = QLineEdit()
@@ -135,6 +135,8 @@ class RegisterUserView(QWidget):
             "font-size: 18px; color: white;"
             " border-radius: 8px; padding: 4px;"
         )
+        self.cancel1_button.setDefault(False)
+        self.cancel1_button.setAutoDefault(False)
         self.cancel1_button.clicked.connect(self._cancel_registration)
         self.main_layout.addWidget(self.cancel1_button, 6, 0, 1, 1, alignment=Qt.AlignLeft)
 
@@ -145,6 +147,8 @@ class RegisterUserView(QWidget):
             " font-size: 18px; color: white; color: white;"
             " border-radius: 8px; padding: 4px;"
         )
+        self.confirm_button.setDefault(True)  # Enter aktywuje Zatwierdź
+        self.confirm_button.setAutoDefault(True)
         self.confirm_button.clicked.connect(self._show_summary)
         self.main_layout.addWidget(self.confirm_button, 6, 1, 1, 1, alignment=Qt.AlignRight)
 
@@ -177,6 +181,14 @@ class RegisterUserView(QWidget):
 
         last_row = self.main_layout.rowCount()
         self.main_layout.setRowStretch(last_row, 1)
+
+        if self.auto and self.role == "seller":
+            print("⏳ Zaplanowano emit handle_login_password (następna kolejka)")
+            QTimer.singleShot(0, lambda: self.handle_login_password.emit())
+
+    def populate_auto_seller(self, seller_login, raw_password):
+        self.login_input.setText(seller_login)
+        self.password_input.setText(raw_password)
 
     def _validate_phone_input(self, text):
         if is_valid_phone(text):
@@ -232,8 +244,9 @@ class RegisterUserView(QWidget):
         )
 
     def _show_summary(self):
+        print("View: uruchamiam _show_summary")
         if not self._is_form_valid():
-            print("\n❌ Formularz zawiera błędy. Popraw dane przed zatwierdzeniem.")
+            print("\n❌ Formularz zawiera błędy 1. Popraw dane przed zatwierdzeniem.")
             return
 
         full_name = f"{self.first_name_input.text()} {self.last_name_input.text()}"
@@ -258,7 +271,9 @@ class RegisterUserView(QWidget):
         self.confirm_button.setEnabled(False)
 
     def register_client_gui(self):
+        print("View: tworzę usera")
         if self._is_form_valid():
+            print("View: formularz bez błędów")
             first_name = self.first_name_input.text()
             last_name = self.last_name_input.text()
             login = self.login_input.text()
@@ -280,9 +295,6 @@ class RegisterUserView(QWidget):
             )
             self.registration_finished.emit(new_user)
 
-            # self.summary_label.setText("✅ Użytkownik został dodany pomyślnie.")
-            # self.summary_label.setStyleSheet("color: #4CAF50; font-size: 14px;")
-
             self.add_user_button.setEnabled(False)
             self.add_user_button.setVisible(False)
             self.cancel2_button.setEnabled(False)
@@ -291,7 +303,8 @@ class RegisterUserView(QWidget):
             return new_user
 
         else:
-            self.summary_label.setText("❌ Formularz zawiera błędy. Popraw dane i spróbuj ponownie.")
+            print("View: Formularz ma błędy")
+            self.summary_label.setText("❌ Formularz zawiera błędy 2. Popraw dane i spróbuj ponownie.")
             self.summary_label.setStyleSheet("color: #F44336; font-size: 14px;")
             self.summary_label.setVisible(True)
             return None

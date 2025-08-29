@@ -62,6 +62,30 @@ def get_user_by(session, **kwargs):
     column = allowed_keys[key]
     return session.query(User).filter(column == value).one_or_none()
 
+def get_user_by(session, only_one: bool=True, **kwargs):
+    allowed_keys = {
+        "user_id": User.id,
+        "user_login": User.login,
+        "email": User.email,
+        "role": User.role}
+
+    if len(kwargs) != 1:
+        raise ValueError("Podaj dokładnie jeden parametr: user_id, user_login albo email")
+
+    key, value = next(iter(kwargs.items()))
+
+    if key not in allowed_keys:
+        raise ValueError(f"Niepoprawny parametr: {key}. Dozwolone: {list(allowed_keys.keys())}")
+
+    column = allowed_keys[key]
+    query = session.query(User).filter(column == value)
+
+    if only_one:
+        return query.one_or_none()
+    else:
+        return query.all()
+
+
 def get_rentals_by_vehicle_id(self, vehicle):
     return list(
         self.session.query(RentalHistory)

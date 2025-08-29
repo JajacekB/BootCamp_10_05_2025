@@ -3,12 +3,6 @@ from PySide6.QtWidgets import (
     QPushButton, QGridLayout, QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, QTimer
-from gui.windows.register_wiget import RegisterWidget
-
-from repositories.delete_users_service import DeleteUsersService
-from gui.widgets.delete_users_view import DeleteUsersWidget
-from controllers.delete_users_controller import DeleteUsersController
-
 
 
 class AdminDialog(QMainWindow):
@@ -71,20 +65,7 @@ class AdminDialog(QMainWindow):
         info_label.setAlignment(Qt.AlignCenter)
         menu_layout.addWidget(info_label)
 
-        menu_list = [
-            "1. Dodaj nowego sprzedawcę",
-            "2. Usuń sprzedawcę",
-            "3. Dodaj nowego klienta",
-            "4. Usuń klienta",
-            "5. Przeglądaj klientów",
-            "6. Dodaj nowy pojazd",
-            "7. Usuń pojazd z użytkowania",
-            "8. Przeglądaj pojazdy",
-            "9. Wypożycz pojazd klientowi",
-            "10. Zwróć pojazd",
-            "11. Oddaj pojazd do naprawy",
-            "12. Aktualizuj profil"
-        ]
+        menu_list = self._get_menu_for_role(self.user.role.lower())
 
         for item_text in menu_list:
             button = QPushButton(item_text)
@@ -118,33 +99,44 @@ class AdminDialog(QMainWindow):
 
         QTimer.singleShot(0, lambda: self._safe_show_overdue_rentals())
 
-    def show_register_widget(self, role: str = None, auto: bool = False):
-        self.register_widget = RegisterWidget(
-            session=self.session,
-            parent=self,
-            role=role,
-            auto=auto
-        )
-
-        self.register_widget.registration_finished.connect(
-            self.controller.on_registration_finished_widget
-        )
-        self.register_widget.registration_cancelled.connect(
-            self.controller.on_registration_cancelled_widget
-        )
-        self.controller.clear_requested.connect(self.clear_dynamic_area)
-
-        self.load_widget(self.register_widget)
-
-    def show_delete_client_widget(self):
-        # MVC Delete Users
-        service = DeleteUsersService(session=self.session, role="client")
-        view = DeleteUsersWidget(role="client")
-        controller = DeleteUsersController(view, service)
-
-        # Podłącz sygnały kontrolera
-        self.load_widget(view)
-
+    def _get_menu_for_role(self, role: str) -> list[str]:
+        if role == "admin":
+            return [
+                "1. Dodaj nowego sprzedawcę",
+                "2. Usuń sprzedawcę",
+                "3. Dodaj nowego klienta",
+                "4. Usuń klienta",
+                "5. Przeglądaj klientów",
+                "6. Dodaj nowy pojazd",
+                "7. Usuń pojazd z użytkowania",
+                "8. Przeglądaj pojazdy",
+                "9. Wypożycz pojazd klientowi",
+                "10. Zwróć pojazd",
+                "11. Oddaj pojazd do naprawy",
+                "12. Aktualizuj profil"
+            ]
+        elif role == "seller":
+            return [
+                "1. Dodaj nowego klienta",
+                "2. Usuń klienta",
+                "3. Przeglądaj pojazdy",
+                "4. Dodaj nowy pojazd",
+                "5. Usuń pojazd z użytkowania",
+                "6. Przeglądaj pojazdy",
+                "7. Wypożycz pojazd klientowi",
+                "8. Zwróć pojazd",
+                "9. Oddaj pojazd do naprawy",
+                "10. Aktualizuj profil"
+            ]
+        elif role == "client":
+            return [
+                "1. Przeglądaj pojazdy",
+                "2. Wypożycz pojazd",
+                "3. Zwróć pojazd",
+                "4. Aktualizuj profil"
+            ]
+        else:
+            return []
 
     def clear_dynamic_area(self):
         layout = self.dynamic_area.layout()
@@ -161,19 +153,17 @@ class AdminDialog(QMainWindow):
         self.current_widget = None
 
     def _on_dynamic_button_clicked_with_highlight(self, button, command_num):
-        # Podświetlenie aktywnego przycisku
+
         if self.active_menu_button:
             self.active_menu_button.setStyleSheet(
                 "color: white; border-radius: 8px; padding-left: 10px; background-color: #555;"
             )
 
-        # Ustaw bieżący jako aktywny
         self.active_menu_button = button
         self.active_menu_button.setStyleSheet(
             "color: black; border-radius: 8px; padding-left: 10px; background-color: beige;"
         )
 
-        # Wywołanie logiki menu, przekazując przycisk
         self._on_dynamic_button_clicked(command_num, button)
 
     def _on_dynamic_button_clicked(self, command_num: str, button):

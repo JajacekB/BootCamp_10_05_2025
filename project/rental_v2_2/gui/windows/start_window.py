@@ -11,6 +11,7 @@ class StartWindow(QWidget):
 
     login_requested = Signal()
     register_requested = Signal(object)
+    quit_requested = Signal()
 
     def __init__(self):
         super().__init__()
@@ -92,7 +93,7 @@ class StartWindow(QWidget):
 
         self.btn_login.clicked.connect(self.login_requested.emit)
         self.btn_register.clicked.connect(lambda: self.register_requested.emit(self))
-        self.btn_exit.clicked.connect(self.handle_exit_program)
+        self.btn_exit.clicked.connect(self.quit_requested.emit)
 
         layout.addWidget(logo_label)
         layout.addSpacerItem(QSpacerItem(20, 75, QSizePolicy.Minimum, QSizePolicy.Fixed))
@@ -122,7 +123,7 @@ class StartWindow(QWidget):
         self.btn_register.hide()
         self.btn_exit.hide()
 
-        QTimer.singleShot(500, QApplication.instance().quit)
+        QTimer.singleShot(1000, QApplication.instance().quit)
 
 
 if __name__ == '__main__':
