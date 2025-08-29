@@ -351,3 +351,5 @@ class RegisterWidget(QWidget):
         self.add_user_button.setVisible(False)
         self.cancel2_button.setVisible(False)
         self.confirm_button.setEnabled(True)
+        self.confirm_button.raise_()
+        self.confirm_button.repaint()

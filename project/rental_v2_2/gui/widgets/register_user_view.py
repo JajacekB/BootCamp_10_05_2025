@@ -12,7 +12,7 @@ from validation.validation import is_valid_phone, is_valid_email
 class RegisterUserView(QWidget):
 
     registration_cancelled = Signal()
-    registration_finished = Signal(bool)
+    registration_finished = Signal(object)
 
     def __init__(self, parent=None, role="client", auto=False):
         super().__init__(parent)
@@ -54,9 +54,9 @@ class RegisterUserView(QWidget):
         self.last_name_input = QLineEdit()
         self.phone_input = QLineEdit()
         self.phone_input.setPlaceholderText("Numer telefonu")
-        # self.phone_input.textChanged.connect(self._validate_phone_input)
+        self.phone_input.textChanged.connect(self._validate_phone_input)
         self.email_input = QLineEdit()
-        # self.email_input.editingFinished.connect(self._validate_email_input)
+        self.email_input.editingFinished.connect(self._validate_email_input)
 
         self.personal_data_layout = QFormLayout()
         self.personal_data_layout.addRow("Imię:", self.first_name_input)
@@ -116,11 +116,11 @@ class RegisterUserView(QWidget):
             self.password_input = QLineEdit()
             self.password_input.setEchoMode(QLineEdit.Password)
             self.password_input.setPlaceholderText("Musi zawierać 6 znaków, 1 wielką literę, 1 cyfrę")
-            # self.password_input.textChanged.connect(self._validate_password_input)
+            self.password_input.textChanged.connect(self._validate_password_input)
 
             self.confirm_password_input = QLineEdit()
             self.confirm_password_input.setEchoMode(QLineEdit.Password)
-            # self.confirm_password_input.editingFinished.connect(self._validate_confirm_password)
+            self.confirm_password_input.editingFinished.connect(self._validate_confirm_password)
 
             self.login_layout = QFormLayout()
             self.login_layout.addRow("Login:", self.login_input)
@@ -128,24 +128,24 @@ class RegisterUserView(QWidget):
             self.login_layout.addRow("Potwierdź hasło:", self.confirm_password_input)
             self.main_layout.addLayout(self.login_layout, 5, 0, 1, 2)
 
-        self.cancel1_button = QPushButton("Anuluj")
-        self.cancel1_button.setFixedSize(150, 45)
+        self.cancel1_button = QPushButton("Wyczyść")
+        self.cancel1_button.setFixedSize(160, 40)
         self.cancel1_button.setStyleSheet(
             "background-color: brown;"
-            "font-size: 24px; color: white;"
-            " border-radius: 8px; padding: 10px;"
+            "font-size: 18px; color: white;"
+            " border-radius: 8px; padding: 4px;"
         )
-        # self.cancel1_button.clicked.connect(self._cancel_registration)
+        self.cancel1_button.clicked.connect(self._cancel_registration)
         self.main_layout.addWidget(self.cancel1_button, 6, 0, 1, 1, alignment=Qt.AlignLeft)
 
         self.confirm_button = QPushButton("Zatwierdź")
-        self.confirm_button.setFixedSize(150, 45)
+        self.confirm_button.setFixedSize(160, 40)
         self.confirm_button.setStyleSheet(
             "background-color: darkgreen;"
-            " font-size: 24px; color: white; color: white;"
-            " border-radius: 8px; padding: 10px;"
+            " font-size: 18px; color: white; color: white;"
+            " border-radius: 8px; padding: 4px;"
         )
-        # self.confirm_button.clicked.connect(self._show_summary)
+        self.confirm_button.clicked.connect(self._show_summary)
         self.main_layout.addWidget(self.confirm_button, 6, 1, 1, 1, alignment=Qt.AlignRight)
 
         self.summary_label = QLabel()
@@ -154,21 +154,21 @@ class RegisterUserView(QWidget):
         self.main_layout.addWidget(self.summary_label, 7, 0, 1, 2)
 
         self.cancel2_button = QPushButton("Anuluj")
-        self.cancel2_button.setFixedSize(150, 45)
+        self.cancel2_button.setFixedSize(160, 40)
         self.cancel2_button.setStyleSheet(
-            "background-color: #F44336; color: white; border-radius: 8px; padding: 10px;"
+            "background-color: brown; color: white; font-size: 18px; border-radius: 8px; padding: 4px;"
         )
         self.cancel2_button.setVisible(False)
-        # self.cancel2_button.clicked.connect(self._hide_summary)
+        self.cancel2_button.clicked.connect(self._hide_summary)
         self.main_layout.addWidget(self.cancel2_button, 8, 0, 1, 1, alignment=Qt.AlignLeft)
 
         self.add_user_button = QPushButton("Dodaj użytkownika")
-        self.add_user_button.setFixedSize(150, 45)
+        self.add_user_button.setFixedSize(160, 40)
         self.add_user_button.setStyleSheet(
-            "background-color: #4CAF50; color: white; border-radius: 8px; padding: 10px;"
+            "background-color: darkgreen; color: white; font-size: 18px; border-radius: 8px; padding: 4px;"
         )
         self.add_user_button.setVisible(False)
-        # self.add_user_button.clicked.connect(self.register_client_gui)
+        self.add_user_button.clicked.connect(self.register_client_gui)
         self.main_layout.addWidget(self.add_user_button, 8, 1, 1, 1, alignment=Qt.AlignRight)
 
         col_count = self.main_layout.columnCount()
@@ -177,3 +177,151 @@ class RegisterUserView(QWidget):
 
         last_row = self.main_layout.rowCount()
         self.main_layout.setRowStretch(last_row, 1)
+
+    def _validate_phone_input(self, text):
+        if is_valid_phone(text):
+            self.phone_input.setStyleSheet(self.valid_style)
+        else:
+            self.phone_input.setStyleSheet(self.invalid_style)
+
+    def _validate_email_input(self):
+        email = self.email_input.text()
+        if is_valid_email(email):
+            self.email_input.setStyleSheet(self.valid_style)
+        else:
+            self.email_input.setStyleSheet(self.invalid_style)
+
+    def _validate_password_input(self, text):
+        is_long_enough = len(text) >= 6
+        has_upper_case = any(char.isupper() for char in text)
+        has_digit = any(char.isdigit() for char in text)
+        if is_long_enough and has_upper_case and has_digit:
+            self.password_input.setStyleSheet(self.valid_style)
+        else:
+            self.password_input.setStyleSheet(self.invalid_style)
+
+    def _validate_confirm_password(self):
+        password = self.password_input.text()
+        confirm_password = self.confirm_password_input.text()
+        if password == confirm_password and password:
+            self.confirm_password_input.setStyleSheet(self.valid_style)
+        else:
+            self.confirm_password_input.setStyleSheet(self.invalid_style)
+
+
+    def _is_form_valid(self):
+        password = self.password_input.text()
+
+        phone_valid = is_valid_phone(self.phone_input.text())
+        email_valid = is_valid_email(self.email_input.text())
+        password_valid = (
+            len(password) >= 6 and
+            any(char.isupper() for char in password) and
+            any(char.isdigit() for char in password)
+        )
+        confirm_password_valid = password == self.confirm_password_input.text()
+
+        return phone_valid and email_valid and password_valid and confirm_password_valid
+
+    def _get_full_address(self):
+        return (
+            f"ul. {self.street_input.text()}, "
+            f"{self.post_code_input.text()} "
+            f"{self.city_input.text()}, "
+            f"{self.country_combo_box.currentText()}"
+        )
+
+    def _show_summary(self):
+        if not self._is_form_valid():
+            print("\n❌ Formularz zawiera błędy. Popraw dane przed zatwierdzeniem.")
+            return
+
+        full_name = f"{self.first_name_input.text()} {self.last_name_input.text()}"
+        address = self._get_full_address()
+        login = self.login_input.text()
+        phone = self.phone_input.text()
+        email = self.email_input.text()
+
+        summary_text = (
+            f"Podsumowanie:\n\n"
+            f"Imię i Nazwisko: {full_name}\n"
+            f"Login: {login}\n"
+            f"Telefon: {phone}\n"
+            f"Email: {email}\n"
+            f"Adres: {address}\n"
+        )
+        self.summary_label.setText(summary_text)
+
+        self.summary_label.setVisible(True)
+        self.add_user_button.setVisible(True)
+        self.cancel2_button.setVisible(True)
+        self.confirm_button.setEnabled(False)
+
+    def register_client_gui(self):
+        if self._is_form_valid():
+            first_name = self.first_name_input.text()
+            last_name = self.last_name_input.text()
+            login = self.login_input.text()
+            phone = self.phone_input.text()
+            email = self.email_input.text()
+
+            password_hash = bcrypt.hashpw(self.password_input.text().encode('utf-8'), bcrypt.gensalt()).decode()
+            full_address = self._get_full_address()
+
+            new_user = User(
+                first_name=first_name,
+                last_name=last_name,
+                login=login,
+                phone=phone,
+                email=email,
+                password_hash=password_hash,
+                address=full_address,
+                role=self.role
+            )
+            self.registration_finished.emit(new_user)
+
+            # self.summary_label.setText("✅ Użytkownik został dodany pomyślnie.")
+            # self.summary_label.setStyleSheet("color: #4CAF50; font-size: 14px;")
+
+            self.add_user_button.setEnabled(False)
+            self.add_user_button.setVisible(False)
+            self.cancel2_button.setEnabled(False)
+            self.cancel2_button.setVisible(False)
+
+            return new_user
+
+        else:
+            self.summary_label.setText("❌ Formularz zawiera błędy. Popraw dane i spróbuj ponownie.")
+            self.summary_label.setStyleSheet("color: #F44336; font-size: 14px;")
+            self.summary_label.setVisible(True)
+            return None
+
+    def _hide_summary(self):
+        self.summary_label.setVisible(False)
+        self.add_user_button.setVisible(False)
+        self.cancel2_button.setVisible(False)
+        self.confirm_button.setEnabled(True)
+
+    def _cancel_registration(self):
+        self.first_name_input.clear()
+        self.last_name_input.clear()
+        self.phone_input.clear()
+        self.phone_input.setStyleSheet("")
+        self.email_input.clear()
+        self.email_input.setStyleSheet("")
+        self.street_input.clear()
+        self.post_code_input.clear()
+        self.city_input.clear()
+        self.login_input.clear()
+        self.password_input.clear()
+        self.password_input.setStyleSheet("")
+        if hasattr(self, 'confirm_password_input'):
+            self.confirm_password_input.clear()
+            self.confirm_password_input.setStyleSheet("")
+        self.summary_label.clear()
+        self.summary_label.setVisible(False)
+        self.cancel2_button.setVisible(False)
+        self.add_user_button.setVisible(False)
+        self.confirm_button.setEnabled(True)
+
+

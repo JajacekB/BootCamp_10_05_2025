@@ -4,6 +4,9 @@ from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 
 from database.base import SessionLocal
 
+from gui.widgets.register_user_view import RegisterUserView
+from controllers.register_user_controller import RegisterUserController
+
 from gui.widgets.delete_users_view import DeleteUsersWidget
 from repositories.delete_users_service import DeleteUsersService
 from controllers.delete_users_controller import DeleteUsersController
@@ -74,8 +77,8 @@ class AppController(QObject):
         self.start_window = StartWindow()
         self.register_widget = None
 
-        self.start_window.login_requested.connect(self._handle_login_request)
-        self.start_window.register_requested.connect(self._handle_register_window)
+        # self.start_window.login_requested.connect(self._handle_login_request)
+        # self.start_window.register_requested.connect(self._handle_register_window)
 
         self.loggedOut.connect(self._show_start_window)
 
@@ -109,64 +112,14 @@ class AppController(QObject):
 
         print("--- Proces logowania w GUI zakończony ---")
 
-
-    def _handle_add_seller_wiget(self):
-        print("\n--- Dodawanie sprzedawcy (auto login/hasło) ---")
-
-        self.register_widget = RegisterWidget(
-            session=self.db_session,
-            parent=self.start_window,
-            role="seller",
-            auto=True
-        )
-        self.register_widget.registration_finished.connect(self.on_registration_finished_widget)
-        self.register_widget.registration_cancelled.connect(self.on_registration_cancelled_widget)
-
-        self.admin_dialog.show_register_widget(role="seller", auto=True)
-
-        print("--- Proces dodawania sprzedawcy zakończony ---")
-
-
-    def _handle_register_window(self):
-        """Wyświetla rejestrację jako osobne okno (np. z poziomu StartWindow)."""
-        self.register_widget = RegisterWidget(self.db_session)
-        self.register_widget.registration_finished.connect(self.on_registration_finished_widget)
-        self.register_widget.registration_cancelled.connect(self.on_registration_cancelled_widget)
-        self.register_widget.show()
-
-
-    def handle_register_widget(self):
-        if self.admin_dialog is None:
-            print("❌ Błąd: AdminDialog nie został zainicjalizowany.")
+    def handle_register_window(self):
+        if self.start_window is None:
+            print("❌ Błąd: StartWindow nie został zainicjalizowany.")
             return
-
-        self.register_widget = RegisterWidget(self.db_session)
-        self.register_widget.registration_finished.connect(self.on_registration_finished_widget)
-        self.register_widget.registration_cancelled.connect(self.on_registration_cancelled_widget)
-        self.admin_dialog.show_register_widget(role="client")
-
-
-    def on_registration_finished_widget(self, success: bool):
-        if success:
-            QMessageBox.information(None, "Sukces", "Użytkownik został zarejestrowany.")
-        else:
-            QMessageBox.warning(None, "Niepowodzenie", "Rejestracja nie powiodła się.")
-
-        if self.admin_dialog:
-            self.admin_dialog.clear_dynamic_area()
-
-
-    def on_registration_cancelled_widget(self):
-        print("❌ Rejestracja anulowana – czyszczenie dynamicznego obszaru (RegisterWidget).")
-        self.register_widget.clear_form()
-
-
-    def _on_user_logged_in(self, user):
-        print(f"Kontroler: Użytkownik {user.first_name} {user.last_name} ({user.role}) zalogowany. Przechodzę do menu.")
-
-        self.current_user = user
-        self._show_main_user_menu(user)
-
+        view = RegisterUserView(parent=self.start_window, role="client", auto=False)
+        controller = RegisterUserController(self.db_session, view, parent_dialog=None)
+        self.controller = controller
+        self.show_widget(view)
 
     def _handle_logout_request(self):
         print("\n🔒 Wylogowano. Zamykam sesję bazy danych.")
@@ -174,17 +127,20 @@ class AppController(QObject):
         self.current_user = None
         self.loggedOut.emit()
 
+    def _on_user_logged_in(self, user):
+        print(f"Kontroler: Użytkownik {user.first_name} {user.last_name} ({user.role}) zalogowany. Przechodzę do menu.")
+
+        self.current_user = user
+        self._show_main_user_menu(user)
 
     def logout(self):
         self._handle_logout_request()
-
 
     def _close_db_session_on_exit(self):
         if self.db_session:
             self.db_session.close()
             print("✅ Sesja bazy danych zamknięta podczas zamykania aplikacji.")
         self.db_session = None
-
 
     def _show_main_user_menu(self, user):
         if not self.db_session:
@@ -206,7 +162,6 @@ class AppController(QObject):
         else:
             print(f"❌ Nieznana rola użytkownika: {user.role}")
             self._handle_logout_request()
-
 
     def _handle_admin_command(self, command_num: str):
         commands = {
@@ -232,7 +187,6 @@ class AppController(QObject):
         else:
             print(f"❌ Nieznana komenda: {command_num}")
 
-
     def _show_admin_menu(self):
         if self.current_active_window:
             self.current_active_window.close()
@@ -249,7 +203,6 @@ class AppController(QObject):
         self.admin_dialog.raise_()
         self.admin_dialog.activateWindow()
         self.current_active_window = self.admin_dialog
-
 
     def _handle_seller_command(self, command_num: str):
         commands = {
@@ -273,7 +226,6 @@ class AppController(QObject):
         else:
             print(f"❌ Nieznana komenda: {command_num}")
 
-
     def _show_seller_menu(self):
         if self.current_active_window:
             self.current_active_window.close()
@@ -291,7 +243,6 @@ class AppController(QObject):
         self.seller_dialog.activateWindow()
         self.current_active_window = self.seller_dialog
 
-
     def _handle_client_command(self, command_num: str):
         commands = {
             "1": lambda: self.show_get_vehicle_widget(),
@@ -304,7 +255,6 @@ class AppController(QObject):
             action()
         else:
             print(f"❌ Nieznana komenda: {command_num}")
-
 
     def _show_client_menu(self):
         if self.current_active_window:
@@ -323,33 +273,13 @@ class AppController(QObject):
         self.client_dialog.activateWindow()
         self.current_active_window = self.client_dialog
 
-    def show_get_vehicle_widget(self):
-        print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
-        role = self.current_user.role
-        view = GetVehicleView(role=role)
-
-        service = GetVehicleService(self.db_session, view)
-        controller = GetVehicleController(view=view, session=self.db_session)
-
-        self.repair_vehicle_controller = controller
-        self.show_widget(view)
-
-
-    def show_get_users_widget(self):
-        print("🔧 Wywołano show_get_users_widget()")
-        service = GetUsersService(self.db_session)
-        view = GetUsersWidget(session=self.db_session)
-        controller = GetUsersController(view=view, service=service)
-        self.get_users_controller = controller
-        if self.admin_dialog:
-            self.admin_dialog.load_widget(view)
-
-    def show_delete_client_widget(self):
-        print("🔧 Wywołano delete_client_widget() - MVC wersja")
-        service = DeleteUsersService(session=self.db_session, role="client")
-        view = DeleteUsersWidget(role="client")
-        controller = DeleteUsersController(view, service)
-        self.delete_client_controller = controller
+    def handle_add_seller_widget(self):
+        if self.admin_dialog is None:
+            print("❌ Błąd: AdminDialog nie został zainicjalizowany.")
+            return
+        view = RegisterUserView(parent=self.admin_dialog, role="seller", auto=True)
+        controller = RegisterUserController(self.db_session, view, parent_dialog=self.admin_dialog)
+        self.controller = controller
         self.show_widget(view)
 
     def show_delete_seller_widget(self):
@@ -360,6 +290,32 @@ class AppController(QObject):
         self.delete_seller_controller = controller
         self.show_widget(view)
 
+    def handle_register_widget(self):
+        if self.admin_dialog is None:
+            print("❌ Błąd: AdminDialog nie został zainicjalizowany.")
+            return
+        view = RegisterUserView(parent=self.admin_dialog, role="client", auto=False)
+        controller = RegisterUserController(self.db_session, view, parent_dialog=self.admin_dialog)
+        self.controller = controller
+        self.show_widget(view)
+
+    def show_delete_client_widget(self):
+        print("🔧 Wywołano delete_client_widget() - MVC wersja")
+        service = DeleteUsersService(session=self.db_session, role="client")
+        view = DeleteUsersWidget(role="client")
+        controller = DeleteUsersController(view, service)
+        self.delete_client_controller = controller
+        self.show_widget(view)
+
+    def show_get_users_widget(self):
+        print("🔧 Wywołano show_get_users_widget()")
+        service = GetUsersService(self.db_session)
+        view = GetUsersWidget(session=self.db_session)
+        controller = GetUsersController(view=view, service=service)
+        self.get_users_controller = controller
+        if self.admin_dialog:
+            self.admin_dialog.load_widget(view)
+
     def show_add_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano add_vehicle_widget()")
         self.add_vehicle_widget = AddVehicleWidget(self.db_session)
@@ -369,6 +325,17 @@ class AppController(QObject):
         print("🔧🔧🔧 Wywołano remove_vehicle_widget()")
         self.remove_vehicle_widget = RemoveVehicleWidget(self.db_session)
         self.show_widget(self.remove_vehicle_widget)
+
+    def show_get_vehicle_widget(self):
+        print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
+        role = self.current_user.role
+        view = GetVehicleView(role=role)
+
+        service = GetVehicleService(self.db_session, view)
+        controller = GetVehicleController(view=view, session=self.db_session)
+
+        self.repair_vehicle_controller = controller
+        self.show_widget(view)
 
     def show_rent_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano rent_vehicle_widget()")
@@ -383,11 +350,6 @@ class AppController(QObject):
         view.set_controller(controller)
         self.show_widget(view)
 
-    def show_overdue_rentals_widget(self):
-        print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")
-        self.overdue_vehicle_rentals = OverdueRentalsWidget(self.db_session, self.current_user)
-        self.show_widget(self.overdue_vehicle_rentals)
-
     def show_repair_vehicle_widget(self):
         print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
         view = RepairVehicleView()
@@ -400,6 +362,11 @@ class AppController(QObject):
         print("🔧🔧🔧 Uruchomiono update_user_widget()")
         self.update_user_widget = UpdateUserWidget(self.db_session, self.current_user)
         self.show_widget(self.update_user_widget)
+
+    def show_overdue_rentals_widget(self):
+        print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")
+        self.overdue_vehicle_rentals = OverdueRentalsWidget(self.db_session, self.current_user)
+        self.show_widget(self.overdue_vehicle_rentals)
 
     def show_widget(self, widget: QWidget):
         if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):

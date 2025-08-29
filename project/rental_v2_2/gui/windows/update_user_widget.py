@@ -293,7 +293,6 @@ class UpdateUserWidget(QWidget):
 
     def handle_summary_data(self):
 
-
         def get_field_value(widget):
 
             text = widget.text().strip()
