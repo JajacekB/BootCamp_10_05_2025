@@ -130,59 +130,61 @@ class OverdueRentalsWidget(QWidget):
         self.setLayout(self.main_layout)
 
 
-    def overdue_vehicle_rentals(self):
+    def overdue_update_database(self, item):
+        actual_return_date_input = self.calendar_input.get_date()
+        actual_return_date = actual_return_date_input.toPython()
 
-        if self.user.role not in ("seller", "admin"):
-            return
+        for item in self.rentals_list.selectedItems():
+            obj = item.data(Qt.UserRole)
 
-        self.rentals_list.clear()
-        self.title_label.show()
-        self.rentals_list.show()
+        if isinstance(obj, RepairHistory):
+            obj.actual_return_date = actual_return_date
+            obj.vehicle.is_available = True
+            obj.vehicle.borrower_id = None
+            obj.vehicle.return_date = None
+            self.session.commit()
 
-        try:
-            today = date.today()
-            overdue_rentals = self.session.query(RentalHistory).filter(
-                RentalHistory.planned_return_date < today,
-                RentalHistory.actual_return_date == None
-            ).order_by(RentalHistory.planned_return_date.asc()).all()
-
-
-            overdue_repairs = self.session.query(RepairHistory).filter(
-                RepairHistory.planned_return_date < today,
-                RepairHistory.actual_return_date == None
-            ).order_by(RepairHistory.planned_return_date.asc()).all()
-
-            self.overdues = overdue_repairs + overdue_rentals
-            self.overdues = sorted(self.overdues, key=lambda x: x.planned_return_date)
-
-            for obj in self.overdues:
-                if isinstance(obj, RentalHistory):
-                    text = f"Rental: {obj.reservation_id} - {obj.vehicle.brand} {obj.vehicle.vehicle_model}"
-                elif isinstance(obj, RepairHistory):
-                    text = f"Repair: {obj.repair_id} - {obj.vehicle.brand} {obj.vehicle.vehicle_model}"
-
-                item = QListWidgetItem(text)
-                item.setData(Qt.UserRole, obj)  # przechowujesz cały obiekt
-                self.rentals_list.addItem(item)
-
-            if not self.overdues:
-                self.title_label.hide()
-                self.rentals_list.hide()
-                QMessageBox.information(
-                    self,
-                    "Brak zaległości",
-                    "Ponowne sprawdzenie jutro."
-                )
-                self.close()
-            else:
-                self.overdues_action()
-
-        except Exception as e:
-            QMessageBox.critical(
+            QMessageBox.information(
                 self,
-                "Błąd",
-                f"Bład odczytu bazy danych.\n{str(e)}"
+                "Sukces",
+                "Pojazd wrócił z naprawy."
             )
+
+        elif isinstance(obj, RentalHistory):
+            total_cost, extra_fee, summary_text = recalculate_cost(
+                self.session,
+                self.user,
+                obj.vehicle,
+                actual_return_date,
+                obj.reservation_id
+            )
+
+            update_database(
+                self.session,
+                obj.vehicle,
+                actual_return_date,
+                total_cost,
+                extra_fee,
+                obj.reservation_id
+            )
+
+            QMessageBox.information(
+                self,
+                "Sukces, pojazd został zwrócony",
+                f"{summary_text}"
+            )
+
+        # 🚀 Zresetuj GUI PRZED ponownym sprawdzeniem
+        self.overdue_rental_detail.clear()
+        self.overdue_rental_detail.hide()
+        self.cancel_button.hide()
+        self.finish_button.hide()
+        self.calendar_comment_label.hide()
+        self.calendar_input.hide()
+        self.date_approve.hide()
+
+        self.rentals_list.clear()  # <--- kluczowe
+        self.overdue_vehicle_rentals()
 
 
     def overdues_action(self):
@@ -250,64 +252,36 @@ class OverdueRentalsWidget(QWidget):
         for widget in (self.calendar_comment_label, self.calendar_input, self.date_approve):
             widget.show()
 
-    def overdue_update_database(self, item):
+    def overdue_vehicle_rentals(self):
+        today = date.today()
 
-        actual_return_date_input = self.calendar_input.get_date()
-        actual_return_date = actual_return_date_input.toPython()
+        # Pobierz zaległe wynajmy i naprawy
+        rentals = (
+            self.session.query(RentalHistory)
+            .filter(RentalHistory.planned_return_date < today,
+                    RentalHistory.actual_return_date == None)
+            .all()
+        )
 
-        for item in self.rentals_list.selectedItems():
-            obj = item.data(Qt.UserRole)
+        repairs = (
+            self.session.query(RepairHistory)
+            .filter(RepairHistory.planned_return_date < today,
+                    RepairHistory.actual_return_date == None)
+            .all()
+        )
 
-        if isinstance(obj, RepairHistory):
-            obj.actual_return_date = actual_return_date
-            obj.vehicle.is_available = True
-            obj.vehicle.borrower_id = None
-            obj.vehicle.return_date = None
-            self.session.commit()
+        self.overdues = rentals + repairs
 
+        # Jeśli brak zaległości → czyść listę i pokaż komunikat
+        if not self.overdues:
+            self.rentals_list.clear()
             QMessageBox.information(
                 self,
-                "Sukces",
-                "pojazd wrócił z naprawy."
+                "Brak zaległości",
+                "Brak zaległości.\nPonowne sprawdzenie jutro."
             )
-            # self.rentals_list.hide()
-
-        elif isinstance(obj, RentalHistory):
-
-
-            total_cost, extra_fee, summary_text = recalculate_cost(
-                self.session,
-                self.user,
-                obj.vehicle,
-                actual_return_date,
-                obj.reservation_id
-            )
-
-            update_database(
-                self.session,
-                obj.vehicle,
-                actual_return_date,
-                total_cost,
-                extra_fee,
-                obj.reservation_id
-            )
-
-            QMessageBox.information(
-                self,
-                "Sukces, pojazd został zwrócony",
-                f"{summary_text}"
-            )
-
-        self.overdue_rental_detail.clear()
-        self.overdue_rental_detail.hide()
-        self.cancel_button.hide()
-        self.finish_button.hide()
-        self.calendar_comment_label.hide()
-        self.calendar_input.hide()
-        self.date_approve.hide()
-
-        self.overdue_vehicle_rentals()
-
+        else:
+            self.overdues_action()
 
     def adjust_list_height(self):
         if self.rentals_list.count() > 0:

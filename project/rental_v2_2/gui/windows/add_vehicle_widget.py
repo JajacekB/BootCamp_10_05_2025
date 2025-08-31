@@ -251,7 +251,7 @@ class AddVehicleWidget(QWidget):
                     vehicle_id=vehicle_id,
                     brand=self.veh_brand.text().strip(),
                     vehicle_model=self.veh_model.text().strip(),
-                    cash_per_day=self.veh_cash_per_day.text().strip(),
+                    cash_per_day=float(self.veh_cash_per_day.text().strip()),
                     size=self.size_combo_box.currentText(),
                     fuel_type=self.fuel_combo_box.currentText(),
                     individual_id=self.text
@@ -269,20 +269,20 @@ class AddVehicleWidget(QWidget):
                     vehicle_id=vehicle_id,
                     brand=self.veh_brand.text().strip(),
                     vehicle_model=self.veh_model.text().strip(),
-                    cash_per_day=self.veh_cash_per_day.text().strip(),
+                    cash_per_day=float(self.veh_cash_per_day.text().strip()),
                     max_speed=self.scooter_speed.text().strip(),
                     individual_id=self.text
                 )
 
             elif self.vehicle_type == "bike":
                 vehicle_id = generate_vehicle_id(self.session, "B")
-                self.is_electric = self.bike_typ_combo_box.currentText() != "Normalny"
+                self.is_electric = (self.bike_electric_combo_box.currentText() == "Elektryczny")
 
                 self.vehicle = Bike(
                     vehicle_id=vehicle_id,
                     brand=self.veh_brand.text().strip(),
                     vehicle_model=self.veh_model.text().strip(),
-                    cash_per_day=self.veh_cash_per_day.text().strip(),
+                    cash_per_day=float(self.veh_cash_per_day.text().strip()),
                     bike_type=self.bike_typ_combo_box.currentText(),
                     is_electric=self.is_electric,
                     individual_id=self.text

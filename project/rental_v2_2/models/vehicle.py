@@ -21,6 +21,7 @@ class Vehicle(Base):
     individual_id = Column(String, unique=True, nullable=False)
     purchase_date = Column(Date, default=date.today)
     type = Column(String)  # 'car', 'scooter', 'bike'
+    is_active = Column(Boolean, nullable=False, default=True)
 
     borrower = relationship("User", back_populates="vehicles")
     rental_history = relationship("RentalHistory", back_populates="vehicle")

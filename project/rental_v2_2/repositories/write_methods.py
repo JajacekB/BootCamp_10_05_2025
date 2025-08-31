@@ -1,5 +1,6 @@
 # repositories/write_methods.py
 from models.user import User
+from models.vehicle import Vehicle
 from database.base import SessionLocal
 from sqlalchemy.exc import IntegrityError
 
@@ -43,3 +44,13 @@ def add_user(session, user: User):
     except Exception as e:
         session.rollback()
         return False, str(e)
+
+def update_vehicle(session, vehicle: Vehicle):
+    try:
+        """
+        """
+        # self.session.commit()
+    except Exception as e:
+        """
+        """
+

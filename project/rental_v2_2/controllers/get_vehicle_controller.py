@@ -18,7 +18,7 @@ class GetVehicleController:
         self.view.request_vehicle_list.connect(self.request_vehicle_list)
         self.view.vehicle_selected.connect(self.on_vehicle_item_clicked)
 
-    @Slot(str, str)
+    @Slot(str, str, str)
     def request_vehicle_list(self, status: str = "Dostępne", v_type: str = "Wszystkie", role: str = "client"):
 
         print(f"[RepairController] Filtry GUI: status={status}, v_type={v_type}")

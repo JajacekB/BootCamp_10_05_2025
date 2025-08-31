@@ -2,13 +2,14 @@
 # file: vehicle_availability.py
 
 from datetime import date
-from models.vehicle import Vehicle
+from models.user import User
 from models.rental_history import RentalHistory
 from models.repair_history import RepairHistory
-from models.vehicle import Bike, Car, Scooter
+from models.vehicle import Vehicle, Bike, Car, Scooter
 
 
 def get_unavailable_vehicle(session, start_date = None, planned_return_date = None, vehicle_type = "all"):
+    print(f"{start_date=} {planned_return_date} {vehicle_type=}")
 
     if start_date is None or planned_return_date is None:
         start_date = planned_return_date = date.today()
@@ -45,6 +46,8 @@ def get_unavailable_vehicle(session, start_date = None, planned_return_date = No
     return truly_unavailable, unavailable_ids
 
 def get_available_vehicles(session, start_date=None, planned_return_date=None, vehicle_type="all"):
+    print(f"{start_date=} {planned_return_date} {vehicle_type=}")
+
     _, unavailable_ids = get_unavailable_vehicle(session, start_date, planned_return_date, vehicle_type)
 
     filters = [
