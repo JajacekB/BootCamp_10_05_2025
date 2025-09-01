@@ -35,7 +35,7 @@ def add_user(session, user: User):
             "workshop": "warsztat",
             "admin": "adminstratora"
         }
-        return True, f"Pomyślnie dodano nowego {role_dict.get(user.role, user.role)}"
+        return True, f"Pomyślnie dodano nowego {role_dict.get(user.login, user.role)}"
 
     except IntegrityError as e:
         session.rollback()
@@ -45,12 +45,24 @@ def add_user(session, user: User):
         session.rollback()
         return False, str(e)
 
-def update_vehicle(session, vehicle: Vehicle):
+def deactivate_vehicle(session, vehicle: Vehicle):
+
+    if not vehicle:
+        return False, f"Brak pojazdu o tych danych"
+
     try:
-        """
-        """
-        # self.session.commit()
+        vehicle.is_active = False
+        session.commit()
+        return True, (
+            f"Pojazd [{vehicle.vehicle_id}] {vehicle.brand} "
+            f"{vehicle.vehicle_model} o numerze {vehicle.individual_id} "
+            f"został usunięty z eksploatacji.")
     except Exception as e:
-        """
-        """
+        session.rollback()
+        return False, (f"Nie udało się usunąc pojazd:"
+                    f"[{vehicle.vehicle_id}] {vehicle.brand} "
+                    f"{vehicle.vehicle_model} o numerze {vehicle.individual_id} "
+                    f"z eksploatacji. szczegóły: {str(e)}")
+
+
 

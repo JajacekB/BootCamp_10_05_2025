@@ -1,7 +1,7 @@
 from PySide6.QtCore import Slot
 from collections import defaultdict
 
-from repositories.write_methods import update_vehicle
+from repositories.write_methods import deactivate_vehicle
 from services.vehicle_avability import get_available_vehicles
 
 
@@ -12,7 +12,7 @@ class DeleteVehicleController():
         self.view = view
 
         self.view.request_vehicle_list.connect(self.handle_vehicle_list)
-        self.view.request_delete_vehicle(self.handle_delete_vehicle)
+        self.view.request_delete_vehicle.connect(self.handle_delete_vehicle)
 
     @Slot(str)
     def handle_vehicle_list(self, v_type: str = "Wszystkie"):
@@ -43,10 +43,13 @@ class DeleteVehicleController():
         else:
             self.view.show_errors("Brak wolnych pojazdów.")
 
+    @Slot(object)
     def handle_delete_vehicle(self, vehicle_to_delete):
-        try:
-            update_vehicle(self.session, vehicle_to_delete)
-            # self.session.commit()
-            QMessageBox.information(self, "Sukces", "Pojazd został usunięty.")
-        except Exception as e:
-            QMessageBox.critical(self, "Błąd", f"Nie udało się usunąć pojazdu:\n{str(e)}")
+
+        success, text = deactivate_vehicle(self.session, vehicle_to_delete)
+
+        if success:
+            self.view.success_deactivate(text)
+        else:
+            self.view.error_deactivate(text)
+

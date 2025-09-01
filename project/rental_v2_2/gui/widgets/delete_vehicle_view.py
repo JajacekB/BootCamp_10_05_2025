@@ -201,8 +201,12 @@ class DeleteVehicleView(QWidget):
             return
         self.request_delete_vehicle.emit(self.vehicle_to_delete)
 
+    def success_deactivate(self, text):
+        QMessageBox.information(self,"Sukces", text)
+        self._reset_after_delete()
 
-
+    def error_deactivate(self, text):
+        QMessageBox.critical(self,"Błąd zapisu bazy danych", text)
         self._reset_after_delete()
 
     def _cancel_delete(self):

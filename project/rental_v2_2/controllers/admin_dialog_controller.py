@@ -26,6 +26,9 @@ from gui.widgets.return_vehicle_view import ReturnVehicleView
 from repositories.return_vehicle_service import ReturnVehicleService
 from controllers.return_vehicle_controller import ReturnVehicleController
 
+from gui.widgets.delete_vehicle_view import DeleteVehicleView
+from controllers.delete_vehicle_controller import DeleteVehicleController
+
 from gui.windows.add_vehicle_widget import AddVehicleWidget
 from gui.windows.update_user_widget import UpdateUserWidget
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
@@ -178,10 +181,19 @@ class AdminDialogController(QObject):
         self.add_vehicle_widget = AddVehicleWidget(self.db_session)
         self.show_widget(self.add_vehicle_widget)
 
+    # def show_remove_vehicle_widget(self):
+    #     print("🔧🔧🔧 Wywołano remove_vehicle_widget()")
+    #     self.remove_vehicle_widget = RemoveVehicleWidget(self.db_session)
+    #     self.show_widget(self.remove_vehicle_widget)
+
     def show_remove_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano remove_vehicle_widget()")
-        self.remove_vehicle_widget = RemoveVehicleWidget(self.db_session)
-        self.show_widget(self.remove_vehicle_widget)
+        view = DeleteVehicleView()
+        controller = DeleteVehicleController(self.db_session, view)
+        self.controller = controller
+
+        self.show_widget(view)
+
 
     def show_get_vehicle_widget(self):
         print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
