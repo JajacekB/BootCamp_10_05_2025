@@ -25,7 +25,7 @@ class DeleteUsersWidget(QWidget):
 
         self.setStyleSheet("""
                     QWidget { background-color: #2e2e2e; color: #eee; font-size: 16px; }
-                    QPushButton { background-color: #555; border-radius: 5px; padding: 5px; }
+                    QPushButton { background-color: #555; border-radius: 8px; padding: 5px; }
                     QLineEdit { font-size: 14px; }
                 """)
 

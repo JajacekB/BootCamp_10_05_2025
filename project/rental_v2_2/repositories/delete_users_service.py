@@ -12,8 +12,10 @@ class DeleteUsersService:
         """Zwraca listę kandydatów do usunięcia."""
         active_renters_ids = {
             v.borrower_id
-            for v in self.session.query(Vehicle.borrower_id)
-            .filter(Vehicle.is_available == False, Vehicle.borrower_id != None)
+            for v in self.session.query(Vehicle.borrower_id).
+            filter(
+                Vehicle.is_available == False,
+                Vehicle.borrower_id != None)
             .distinct()
         }
 

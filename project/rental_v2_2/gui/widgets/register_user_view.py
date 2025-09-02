@@ -43,9 +43,6 @@ class RegisterUserView(QDialog):
 
         self._build_ui()
 
-    # def set_controller(self, controller):
-    #     self.controller = controller
-
     def _build_ui(self):
 
         self.main_layout = QGridLayout(self)
@@ -160,7 +157,9 @@ class RegisterUserView(QDialog):
         self.cancel2_button = QPushButton("Anuluj")
         self.cancel2_button.setFixedSize(160, 40)
         self.cancel2_button.setStyleSheet(
-            "background-color: brown; color: white; font-size: 18px; border-radius: 8px; padding: 4px;"
+            "background-color: brown;"
+            " color: white; font-size: 18px;"
+            " border-radius: 8px; padding: 4px;"
         )
         self.cancel2_button.setVisible(False)
         self.cancel2_button.clicked.connect(self._hide_summary)
@@ -169,7 +168,9 @@ class RegisterUserView(QDialog):
         self.add_user_button = QPushButton("Dodaj użytkownika")
         self.add_user_button.setFixedSize(160, 40)
         self.add_user_button.setStyleSheet(
-            "background-color: darkgreen; color: white; font-size: 18px; border-radius: 8px; padding: 4px;"
+            "background-color: darkgreen;"
+            " color: white; font-size: 18px;"
+            " border-radius: 8px; padding: 4px;"
         )
         self.add_user_button.setVisible(False)
         self.add_user_button.clicked.connect(self.register_client_gui)

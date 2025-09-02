@@ -41,7 +41,13 @@ def get_unavailable_vehicle(session, start_date = None, planned_return_date = No
     repaired_ids = [r.vehicle_id for r in repaired_today]
 
     unavailable_ids = list(set(rented_ids + repaired_ids))
-    truly_unavailable = session.query(Vehicle).filter(Vehicle.id.in_(unavailable_ids)).all()
+    truly_unavailable = (
+        session.query(Vehicle)
+        .filter(
+            Vehicle.id.in_(unavailable_ids),
+            Vehicle.is_active == True
+        ).all()
+    )
 
     return truly_unavailable, unavailable_ids
 
@@ -50,9 +56,7 @@ def get_available_vehicles(session, start_date=None, planned_return_date=None, v
 
     _, unavailable_ids = get_unavailable_vehicle(session, start_date, planned_return_date, vehicle_type)
 
-    filters = [
-        ~Vehicle.id.in_(unavailable_ids)
-    ]
+    filters = [~Vehicle.id.in_(unavailable_ids)]
     if vehicle_type != "all":
         filters.append(Vehicle.type == vehicle_type)
 

@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (
     QPushButton, QGridLayout, QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, QTimer
+from models.promotions import Promotion
 
 
 class AdminDialog(QMainWindow):
@@ -11,7 +12,7 @@ class AdminDialog(QMainWindow):
 
     def __init__(self, user, session, controller):
         super().__init__()
-        print("✅ Inicjalizacja AdminWindow")
+        print("✅ Inicjalizacja MenuView")
         self.user = user
         self.session = session
         self.controller = controller
@@ -19,7 +20,12 @@ class AdminDialog(QMainWindow):
         self.current_widget = None
         self.active_menu_button = None
 
-        self.setWindowTitle("Menu Admina")
+        if self.user.role == "admin":
+            self.setWindowTitle("Menu Admina")
+        elif self.user.role == "seller":
+            self.setWindowTitle("Menu Sprzedawcy")
+        else:
+            self.setWindowTitle("Menu:")
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #2e2e2e;
@@ -44,8 +50,8 @@ class AdminDialog(QMainWindow):
         self.grid_layout.setContentsMargins(25, 25, 25, 25)
         self.grid_layout.setSpacing(15)
 
-        self.grid_layout.setColumnStretch(0, 0)  # menu nie rozciąga się
-        self.grid_layout.setColumnStretch(1, 1)  # dynamic_area zajmuje resztę
+        self.grid_layout.setColumnStretch(0, 0)
+        self.grid_layout.setColumnStretch(1, 1)
 
         central_widget.setLayout(self.grid_layout)
         self.current_widget = None
@@ -55,7 +61,12 @@ class AdminDialog(QMainWindow):
         menu_layout.setContentsMargins(0, 0, 0, 0)
         menu_layout.setAlignment(Qt.AlignTop)
 
-        hello_label = QLabel("Menu Admina")
+        if self.user.role == "admin":
+            hello_label = QLabel("Menu Admina:")
+        elif self.user.role == "seller":
+            hello_label = QLabel("Menu Sprzedawcy:")
+        else:
+            hello_label = QLabel("Menu:")
         hello_label.setStyleSheet("color: white; font-size: 22px; font-weight: bold;")
         hello_label.setAlignment(Qt.AlignCenter)
         menu_layout.addWidget(hello_label)
@@ -69,7 +80,7 @@ class AdminDialog(QMainWindow):
 
         for item_text in menu_list:
             button = QPushButton(item_text)
-            button.setFixedSize(275, 45)
+            button.setMinimumSize(250, 35)
             button.setStyleSheet("color: white; border-radius: 8px; padding-left: 10px;")
 
             command_num = item_text.split(".")[0]
@@ -81,14 +92,30 @@ class AdminDialog(QMainWindow):
         menu_layout.addSpacerItem(QSpacerItem(40, 40, QSizePolicy.Expanding, QSizePolicy.Minimum))
 
         logoff_button = QPushButton("Wyloguj się")
-        logoff_button.setFixedSize(255, 50)
-        logoff_button.setStyleSheet("background-color: brown; color: white; font-size: 18px; border-radius: 8px; padding: 10px;")
+        logoff_button.setMinimumSize(250, 35)
+        logoff_button.setStyleSheet("background-color: brown; color: white; font-size: 18px; border-radius: 8px; padding: 4px;")
         logoff_button.clicked.connect(self._on_logout_clicked)
         menu_layout.addWidget(logoff_button, alignment=Qt.AlignCenter)
 
-        menu_container = QWidget()
-        menu_container.setLayout(menu_layout)
-        self.grid_layout.addWidget(menu_container, 0, 0, alignment=Qt.AlignTop | Qt.AlignLeft)
+        self.menu_container = QWidget()
+        self.menu_container.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.menu_container.setLayout(menu_layout)
+        self.grid_layout.addWidget(self.menu_container, 0, 0, alignment=Qt.AlignTop | Qt.AlignLeft)
+
+        # ----------------------------------------------------------------------------------------------------------- #
+
+        self.hamburger_button = QPushButton("☰")
+        self.hamburger_button.setFixedSize(40, 40)
+        self.hamburger_button.setStyleSheet(
+            "font-size: 22px; background-color: #444; color: white; border-radius: 5px;"
+        )
+        self.hamburger_button.clicked.connect(self.toggle_menu)
+        self.grid_layout.addWidget(self.hamburger_button, 0, 0, alignment=Qt.AlignTop | Qt.AlignLeft)
+
+        self.hamburger_button.hide()
+        QTimer.singleShot(0, self.adjust_menu_visibility)
+
+        # ----------------------------------------------------------------------------------------------------------- #
 
         self.dynamic_area = QWidget()
         self.dynamic_area.setLayout(QVBoxLayout())
@@ -97,7 +124,14 @@ class AdminDialog(QMainWindow):
         )
         self.grid_layout.addWidget(self.dynamic_area, 0, 1, 1, 2)  # kolumny 1 i 2
 
-        QTimer.singleShot(0, lambda: self._safe_show_overdue_rentals())
+        if self.user.role in ["admin", "seller"]:
+            QTimer.singleShot(0, lambda: self._safe_show_overdue_rentals())
+
+        if self.user.role == "client":
+            QTimer.singleShot(0, lambda :self._saf_show_promo_banner())
+
+
+
 
     def _get_menu_for_role(self, role: str) -> list[str]:
         if role == "admin":
@@ -186,6 +220,12 @@ class AdminDialog(QMainWindow):
         except Exception as e:
             print(f"❌ Błąd podczas sprawdzania zaległości: {e}")
 
+    def _saf_show_promo_banner(self):
+        try:
+            self.controller.show_promo_banner_widget()
+        except Exception as e:
+            print(f"❌ Błąd podczas odczytywania promocji: {e}")
+
     def _set_active_menu_button(self, button):
 
         if self.active_menu_button:
@@ -197,4 +237,43 @@ class AdminDialog(QMainWindow):
         self.active_menu_button.setStyleSheet(
             "color: black; border-radius: 8px; padding-left: 10px; background-color: beige;"
         )
+
+    def _build_promo_banner(self):
+        time_promos = self.session.query(Promotion).filter_by(type='time').order_by(Promotion.min_days).all()
+        loyalty_promos = self.session.query(Promotion).filter_by(type='loyalty').all()
+
+        banner_text = "🎉 PROMOCJE:\n"
+        if time_promos:
+            banner_text += "🏷️ Zniżki czasowe:\n"
+            for promo in time_promos:
+                banner_text += f"  • {promo.discount_percent:.0f}% za ≥ {promo.min_days} dni\n"
+
+        if loyalty_promos:
+            banner_text += "💎 Program lojalnościowy:\n"
+            for promo in loyalty_promos:
+                banner_text += f"  • {promo.description}\n"
+
+        return banner_text
+
+    # --------------------------------------------------------------------------------------------------------------- #
+
+    def toggle_menu(self):
+        """Pokazuje lub chowa menu po kliknięciu hamburgera"""
+        if self.menu_container.isVisible():
+            self.menu_container.hide()
+        else:
+            self.menu_container.show()
+
+    def resizeEvent(self, event):
+        """Sprawdza szerokość okna przy zmianie rozmiaru i ukrywa menu jeśli za wąskie"""
+        super().resizeEvent(event)
+        self.adjust_menu_visibility()
+
+    def adjust_menu_visibility(self):
+        if self.width() < 1200:  # próg dla hamburgera
+            self.menu_container.hide()
+            self.hamburger_button.show()
+        else:
+            self.menu_container.show()
+            self.hamburger_button.hide()
 

@@ -1,5 +1,4 @@
-from PySide6.QtCore import Signal, QObject
-from PySide6.QtWidgets import QWidget
+from PySide6.QtCore import QObject
 
 from gui.windows.admin_dialog import AdminDialog
 
@@ -29,10 +28,12 @@ from controllers.return_vehicle_controller import ReturnVehicleController
 from gui.widgets.delete_vehicle_view import DeleteVehicleView
 from controllers.delete_vehicle_controller import DeleteVehicleController
 
+from gui.widgets.promo_banner_view import PromoBannerView
+from controllers.promo_banner_controller import PromoBannerController
+
 from gui.windows.add_vehicle_widget import AddVehicleWidget
 from gui.windows.update_user_widget import UpdateUserWidget
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
-from gui.windows.remove_vehicle_widget import RemoveVehicleWidget
 from gui.windows.overdue_rentals_widget import OverdueRentalsWidget
 
 
@@ -181,11 +182,6 @@ class AdminDialogController(QObject):
         self.add_vehicle_widget = AddVehicleWidget(self.db_session)
         self.show_widget(self.add_vehicle_widget)
 
-    # def show_remove_vehicle_widget(self):
-    #     print("🔧🔧🔧 Wywołano remove_vehicle_widget()")
-    #     self.remove_vehicle_widget = RemoveVehicleWidget(self.db_session)
-    #     self.show_widget(self.remove_vehicle_widget)
-
     def show_remove_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano remove_vehicle_widget()")
         view = DeleteVehicleView()
@@ -193,7 +189,6 @@ class AdminDialogController(QObject):
         self.controller = controller
 
         self.show_widget(view)
-
 
     def show_get_vehicle_widget(self):
         print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
@@ -237,17 +232,10 @@ class AdminDialogController(QObject):
         self.overdue_vehicle_rentals = OverdueRentalsWidget(self.db_session, self.current_user)
         self.show_widget(self.overdue_vehicle_rentals)
 
-    # def show_widget(self, widget: QWidget):
-    #     if self.current_active_window and hasattr(self.current_active_window, "dynamic_area"):
-    #         layout = self.current_active_window.dynamic_area.layout()
-    #         # Wyczyść dynamiczny obszar
-    #         for i in reversed(range(layout.count())):
-    #             widget_to_remove = layout.itemAt(i).widget()
-    #             if widget_to_remove is not None:
-    #                 widget_to_remove.setParent(None)
-    #
-    #         layout.addWidget(widget)
-    #         widget.show()
-    #         print("✅ Widget został dodany do dynamicznego obszaru.")
-    #     else:
-    #         print("❌ Nie można znaleźć dynamicznego obszaru do wyświetlenia widgetu.")
+    def show_promo_banner_widget(self):
+        print("🔧🔧🔧 Uruchomiono promo_banner_widget()")
+        view = PromoBannerView()
+        controller = PromoBannerController(self.db_session, view)
+        self.controller = controller
+        self.show_widget(view)
+

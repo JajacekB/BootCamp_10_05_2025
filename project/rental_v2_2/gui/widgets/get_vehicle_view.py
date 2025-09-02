@@ -47,7 +47,7 @@ class GetVehicleView(QWidget):
         self.main_layout.addWidget(self.title_label)
 
         self.status_combo_box = QComboBox()
-        self.status_combo_box.addItems(["Wszystkie", "Dostępne", "Niedostępne"])
+        self.status_combo_box.addItems(["Wszystkie", "Dostępne", "Niedostępne", "Nieaktywne"])
 
         self.type_combo_box = QComboBox()
         self.type_combo_box.addItems(["Wszystkie", "Samochody", "Skutery", "Rowery"])
@@ -107,7 +107,6 @@ class GetVehicleView(QWidget):
         else:
             status = "Dostępne"
         v_type = self.type_combo_box.currentText()
-        print(f"[RepairView] Filtry GUI: status={status}, v_type={v_type}")
         self.request_vehicle_list.emit(status, v_type, self.role)
 
     def handle_item_clicked(self, item: QListWidgetItem):
@@ -126,7 +125,8 @@ class GetVehicleView(QWidget):
         self.list_widget.clear()
         for (brand, model, cash_per_day), group in vehicles_grouped.items():
             count = len(group)
-            display_text = f"{brand} {model} – {cash_per_day:.2f} zł/dzień - ({count} szt.)"
+            daly_rate = f"{cash_per_day:.2f}"
+            display_text = f"{brand:<13} {model:<13} – {daly_rate:>7} zł/dzień - [{count:>3} szt.]"
             item = QListWidgetItem(display_text)
             item.setData(Qt.UserRole, group)
             self.list_widget.addItem(item)
@@ -142,7 +142,7 @@ class GetVehicleView(QWidget):
         self.list_widget.setSelectionMode(QListWidget.NoSelection)
 
         for (brand, model, cash_per_day), group in vehicles_grouped.items():
-            display_text = f"{brand} {model} – {cash_per_day:.2f} zł/dzień"
+            display_text = f"{brand:<13} {model:<13} – {cash_per_day:.2f} zł/dzień"
             item = QListWidgetItem(display_text)
             item.setData(Qt.UserRole, group)
             item.setFlags(Qt.NoItemFlags)
@@ -159,9 +159,13 @@ class GetVehicleView(QWidget):
             self.list_widget.addItem(error_text)
         else:
             for r in rentals:
-                rental_text = (f" ID:[{r.id}] Nr rezerwacji: {r.reservation_id} "
-                    f"Klient: {r.user.first_name} {r.user.last_name} "
-                    f"w termine od {r.start_date} do {r.planned_return_date}.")
+                rental_text = (
+                    f" ID:[{r.id:>3}] "
+                    f"Nr rezerwacji: {r.reservation_id:>7} "
+                    f"Klient: {r.user.first_name:<11} {r.user.last_name:<13} "
+                    f"w termine od {r.start_date} do {r.planned_return_date} "
+                    f"{r.total_cost:>7}zł."
+                )
                 self.list_widget.addItem(rental_text)
 
         if not repairs:
@@ -169,8 +173,10 @@ class GetVehicleView(QWidget):
             self.list_widget.addItem(error_text)
         else:
             for n in repairs:
-                rental_text = (f" ID:[{n.id}] Nr naprawy: {n.repair_id} "
-                    f"Warsztat: {n.mechanic.first_name} {n.mechanic.last_name} "
+                rental_text = (
+                    f" ID:[{n.id:>3}] "
+                    f"Nr naprawy: {n.repair_id:>7} "
+                    f"Warsztat: {n.mechanic.first_name:<11} {n.mechanic.last_name:<13} "
                     f"w termine od {n.start_date} do {n.planned_return_date}.")
                 self.list_widget.addItem(rental_text)
 
@@ -178,8 +184,8 @@ class GetVehicleView(QWidget):
 
     def show_errors(self, messages: list[str]):
         self.list_widget.clear()
-        for msg in messages:
-            self.list_widget.addItem(f"🚫 {msg}")
+        # for msg in messages:
+        self.list_widget.addItem(f"🚫 {messages}")
         self.adjust_list_height()
 
     def adjust_list_height(self):

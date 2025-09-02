@@ -141,7 +141,12 @@ class DeleteVehicleView(QWidget):
         self.list_widget.clear()
         for (brand, model, cash_per_day), group in vehicles_grouped.items():
             count = len(group)
-            display_text = f"{brand} {model} – {cash_per_day:.2f} zł/dzień - ({count} szt.)"
+            daly_rate = f"{cash_per_day:.2f}"
+            display_text = (
+                f"{brand:<13} {model:<13} – "
+                f"{daly_rate:>7} zł/dzień - "
+                f"[{count:>7} szt.]"
+            )
             item = QListWidgetItem(display_text)
             item.setData(Qt.UserRole, group)
             self.list_widget.addItem(item)

@@ -4,6 +4,7 @@ from sqlalchemy import func
 
 from models.user import User
 from models.vehicle import Vehicle
+from models.promotions import Promotion
 from models.rental_history import RentalHistory
 from models.repair_history import RepairHistory
 from services.vehicle_avability import get_available_vehicles
@@ -86,19 +87,25 @@ def get_user_by(session, only_one: bool=True, **kwargs):
         return query.all()
 
 
-def get_rentals_by_vehicle_id(self, vehicle):
+def get_rentals_by_vehicle_id(session, vehicle):
     return list(
-        self.session.query(RentalHistory)
+        session.query(RentalHistory)
         .filter(RentalHistory.vehicle_id == vehicle.id)
         .order_by(RentalHistory.planned_return_date)
         .all()
     )
 
 
-def get_repairs_by_vehicle_id(self, vehicle):
+def get_repairs_by_vehicle_id(session, vehicle):
     return list(
-        self.session.query(RepairHistory)
+        session.query(RepairHistory)
         .filter(RepairHistory.vehicle_id == vehicle.id)
         .order_by(RepairHistory.planned_return_date)
         .all()
     )
+
+def promo_banner_data(session):
+    time_promos = session.query(Promotion).filter_by(type='time').order_by(Promotion.min_days).all()
+    loyalty_promos = session.query(Promotion).filter_by(type='loyalty').all()
+
+    return time_promos, loyalty_promos

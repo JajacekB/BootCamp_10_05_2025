@@ -14,9 +14,7 @@ class GetVehicleService:
         self.session = session
         self.view = view
 
-
-
-    def get_filtered_vehicles(self, status: str, vehicle_type: str):
+    def get_filtered_vehicles(self, status: str = "Dostepne", vehicle_type: str = "all"):
 
         if status == "Dostępne":
             vehicles = get_available_vehicles(self.session, vehicle_type=vehicle_type)
@@ -24,16 +22,15 @@ class GetVehicleService:
         elif status == "Niedostępne":
             vehicles, _ = get_unavailable_vehicle(self.session, vehicle_type=vehicle_type)
 
-        else:
-            if vehicle_type == "all":
-                vehicles = self.session.query(Vehicle).all()
+        elif status == "Nieaktywne":
+            vehicles = self.session.query(Vehicle).filter(Vehicle.is_active == False).all()
 
-            else:
-                vehicles = self.session.query(Vehicle).filter(Vehicle.type == vehicle_type).all()
+        else:
+            vehicles = self.session.query(Vehicle).filter(Vehicle.is_active == True).all()
 
         if not vehicles:
             print("\n🚫 Brak pasujących pojazdów.")
-            self.view.show_errors(["Brak pasujących pojazdów."])
+            self.view.show_errors("Brak pasujących pojazdów.")
             return
 
         vehicles_sorted = sorted(

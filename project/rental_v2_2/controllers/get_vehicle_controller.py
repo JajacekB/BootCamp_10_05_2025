@@ -42,8 +42,8 @@ class GetVehicleController:
             self.view.show_errors("Brak pasujących pojazdów.")
 
     def on_vehicle_item_clicked(self, vehicle: Vehicle):
-        rentals = get_rentals_by_vehicle_id(self, vehicle)
-        repairs = get_repairs_by_vehicle_id(self, vehicle)
+        rentals = get_rentals_by_vehicle_id(self.session, vehicle)
+        repairs = get_repairs_by_vehicle_id(self.session, vehicle)
 
 
         self.view.show_vehicle_history(vehicle, rentals, repairs)

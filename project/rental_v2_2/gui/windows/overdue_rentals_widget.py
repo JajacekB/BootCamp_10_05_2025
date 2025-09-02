@@ -175,15 +175,7 @@ class OverdueRentalsWidget(QWidget):
             )
 
         # 🚀 Zresetuj GUI PRZED ponownym sprawdzeniem
-        self.overdue_rental_detail.clear()
-        self.overdue_rental_detail.hide()
-        self.cancel_button.hide()
-        self.finish_button.hide()
-        self.calendar_comment_label.hide()
-        self.calendar_input.hide()
-        self.date_approve.hide()
-
-        self.rentals_list.clear()  # <--- kluczowe
+        self._hide_widget() # <--- kluczowe
         self.overdue_vehicle_rentals()
 
 
@@ -280,8 +272,22 @@ class OverdueRentalsWidget(QWidget):
                 "Brak zaległości",
                 "Brak zaległości.\nPonowne sprawdzenie jutro."
             )
+            self._hide_widget()
+
         else:
             self.overdues_action()
+
+    def _hide_widget(self):
+        self.overdue_rental_detail.clear()
+        self.overdue_rental_detail.hide()
+        self.cancel_button.hide()
+        self.finish_button.hide()
+        self.calendar_comment_label.hide()
+        self.calendar_input.hide()
+        self.date_approve.hide()
+        self.title_label.hide()
+        self.rentals_list.clear()
+        self.rentals_list.hide()
 
     def adjust_list_height(self):
         if self.rentals_list.count() > 0:
