@@ -9,19 +9,13 @@ from controllers.delete_users_controller import DeleteUsersController
 
 
 def main():
+
     app = QApplication(sys.argv)
-
-    # Otwieramy sesję z bazą
     session = SessionLocal()
-
-    # Inicjalizacja warstw MVC
-    view = DeleteUsersWidget(role="client")      # możesz zmienić na "seller"
+    view = DeleteUsersWidget(role="client")
     service = DeleteUsersService(session, role="client")
     controller = DeleteUsersController(view, service)
-
-    # Pokazujemy widok
     view.show()
-
     sys.exit(app.exec())
 
 

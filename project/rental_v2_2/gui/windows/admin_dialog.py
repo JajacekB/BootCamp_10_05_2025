@@ -105,7 +105,7 @@ class AdminDialog(QMainWindow):
         # ----------------------------------------------------------------------------------------------------------- #
 
         self.hamburger_button = QPushButton("☰")
-        self.hamburger_button.setFixedSize(40, 40)
+        self.hamburger_button.setMinimumSize(40, 40)
         self.hamburger_button.setStyleSheet(
             "font-size: 22px; background-color: #444; color: white; border-radius: 5px;"
         )
@@ -270,10 +270,37 @@ class AdminDialog(QMainWindow):
         self.adjust_menu_visibility()
 
     def adjust_menu_visibility(self):
-        if self.width() < 1200:  # próg dla hamburgera
+        window_width = self.width()
+
+        # Minimalne szerokości
+        menu_width = self.menu_container.sizeHint().width()
+        dynamic_min = 500  # minimalna szerokość dynamic_area (dobierz do swojego widżetu)
+
+        if window_width < 1000:  # przełączamy na hamburgera
             self.menu_container.hide()
             self.hamburger_button.show()
+            # minimalna szerokość to tylko dynamic_area
+            self.setMinimumWidth(dynamic_min + 100)  # +100 bufor np. na hamburger
         else:
             self.menu_container.show()
             self.hamburger_button.hide()
+            # minimalna szerokość to menu + dynamic_area
+            self.setMinimumWidth(menu_width + dynamic_min)
+
+    # def adjust_menu_visibility(self):
+    #     window_width = self.width()
+    #     if window_width < 1200:  # granica, np. 800 px
+    #         self.menu_container.hide()
+    #         self.hamburger_button.show()
+    #     else:
+    #         self.menu_container.show()
+    #         self.hamburger_button.hide()
+
+    # def adjust_menu_visibility(self):
+    #     if self.width() < 1200:  # próg dla hamburgera
+    #         self.menu_container.hide()
+    #         self.hamburger_button.show()
+    #     else:
+    #         self.menu_container.show()
+    #         self.hamburger_button.hide()
 

@@ -8,9 +8,9 @@ from controllers.get_users_controller import GetUsersController
 def main():
     app = QApplication([])
 
-    session = SessionLocal()          # sesja do bazy
-    service = GetUsersService(session)   # serwis z logiką
-    view = GetUsersWidget()              # widok nie przyjmuje sesji!
+    session = SessionLocal()
+    service = GetUsersService(session)
+    view = GetUsersWidget()
     controller = GetUsersController(view, service)
 
     view.show()

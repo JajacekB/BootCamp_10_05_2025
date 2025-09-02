@@ -31,6 +31,9 @@ from controllers.delete_vehicle_controller import DeleteVehicleController
 from gui.widgets.promo_banner_view import PromoBannerView
 from controllers.promo_banner_controller import PromoBannerController
 
+from gui.widgets.update_user_view import UpdateUserView
+from controllers.update_user_controller import UpdateUserController
+
 from gui.windows.add_vehicle_widget import AddVehicleWidget
 from gui.windows.update_user_widget import UpdateUserWidget
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
@@ -171,7 +174,7 @@ class AdminDialogController(QObject):
     def show_get_users_widget(self):
         print("🔧 Wywołano show_get_users_widget()")
         service = GetUsersService(self.db_session)
-        view = GetUsersWidget(session=self.db_session)
+        view = GetUsersWidget()
         controller = GetUsersController(view=view, service=service)
         self.get_users_controller = controller
         if self.dialog:
@@ -224,8 +227,15 @@ class AdminDialogController(QObject):
 
     def show_update_user_widget(self):
         print("🔧🔧🔧 Uruchomiono update_user_widget()")
-        self.update_user_widget = UpdateUserWidget(self.db_session, self.current_user)
-        self.show_widget(self.update_user_widget)
+        viev = UpdateUserView(self.current_user)
+        controller = UpdateUserController(self.db_session, viev, self.current_user)
+        self.controller = controller
+        self.show_widget(viev)
+
+    # def show_update_user_widget(self):
+    #     print("🔧🔧🔧 Uruchomiono update_user_widget()")
+    #     self.update_user_widget = UpdateUserWidget(self.db_session, self.current_user)
+    #     self.show_widget(self.update_user_widget)
 
     def show_overdue_rentals_widget(self):
         print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")

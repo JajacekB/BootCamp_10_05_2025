@@ -12,7 +12,6 @@ def main():
     app = QApplication()
     view = DeleteVehicleView()
     controller = DeleteVehicleController(session, view)
-
     view.show()
 
     sys.exit(app.exec())

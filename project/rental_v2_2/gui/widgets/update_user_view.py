@@ -1,61 +1,57 @@
-import sys
-from PySide6.QtWidgets import (
-    QWidget, QFormLayout, QPushButton, QLineEdit, QLabel, QGridLayout,
-    QHBoxLayout ,QVBoxLayout, QApplication, QSizePolicy, QMessageBox
-)
-from PySide6.QtCore import Qt
 import bcrypt
+from PySide6.QtWidgets import (QSizePolicy, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFormLayout,
+    QLabel, QPushButton, QLineEdit, QMessageBox
+)
+from PySide6.QtCore import Qt, Signal
+
 from validation.validation import is_valid_phone, is_valid_email
-from database.base import SessionLocal
-from repositories.read_methods import get_user_by
-from repositories.write_methods import update_user
 
 
-class UpdateUserWidget(QWidget):
-    def __init__(self, session = None, user = None, controller = None):
+class UpdateUserView(QWidget):
+
+    handle_update_password_data = Signal(dict)
+    handle_update_user_data = Signal(dict)
+
+    def __init__(self, user):
         super().__init__()
 
-        self.session = session or SessionLocal()
         self.user = user
-        self.controller = controller
-        self.user_data_dict = {}
 
-
+        self.setWindowTitle("Przegląd profilu")
 
         self.setStyleSheet("""
-                    QWidget {
-                        background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
-                        color: #eee; /* Jasny kolor tekstu */
-                        font-size: 18px;
-                    }
-                    QPushButton {
-                        background-color: #555;
-                        border-radius: 5px;
-                        padding: 5px;
-                    }
-                    QLineEdit {
-                        font-size: 16px;
-                    }
-                """)
+            QWidget {
+                background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
+                color: #eee; /* Jasny kolor tekstu */
+                font-size: 18px;
+            }
+            QPushButton {
+                background-color: #555;
+                border-radius: 5px;
+                padding: 5px;
+            }
+            QLineEdit {
+                font-size: 16px;
+            }
+        """)
 
         self.valid_style = "border: 1px solid #4CAF50;"
         self.invalid_style = "border: 1px solid #F44336;"
-        self.regular_style =""
-
+        self.regular_style = ""
 
         self._build_ui()
-        self.populate_user_data(user)
+        self.populate_user_data()
 
     def _build_ui(self):
 
-        self.main_layout = QVBoxLayout()
+        main_layout = QVBoxLayout()
 
-        self.header_label =QLabel(">>> PRZEGLĄD PROFILU <<<")
-        self.main_layout.addWidget(self.header_label)
+        self.header_label = QLabel(">>> PRZEGLĄD PROFILU <<<")
+        main_layout.addWidget(self.header_label)
 
         self.label_keys = QLabel()
         self.label_values = QLabel()
-        self.label_keys.setFixedWidth(200)
+        self.label_keys.setMinimumWidth(200)
         self.label_keys.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.label_values.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
@@ -65,7 +61,7 @@ class UpdateUserWidget(QWidget):
         layout_1.addStretch()
 
         self.update_profile_button = QPushButton("Edytuj profil")
-        self.update_profile_button.setFixedWidth(200)
+        self.update_profile_button.setMinimumWidth(200)
         self.update_profile_button.setFixedHeight(30)
         self.update_profile_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.update_profile_button.setStyleSheet(
@@ -75,14 +71,14 @@ class UpdateUserWidget(QWidget):
         self.update_profile_button.clicked.connect(self._on_update_profile)
 
         self.change_password_button = QPushButton("Zmień hasło")
-        self.change_password_button.setFixedWidth(250)
+        self.change_password_button.setMinimumWidth(250)
         self.change_password_button.setFixedHeight(30)
-        self.change_password_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.change_password_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.change_password_button.setStyleSheet(
             "background-color: grey;"
             " font-size: 18px; color: white;"
         )
-        self.change_password_button.clicked.connect(self.on_change_password)
+        self.change_password_button.clicked.connect(self._on_change_password)
 
         layout_2 = QHBoxLayout()
         layout_2.addWidget(self.update_profile_button)
@@ -93,9 +89,10 @@ class UpdateUserWidget(QWidget):
         layout.addLayout(layout_1)
         layout.addLayout(layout_2)
 
+
         self.container_1 = QWidget()
         self.container_1.setLayout(layout)
-        self.main_layout.addWidget(self.container_1)
+        main_layout.addWidget(self.container_1)
 
         update_user_grid = QGridLayout()
 
@@ -131,21 +128,21 @@ class UpdateUserWidget(QWidget):
         update_user_grid.addLayout(self.address_layout, 3, 0, 1, 2)
 
         self.cancel_button = QPushButton("Anuluj")
-        self.cancel_button.setFixedSize(130, 30)
+        self.cancel_button.setMinimumSize(200, 30)
         self.cancel_button.setStyleSheet(
-            "background-color: lightgreen;"
+            "background-color: darkgreen;"
             " font-size: 18px; color: white;"
         )
-        self.cancel_button.clicked.connect(self.on_click_clear_data)
+        self.cancel_button.clicked.connect(self._on_click_clear_data)
         update_user_grid.addWidget(self.cancel_button, 4, 0, 1, 1)
 
         self.confirm_button = QPushButton("Zatwierdź")
-        self.confirm_button.setFixedSize(130, 30)
+        self.confirm_button.setMinimumSize(200, 30)
         self.confirm_button.setStyleSheet(
             "background-color: grey;"
             " font-size: 18px; color: white;"
         )
-        self.confirm_button.clicked.connect(self.handle_summary_data)
+        self.confirm_button.clicked.connect(self._handle_summary_data)
         update_user_grid.addWidget(self.confirm_button, 4, 1, 1, 1)
 
         self.summary_label = QLabel("")
@@ -153,26 +150,23 @@ class UpdateUserWidget(QWidget):
         update_user_grid.addWidget(self.summary_label, 5, 0, 1, 1)
 
         self.save_data_button = QPushButton("Zapisz zmiany")
-        self.save_data_button.setFixedSize(130, 30)
+        self.save_data_button.setMinimumSize(200, 30)
         self.save_data_button.setStyleSheet(
             "background-color: grey;"
             " font-size: 18px; color: white;"
         )
-        self.save_data_button.clicked.connect(self.on_click_update)
+        self.save_data_button.clicked.connect(self._on_click_update)
         self.save_data_button.hide()
         update_user_grid.addWidget(self.save_data_button, 5, 1, 1, 1)
-
 
         self.container_2 = QWidget()
         self.container_2.setLayout(update_user_grid)
         self.container_2.hide()
-        self.main_layout.addWidget(self.container_2, alignment=Qt.AlignLeft)
-
+        main_layout.addWidget(self.container_2, alignment=Qt.AlignLeft)
 
         password_grid = QGridLayout()
         self.old_password_input = QLineEdit()
         self.old_password_input.setEchoMode(QLineEdit.Password)
-
 
         self.new_password_input = QLineEdit()
         self.new_password_input.setEchoMode(QLineEdit.Password)
@@ -192,21 +186,21 @@ class UpdateUserWidget(QWidget):
         password_grid.addWidget(self.container_login, 0, 0, 1, 2)
 
         self.cancel_1_button = QPushButton("Anuluj")
-        self.cancel_1_button.setFixedSize(140, 30)
+        self.cancel_1_button.setMinimumSize(200, 30)
         self.cancel_1_button.setStyleSheet(
-            "background-color: lightgreen;"
+            "background-color: darkgreen;"
             " font-size: 18px; color: white;"
         )
-        self.cancel_1_button.clicked.connect(self.on_click_clear_data)
+        self.cancel_1_button.clicked.connect(self._on_click_clear_data)
         password_grid.addWidget(self.cancel_1_button, 1, 0, 1, 1)
 
         self.confirm_1_button = QPushButton("Potwierdź hasło")
-        self.confirm_1_button.setFixedSize(140, 30)
+        self.confirm_1_button.setMinimumSize(200, 30)
         self.confirm_1_button.setStyleSheet(
             "background-color: grey;"
             " font-size: 18px; color: white;"
         )
-        self.confirm_1_button.clicked.connect(self.on_click_old_password)
+        self.confirm_1_button.clicked.connect(self._on_click_old_password)
         password_grid.addWidget(self.confirm_1_button, 1, 1, 1, 1)
 
         self.password_confirm_layout = QFormLayout()
@@ -219,36 +213,34 @@ class UpdateUserWidget(QWidget):
         password_grid.addWidget(self.container_password, 2, 0, 1, 2)
 
         self.cancel_2_button = QPushButton("Anuluj")
-        self.cancel_2_button.setFixedSize(140, 30)
+        self.cancel_2_button.setMinimumSize(200, 30)
         self.cancel_2_button.setStyleSheet(
-            "background-color: lightgreen;"
+            "background-color: darkgreen;"
             " font-size: 18px; color: white;"
         )
-        self.cancel_2_button.clicked.connect(self.on_click_clear_data)
+        self.cancel_2_button.clicked.connect(self._on_click_clear_data)
         password_grid.addWidget(self.cancel_2_button, 3, 0, 1, 1)
 
         self.confirm_2_button = QPushButton("Zmień")
-        self.confirm_2_button.setFixedSize(140, 30)
+        self.confirm_2_button.setMinimumSize(200, 30)
         self.confirm_2_button.setStyleSheet(
             "background-color: grey;"
             " font-size: 18px; color: white;"
         )
-        self.confirm_2_button.clicked.connect(self.handle_update_password)
+        self.confirm_2_button.clicked.connect(self._handle_update_password)
         password_grid.addWidget(self.confirm_2_button, 3, 1, 1, 1)
 
         self.container_3 = QWidget()
         self.container_3.setLayout(password_grid)
         self.container_3.hide()
 
-        self.main_layout.addWidget(self.container_3, alignment=Qt.AlignLeft)
+        main_layout.addWidget(self.container_3, alignment=Qt.AlignLeft)
 
+        main_layout.addStretch()
+        self.setLayout(main_layout)
 
-        self.main_layout.addStretch()
-        self.setLayout(self.main_layout)
-
-    def populate_user_data(self, user):
-
-        self.user = get_user_by(self.session, user_id = user.id)
+    def populate_user_data(self):
+        # self.user = get_user_by(self.session, user_id=user.id)
 
         excluded = {"id", "password_hash", "registration_day", "is_active"}
         user_dict = {
@@ -275,7 +267,6 @@ class UpdateUserWidget(QWidget):
         self.label_keys.setText(self.keys_str)
         self.label_values.setText(self.values_str)
 
-
     def _on_update_profile(self):
 
         self.first_name_input.setPlaceholderText(self.user.first_name)
@@ -290,7 +281,7 @@ class UpdateUserWidget(QWidget):
         self.container_1.hide()
         self.container_2.show()
 
-    def handle_summary_data(self):
+    def _handle_summary_data(self):
 
         def get_field_value(widget):
 
@@ -339,20 +330,20 @@ class UpdateUserWidget(QWidget):
 
         return self.summary_data
 
-    def on_click_update(self):
-        success, msg = update_user(self.session, self.user, self.summary_data)
+    def _on_click_update(self):
+        self.handle_update_user_data.emit(self.summary_data)
+
+    def update_user_data_confirmation(self, success, msg, user):
+
         if success:
             self._reset_edit_mode()
-            self.user = get_user_by(self.session, user_id=self.user.id)
+            self.user = user
             QMessageBox.information(self, "Sukces", "✅ Zaktualizowano pomyślnie!")
         else:
             QMessageBox.critical(self, "Błąd", f"❌ Wystąpił problem przy zapisie:\n{msg}")
 
-    def on_click_clear_data(self):
-        self._reset_edit_mode()
 
-
-    def on_change_password(self):
+    def _on_change_password(self):
         self.container_1.hide()
         self.container_2.hide()
         self.container_3.show()
@@ -362,8 +353,7 @@ class UpdateUserWidget(QWidget):
         self.confirm_2_button.hide()
         self.container_login.show()
 
-
-    def on_click_old_password(self):
+    def _on_click_old_password(self):
         password = self.old_password_input.text().strip()
         if not bcrypt.checkpw(password.encode("utf-8"), self.user.password_hash.encode("utf-8")):
             QMessageBox.critical(self, "Błąd", f"❌ błędne hasło.")
@@ -377,7 +367,7 @@ class UpdateUserWidget(QWidget):
         self.cancel_2_button.show()
         self.confirm_2_button.show()
 
-    def handle_update_password(self):
+    def _handle_update_password(self):
         new_password = self.new_password_input.text().strip()
         confirm_new_password = self.confirm_new_password_input.text().strip()
         if not new_password == confirm_new_password:
@@ -389,7 +379,10 @@ class UpdateUserWidget(QWidget):
         self.summary_data = {
             "password_hash": new_password_hash
         }
-        success, msg = update_user(self.session, self.user, self.summary_data)
+        self.handle_update_password_data.emit(self.summary_data)
+
+    def update_password_confirm(self, success, msg):
+
         if success:
             self.new_password_input.setStyleSheet(self.regular_style)
             self.new_password_input.clear()
@@ -400,7 +393,39 @@ class UpdateUserWidget(QWidget):
         else:
             QMessageBox.critical(self, "Błąd", f"❌ Wystąpił problem przy zapisie:\n{msg}")
 
+    def _on_click_clear_data(self):
+        self._reset_edit_mode()
 
+    def _reset_edit_mode(self):
+
+        self.populate_user_data()
+        self.container_3.hide()
+        self.container_2.hide()
+        self.container_1.show()
+        self.save_data_button.hide()
+        self.confirm_button.show()
+        self.cancel_1_button.hide()
+        self.confirm_1_button.hide()
+        self.cancel_2_button.hide()
+        self.confirm_2_button.hide()
+        self.container_password.hide()
+        self.old_password_input.clear()
+
+        inputs = [
+            self.first_name_input,
+            self.last_name_input,
+            self.login_input,
+            self.phone_input,
+            self.email_input,
+            self.old_password_input,
+            self.new_password_input,
+            self.confirm_new_password_input,
+        ]
+        for widget in inputs:
+            widget.clear()
+            widget.setStyleSheet(self.regular_style)
+
+        self.summary_label.setText("")
 
     def _validate_phone_input(self, text):
         print("Sprawdzam numer_1:", text, "=>", is_valid_phone(text))
@@ -434,43 +459,3 @@ class UpdateUserWidget(QWidget):
             self.confirm_new_password_input.setStyleSheet(self.valid_style)
         else:
             self.confirm_new_password_input.setStyleSheet(self.invalid_style)
-
-    def _reset_edit_mode(self):
-
-        self.populate_user_data(self.user)
-        self.container_3.hide()
-        self.container_2.hide()
-        self.container_1.show()
-        self.save_data_button.hide()
-        self.confirm_button.show()
-        self.cancel_1_button.hide()
-        self.confirm_1_button.hide()
-        self.cancel_2_button.hide()
-        self.confirm_2_button.hide()
-        self.container_password.hide()
-        self.old_password_input.clear()
-
-        inputs = [
-            self.first_name_input,
-            self.last_name_input,
-            self.login_input,
-            self.phone_input,
-            self.email_input,
-            self.old_password_input,
-            self.new_password_input,
-            self.confirm_new_password_input,
-        ]
-        for widget in inputs:
-            widget.clear()
-            widget.setStyleSheet(self.regular_style)
-
-        self.summary_label.setText("")
-
-
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    main_window = UpdateUserWidget()
-    main_window.show()
-    sys.exit(app.exec())

@@ -4,9 +4,8 @@ from PySide6.QtCore import Qt
 from datetime import date
 
 class GetUsersWidget(QWidget):
-    def __init__(self, session, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.session = session
         self._build_ui()
 
     def _build_ui(self):

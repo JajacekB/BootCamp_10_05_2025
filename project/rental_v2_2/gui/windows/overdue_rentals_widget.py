@@ -272,6 +272,8 @@ class OverdueRentalsWidget(QWidget):
                 "Brak zaległości",
                 "Brak zaległości.\nPonowne sprawdzenie jutro."
             )
+            self.title_label.hide()
+            self.rentals_list.hide()
             self._hide_widget()
 
         else:
@@ -285,9 +287,7 @@ class OverdueRentalsWidget(QWidget):
         self.calendar_comment_label.hide()
         self.calendar_input.hide()
         self.date_approve.hide()
-        self.title_label.hide()
         self.rentals_list.clear()
-        self.rentals_list.hide()
 
     def adjust_list_height(self):
         if self.rentals_list.count() > 0:
