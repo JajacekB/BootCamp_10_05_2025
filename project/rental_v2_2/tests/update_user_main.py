@@ -22,7 +22,6 @@ def main():
     print(f"✅ Wylosowano klienta: {user.first_name} {user.last_name} (id={user.id})")
 
     app = QApplication(sys.argv)
-    session = SessionLocal()
     view = UpdateUserView(user)
     controller = UpdateUserController(session, view, user)
     view.show()

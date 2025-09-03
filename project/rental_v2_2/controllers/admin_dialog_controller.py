@@ -34,8 +34,9 @@ from controllers.promo_banner_controller import PromoBannerController
 from gui.widgets.update_user_view import UpdateUserView
 from controllers.update_user_controller import UpdateUserController
 
-from gui.windows.add_vehicle_widget import AddVehicleWidget
-from gui.windows.update_user_widget import UpdateUserWidget
+from gui.widgets.add_vehicle_view import AddVehicleView
+from controllers.add_vehicle_controller import AddVehicleController
+
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
 from gui.windows.overdue_rentals_widget import OverdueRentalsWidget
 
@@ -69,7 +70,7 @@ class AdminDialogController(QObject):
             "seller": {
                 "1": self.handle_register_widget,
                 "2": self.show_delete_client_widget,
-                "3": self.show_get_vehicle_widget,
+                "3": self.show_get_users_widget,
                 "4": self.show_add_vehicle_widget,
                 "5": self.show_remove_vehicle_widget,
                 "6": self.show_get_vehicle_widget,
@@ -182,8 +183,13 @@ class AdminDialogController(QObject):
 
     def show_add_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano add_vehicle_widget()")
-        self.add_vehicle_widget = AddVehicleWidget(self.db_session)
-        self.show_widget(self.add_vehicle_widget)
+        view = AddVehicleView(self.current_role)
+        controller = AddVehicleController(self.db_session, view, self.current_role)
+        self.controller = controller
+        self.show_widget(view)
+
+        # self.add_vehicle_widget = AddVehicleWidget(self.db_session)
+        # self.show_widget(self.add_vehicle_widget)
 
     def show_remove_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano remove_vehicle_widget()")
@@ -197,11 +203,9 @@ class AdminDialogController(QObject):
         print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
         role = self.current_user.role
         view = GetVehicleView(role=role)
-
         service = GetVehicleService(self.db_session, view)
         controller = GetVehicleController(view=view, session=self.db_session)
-
-        self.repair_vehicle_controller = controller
+        self.controller = controller
         self.show_widget(view)
 
     def show_rent_vehicle_widget(self):
@@ -231,11 +235,6 @@ class AdminDialogController(QObject):
         controller = UpdateUserController(self.db_session, viev, self.current_user)
         self.controller = controller
         self.show_widget(viev)
-
-    # def show_update_user_widget(self):
-    #     print("🔧🔧🔧 Uruchomiono update_user_widget()")
-    #     self.update_user_widget = UpdateUserWidget(self.db_session, self.current_user)
-    #     self.show_widget(self.update_user_widget)
 
     def show_overdue_rentals_widget(self):
         print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")

@@ -290,6 +290,7 @@ class UpdateUserView(QWidget):
 
         first_name = get_field_value(self.first_name_input)
         last_name = get_field_value(self.last_name_input)
+        login = get_field_value(self.login_input)
         email = get_field_value(self.email_input)
         phone = get_field_value(self.phone_input)
         address = get_field_value(self.address_input)
@@ -309,6 +310,7 @@ class UpdateUserView(QWidget):
         self.summary_data = {
             "first_name": first_name,
             "last_name": last_name,
+            "login": login,
             "email": email,
             "phone": phone,
             "address": address
@@ -317,6 +319,7 @@ class UpdateUserView(QWidget):
         summary_text = (
             f"Imię: {first_name}\n"
             f"Nazwisko: {last_name}\n"
+            f"Login: {login}\n"
             f"Email: {email}\n"
             f"Telefon: {phone}\n"
             f"Adres: {address}"

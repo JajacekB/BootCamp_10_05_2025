@@ -153,7 +153,7 @@ class AdminDialog(QMainWindow):
             return [
                 "1. Dodaj nowego klienta",
                 "2. Usuń klienta",
-                "3. Przeglądaj pojazdy",
+                "3. Przeglądaj klientów",
                 "4. Dodaj nowy pojazd",
                 "5. Usuń pojazd z użytkowania",
                 "6. Przeglądaj pojazdy",
@@ -286,21 +286,4 @@ class AdminDialog(QMainWindow):
             self.hamburger_button.hide()
             # minimalna szerokość to menu + dynamic_area
             self.setMinimumWidth(menu_width + dynamic_min)
-
-    # def adjust_menu_visibility(self):
-    #     window_width = self.width()
-    #     if window_width < 1200:  # granica, np. 800 px
-    #         self.menu_container.hide()
-    #         self.hamburger_button.show()
-    #     else:
-    #         self.menu_container.show()
-    #         self.hamburger_button.hide()
-
-    # def adjust_menu_visibility(self):
-    #     if self.width() < 1200:  # próg dla hamburgera
-    #         self.menu_container.hide()
-    #         self.hamburger_button.show()
-    #     else:
-    #         self.menu_container.show()
-    #         self.hamburger_button.hide()
 

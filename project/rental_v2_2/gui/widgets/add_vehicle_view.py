@@ -1,51 +1,41 @@
-import sys
-from collections import defaultdict
-from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLineEdit, QLabel, QComboBox,
-        QGridLayout, QApplication, QListWidget, QListWidgetItem, QMessageBox, QSpacerItem, QSizePolicy
+from PySide6.QtWidgets import (
+        QWidget, QGridLayout, QFormLayout, QVBoxLayout,
+        QLabel, QComboBox, QLineEdit, QPushButton, QMessageBox, QListWidget, QListWidgetItem
     )
-from PySide6.QtCore import Qt, QTimer, Signal
-from requests import session
-from sqlalchemy import desc
-from datetime import date
-
-from services.id_generators import generate_vehicle_id
-
-from models.vehicle import Vehicle, Car, Scooter, Bike
-from models.user import User
-from models.rental_history import RentalHistory
-from database.base import SessionLocal
+from PySide6.QtCore import Qt, Signal
 
 
-class AddVehicleWidget(QWidget):
 
-    def __init__(self, session=None, role="seller"):
+class AddVehicleView(QWidget):
+
+    handle_vehicles_data = Signal(list)
+    update_db_request = Signal()
+
+    def __init__(self, role="seller"):
         super().__init__()
-        self.session =  session or SessionLocal()
+
         self.role = role
-        self.vehicle_type = None
 
         self.setWindowTitle("Dodaj pojazd")
 
         self.setStyleSheet("""
-                    QWidget {
-                        background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
-                        color: #eee; /* Jasny kolor tekstu */
-                        font-size: 16px;
-                    }
-                    QPushButton {
-                        background-color: #555;
-                        border-radius: 5px;
-                        padding: 5px;
-                    }
-                    QLineEdit {
-                        font-size: 14px;
-                    }
-                """)
+                QWidget {
+                    background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
+                    color: #eee; /* Jasny kolor tekstu */
+                    font-size: 16px;
+                }
+                QPushButton {
+                    background-color: #555;
+                    border-radius: 5px;
+                    padding: 5px;
+                }
+                QLineEdit {
+                    font-size: 14px;
+                }
+            """)
         self._build_ui()
 
-
     def _build_ui(self):
-
         self.main_layout = QGridLayout(self)
 
         title_label = QLabel("Dodaj nowe pojazdy na stan wypożyczalni.")
@@ -70,45 +60,51 @@ class AddVehicleWidget(QWidget):
         self.main_layout.addLayout(form1_layout, 2, 0, 1, 1)
 
         data1_label = QLabel("Dane wspólne dla serii.")
-        data1_label.setStyleSheet("font-size: 18px; color: white; ")
+        data1_label.setStyleSheet("font-size: 21px; color: #A9C1D9; ")
         data1_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(data1_label, 3, 0, 1, 1)
 
-        data2_label = QLabel("Numer indywidualny\nrejestracyjny/seryjny:")
-        data2_label.setStyleSheet("font-size: 18px; color: white; ")
-        data2_label.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(data2_label, 3, 1, 1, 1)
+        self.data2_label = QLabel("Numer indywidualny pojazdu\n(nr rejestracyjny lub nr seryjny):")
+        self.data2_label.setStyleSheet("font-size: 21px; color: #A9C1D9; ")
+        self.data2_label.setAlignment(Qt.AlignCenter)
+        self.main_layout.addWidget(self.data2_label, 3, 1, 1, 1)
+        self.data2_label.hide()
 
         self.veh_brand = QLineEdit()
+        self.veh_brand.setMinimumWidth(135)
         self.veh_model = QLineEdit()
+        self.veh_model.setMinimumWidth(135)
         self.veh_cash_per_day = QLineEdit()
+        self.veh_cash_per_day.setMinimumWidth(135)
         form2_layout = QFormLayout()
+
         form2_layout.addRow("Producent pojazdu:", self.veh_brand)
         form2_layout.addRow("Model pjazdu:", self.veh_model)
         form2_layout.addRow("Cena najmu za dzień:", self.veh_cash_per_day)
         self.main_layout.addLayout(form2_layout, 4, 0, 1, 1)
 
         data2_label = QLabel("Dane indywidualne dla pojazdu.")
-        data2_label.setStyleSheet("font-size: 18px; color: white; ")
+        data2_label.setStyleSheet("font-size: 21px; color: #A9C1D9; ")
         data2_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(data2_label, 5, 0, 1, 1)
 
         self.cancel1_button = QPushButton("Anuluj")
-        self.cancel1_button.setFixedSize(150, 45)
+        self.cancel1_button.setMinimumSize(150, 35)
         self.cancel1_button.setStyleSheet(
-            "background-color: red;"
-            "font-size: 24px; color: white;"
-            " border-radius: 8px; padding: 10px;"
+            "background-color: brown;"
+            "font-size: 20px; color: white;"
+            " border-radius: 8px; padding: 4px;"
         )
         self.cancel1_button.clicked.connect(self._cancel_adding)
         self.main_layout.addWidget(self.cancel1_button, 7, 0, 1, 1, alignment=Qt.AlignLeft)
 
         self.confirm_button = QPushButton("Zatwierdź")
-        self.confirm_button.setFixedSize(150, 45)
+        self.confirm_button.setEnabled(True)
+        self.confirm_button.setMinimumSize(150, 35)
         self.confirm_button.setStyleSheet(
-            "background-color: green;"
-            " font-size: 24px; color: white; color: white;"
-            " border-radius: 8px; padding: 10px;"
+            "background-color: darkgreen;"
+            " font-size: 20px; color: white; color: white;"
+            " border-radius: 8px; padding: 4px;"
         )
         self.confirm_button.clicked.connect(self._build_veh_list)
         self.main_layout.addWidget(self.confirm_button, 7, 1, 1, 1, alignment=Qt.AlignRight)
@@ -168,15 +164,25 @@ class AddVehicleWidget(QWidget):
             self.bike_electric_combo_box = QComboBox()
             self.bike_electric_combo_box.addItems(["-wybierz-", "Normalny", "Elektryczny"])
 
-            self.individual_layout.addRow("Wybierz klasę samochodu:", self.bike_typ_combo_box)
-            self.individual_layout.addRow("Wybierz rodzaj paliwa/zasilania:", self.bike_electric_combo_box)
+            self.individual_layout.addRow("Wybierz rodzaj roweru:", self.bike_typ_combo_box)
+            self.individual_layout.addRow("Wybierz czy jest elektryczny:", self.bike_electric_combo_box)
 
         self.main_layout.addLayout(self.individual_layout, 6, 0, 1, 1)
 
     def _add_vehicle_individual(self):
 
+        self.data2_label.show()
+
+        try:
+            count = int(self.vehicle_count.text().strip())
+            if count <= 0:
+                QMessageBox.warning(self, "Błąd", "Liczba dodawanych pojazdów musi być liczbą dodatnią")
+                return
+        except ValueError:
+            QMessageBox.warning(self, "Błąd", "Ilość dodawanych pojazdów musi być liczbą calkowitą")
+            return
+
         if hasattr(self, 'individual_number_layout'):
-            # usuń wszystkie widgety z layoutu
             while self.individual_number_layout.count():
                 item = self.individual_number_layout.takeAt(0)
                 widget = item.widget()
@@ -194,17 +200,18 @@ class AddVehicleWidget(QWidget):
 
         for i in range(value):
             line_edit = QLineEdit()
-            self.individual_number_layout.addRow(f"Numer indywidualny pojazdu {i + 1}:", line_edit)
+            line_edit.setMinimumWidth(135)
+            self.individual_number_layout.addRow(f"Nr indywidualny pojazdu {i + 1}:", line_edit)
             self.individual_number_fields.append(line_edit)
 
         if self.individual_number_layout.parent() is None:
-            self.main_layout.addLayout(self.individual_number_layout, 4, 1, 3, 1)
-
+            self.main_layout.addLayout(self.individual_number_layout, 4, 1, 1, 1)
 
     def _build_veh_list(self):
 
-        if not self.vehicle_type or self.vehicle_type not in ["car", "scooter", "bike"]:
-            QMessageBox.warning(self, "Błąd", "Wybierz typ pojazdu!")
+        vehicle_type = getattr(self, "vehicle_type", None)
+        if vehicle_type not in ["car", "scooter", "bike"]:
+            QMessageBox.warning(self, "Błąd", "Musisz wybrać typ pojazdu.")
             return
 
         required_fields = [
@@ -212,6 +219,14 @@ class AddVehicleWidget(QWidget):
             self.veh_model.text().strip(),
             self.veh_cash_per_day.text().strip(),
         ]
+        try:
+            value = float(self.veh_cash_per_day.text().strip())
+            if value <= 0:
+                QMessageBox.warning(self, "Błąd", "Cena za dzień musi być liczbą dodatnią")
+                return
+        except ValueError:
+            QMessageBox.warning(self, "Błąd", "Cena za dzień musi być poprawną liczbą")
+            return
         if self.vehicle_type == "car":
             required_fields.append(self.size_combo_box.currentText().strip())
             required_fields.append(self.fuel_combo_box.currentText().strip())
@@ -231,71 +246,91 @@ class AddVehicleWidget(QWidget):
                     self.individual_number_fields.remove(field)
             required_fields.extend(texts)
 
+
+
         if any(not value for value in required_fields):
             QMessageBox.warning(self, "Błąd", "Uzupełnij wszystkie pola przed zatwierdzeniem.")
             return
 
         results = []
         self.vehicles = []
-        vehicle_strs = []
+        vehicles_data = []
 
         for field in self.individual_number_fields:
-            self.text = field.text().strip()
-            print(f"Odczytano: {self.text}")
-            results.append(self.text)
-
+            text = field.text().strip()
             if self.vehicle_type == "car":
-                vehicle_id = generate_vehicle_id(self.session, "C")
 
-                self.vehicle = Car(
-                    vehicle_id=vehicle_id,
-                    brand=self.veh_brand.text().strip(),
-                    vehicle_model=self.veh_model.text().strip(),
-                    cash_per_day=float(self.veh_cash_per_day.text().strip()),
-                    size=self.size_combo_box.currentText(),
-                    fuel_type=self.fuel_combo_box.currentText(),
-                    individual_id=self.text
-                )
-                self.vehicle_str = (
-                    f"[{self.vehicle.vehicle_id}] [{self.vehicle.individual_id}] - {self.vehicle.brand} "
-                    f"{self.vehicle.vehicle_model};   {self.vehicle.cash_per_day} zł/dzień;   Typ: {self.vehicle.size};   "
-                    f"Rodzaj paliwa: {self.vehicle.fuel_type}"
-                )
+                vehicle_size = self.size_combo_box.currentText()
+                if vehicle_size not in ["Miejski", "Kompaktowy", "Limuzyna", "SUV"]:
+                    QMessageBox.warning(self, "Błąd", "Musisz wybrać rodzaj samochodu.")
+                    return
 
+                vehicle_fuel = self.fuel_combo_box.currentText()
+                if vehicle_fuel not in ["Benzyna", "Diesel", "Hybryda", "Elektryczny"]:
+                    QMessageBox.warning(self, "Błąd", "Musisz wybrać rodzaj paliwa.")
+                    return
+
+                vehicles_data.append({
+                    "type": "car",
+                    "brand": self.veh_brand.text().strip(),
+                    "model": self.veh_model.text().strip(),
+                    "cash_per_day": float(self.veh_cash_per_day.text().strip()),
+                    "size": self.size_combo_box.currentText(),
+                    "fuel": self.fuel_combo_box.currentText(),
+                    "individual_id": text,
+                })
             elif self.vehicle_type == "scooter":
-                vehicle_id = generate_vehicle_id(self.session, "S")
 
-                self.vehicle = Scooter(
-                    vehicle_id=vehicle_id,
-                    brand=self.veh_brand.text().strip(),
-                    vehicle_model=self.veh_model.text().strip(),
-                    cash_per_day=float(self.veh_cash_per_day.text().strip()),
-                    max_speed=self.scooter_speed.text().strip(),
-                    individual_id=self.text
-                )
+                try:
+                    speed = int(self.scooter_speed.text().strip())
+                    if speed <= 0:
+                        QMessageBox.warning(self, "Błąd", "Prędkość maksymalna musi być liczbą dodatnią")
+                        return
+                except ValueError:
+                    QMessageBox.warning(self, "Błąd", "Ilość dodawanych pojazdów musi być liczbą calkowitą")
+                    return
 
+                vehicles_data.append({
+                    "type": "scooter",
+                    "brand": self.veh_brand.text().strip(),
+                    "model": self.veh_model.text().strip(),
+                    "cash_per_day": float(self.veh_cash_per_day.text().strip()),
+                    "max_speed": self.scooter_speed.text().strip(),
+                    "individual_id": text,
+                })
             elif self.vehicle_type == "bike":
-                vehicle_id = generate_vehicle_id(self.session, "B")
-                self.is_electric = (self.bike_electric_combo_box.currentText() == "Elektryczny")
 
-                self.vehicle = Bike(
-                    vehicle_id=vehicle_id,
-                    brand=self.veh_brand.text().strip(),
-                    vehicle_model=self.veh_model.text().strip(),
-                    cash_per_day=float(self.veh_cash_per_day.text().strip()),
-                    bike_type=self.bike_typ_combo_box.currentText(),
-                    is_electric=self.is_electric,
-                    individual_id=self.text
-                )
+                bike_type = self.bike_typ_combo_box.currentText()
+                if bike_type not in ["Szosowy", "MTB", "Miejski"]:
+                    QMessageBox.warning(self, "Błąd", "Musisz wybrać rodzaj roweru.")
+                    return
 
-            self.session.add(self.vehicle)
-            self.session.flush()
-            self.vehicles.append(self.vehicle)
+                bike_electric = self.bike_electric_combo_box.currentText()
+                if bike_electric not in ["Normalny", "Elektryczny"]:
+                    QMessageBox.warning(self, "Błąd", "Musisz wybrac czy rower jest elektryczny.")
+                    return
 
-        confirm_label = QLabel("Sprawdź wprowadzane pojazdy czy wszystko się zgadza.")
-        confirm_label.setStyleSheet("font-size: 22px; color: white; ")
-        confirm_label.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(confirm_label, 8, 0, 1, 2)
+                vehicles_data.append({
+                    "type": "bike",
+                    "brand": self.veh_brand.text().strip(),
+                    "model": self.veh_model.text().strip(),
+                    "cash_per_day": float(self.veh_cash_per_day.text().strip()),
+                    "bike_type": self.bike_typ_combo_box.currentText(),
+                    "is_electric": (self.bike_electric_combo_box.currentText() == "Elektryczny"),
+                    "individual_id": text,
+                })
+        self.confirm_button.setEnabled(False)
+        self.handle_vehicles_data.emit(vehicles_data)
+
+    def show_vehicles_list(self, vehicles):
+
+        self.vehicles = vehicles
+
+        self.confirm_label = QLabel("Sprawdź wprowadzane pojazdy czy wszystko się zgadza.")
+        self.confirm_label.setStyleSheet("font-size: 21px; color: #A9C1D9; ")
+        self.confirm_label.setAlignment(Qt.AlignCenter)
+        self.confirm_label.show()
+        self.main_layout.addWidget(self.confirm_label, 8, 0, 1, 2)
 
         if hasattr(self, 'vehicles_list_widget'):
             self.main_layout.removeWidget(self.vehicles_list_widget)
@@ -315,83 +350,47 @@ class AddVehicleWidget(QWidget):
             elif self.vehicle_type == "scooter":
                 vehicle_str += f"Prędkość maksymalna: {vehicle.max_speed}"
             elif self.vehicle_type == "bike":
-                vehicle_str += f"Rodzaj: {vehicle.bike_type} - {'Electric' if vehicle.is_electric else 'Normalny'}"
+                vehicle_str += f"Rodzaj: {vehicle.bike_type} - {'Elektryczny' if vehicle.is_electric else 'Normalny'}"
 
             QListWidgetItem(vehicle_str, self.vehicles_list_widget)
-
+            self.adjust_list_height()
+        self.vehicles_list_widget.show()
         self.main_layout.addWidget(self.vehicles_list_widget, 9, 0, 1, 2)
 
         self.update_db_button = QPushButton("Zapisz")
-        self.update_db_button.setFixedSize(150, 45)
+        self.update_db_button.setMinimumSize(150, 35)
         self.update_db_button.setStyleSheet(
-            "background-color: green;"
-            " font-size: 24px; color: white; color: white;"
-            " border-radius: 8px; padding: 10px;"
+            "background-color: darkgreen;"
+            " font-size: 21px; color: white; color: white;"
+            " border-radius: 8px; padding: 4px;"
         )
-        self.update_db_button.clicked.connect(self._update_database)
+        self.update_db_button.show()
+        self.update_db_button.clicked.connect(self.update_db_request.emit)
         self.main_layout.addWidget(self.update_db_button, 10, 1, 1, 1, alignment=Qt.AlignRight)
 
-    def _update_database(self):
-        try:
-            self.session.commit()
-            QMessageBox.information(self, "Sukces", "Dane zostały zapisane do bazy.")
 
-            # Wyczyść listę pojazdów w pamięci
-            self.vehicles = []
-
-            # Wyczyść pola formularza
-            self.veh_brand.clear()
-            self.veh_model.clear()
-            self.veh_cash_per_day.clear()
-
-            if hasattr(self, "size_combo_box"):
-                self.size_combo_box.setCurrentIndex(0)
-            if hasattr(self, "fuel_combo_box"):
-                self.fuel_combo_box.setCurrentIndex(0)
-            if hasattr(self, "scooter_speed"):
-                self.scooter_speed.clear()
-            if hasattr(self, "bike_typ_combo_box"):
-                self.bike_typ_combo_box.setCurrentIndex(0)
-
-            if hasattr(self, "individual_number_fields"):
-                for field in self.individual_number_fields:
-                    field.clear()
-
-            # Usuń widgety z listy pojazdów (np. QLabel albo QListWidget)
-            if hasattr(self, "vehicle_list_widget"):
-                self.vehicle_list_widget.clear()
-
-            # Opcjonalnie przejdź do widoku startowego
-            # self._go_to_start_screen()
-
-        except Exception as e:
-            self.session.rollback()
-            QMessageBox.critical(self, "Błąd zapisu", f"Nie udało się zapisać do bazy:\n{e}")
+    def show_results(self, success: bool, msg: str):
+        if success:
+            QMessageBox.information(self, "Sukces", msg)
+        else:
+            QMessageBox.critical(self, "Błąd zapisu", msg)
+        self._cancel_adding()
 
 
     def _cancel_adding(self):
-        # Czyścimy pola tekstowe indywidualnych numerów pojazdów
+
         if hasattr(self, "individual_number_fields"):
             for field in self.individual_number_fields:
                 field.clear()
 
-        # Czyścimy pola wspólne
-        if hasattr(self, "veh_brand"):
-            self.veh_brand.clear()
+        self.vehicles = []
 
-        if hasattr(self, "veh_model"):
-            self.veh_model.clear()
-
-        if hasattr(self, "veh_cash_per_day"):
-            self.veh_cash_per_day.clear()
-
-        # Czyścimy pole z liczbą pojazdów
-        if hasattr(self, "vehicle_count"):
-            self.vehicle_count.clear()
-
-        # Resetujemy combo boxy do wartości domyślnych
-        if hasattr(self, "veh_type_combo_box"):
-            self.veh_type_combo_box.setCurrentIndex(0)
+        self.veh_brand.clear()
+        self.veh_model.clear()
+        self.veh_cash_per_day.clear()
+        self.vehicle_count.clear()
+        self.veh_type_combo_box.setCurrentIndex(0)
+        self.confirm_button.setEnabled(True)
 
         if getattr(self, "size_combo_box", None) is not None:
             self.size_combo_box.setCurrentIndex(0)
@@ -417,30 +416,28 @@ class AddVehicleWidget(QWidget):
         if hasattr(self, "bike_electric_combo_box") and self.bike_electric_combo_box is not None:
             self.bike_electric_combo_box.setCurrentIndex(0)
 
-        # Usuwamy layout z polami indywidualnymi (numery pojazdów)
         if hasattr(self, "individual_number_layout"):
             while self.individual_number_layout.count():
                 item = self.individual_number_layout.takeAt(0)
                 widget = item.widget()
                 if widget is not None:
                     widget.deleteLater()
+            self.data2_label.hide()
             self.individual_number_fields = []
 
+        if hasattr(self, "confirm_label"):
+            self.confirm_label.hide()
+        if hasattr(self, "vehicles_list_widget"):
+            self.vehicles_list_widget.hide()
+        if hasattr(self, "update_db_button"):
+            self.update_db_button.hide()
+
+    def adjust_list_height(self):
+        count = self.vehicles_list_widget.count()
+        row_height = self.vehicles_list_widget.sizeHintForRow(0) if count > 0 else 20
+        frame = 2 * self.vehicles_list_widget.frameWidth()
+        new_height = min(17, max(5, count)) * row_height + frame
+        self.vehicles_list_widget.setMinimumHeight(new_height)
+        self.vehicles_list_widget.setMaximumHeight(new_height)
 
 
-
-
-
-
-
-
-
-
-
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    main_window = AddVehicleWidget()
-    main_window.show()
-    sys.exit(app.exec())

@@ -29,8 +29,8 @@ class OverdueRentalsWidget(QWidget):
         self.setWindowTitle("Zwroty")
         self.setStyleSheet("""
             QWidget {
-                background-color: #2e2e2e; /* Ciemne tło dla całego widgetu */
-                color: #eee; /* Jasny kolor tekstu */
+                background-color: #2e2e2e; 
+                color: #eee; 
                 font-size: 16px;
             }
             QPushButton {
