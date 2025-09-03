@@ -64,5 +64,24 @@ def deactivate_vehicle(session, vehicle: Vehicle):
                     f"{vehicle.vehicle_model} o numerze {vehicle.individual_id} "
                     f"z eksploatacji. szczegóły: {str(e)}")
 
+def update_rental(session, repair, actual_return_date):
+
+    try:
+        repair.actual_return_date = actual_return_date
+        repair.vehicle.is_available = True
+        repair.vehicle.borrower_id = None
+        repair.vehicle.return_date = None
+        session.commit()
+        success = True
+        msg = "Sukces, pojazd wrócił z naprawy"
+        return success, msg
+
+
+    except Exception as e:
+        success = False
+        msg = f"Bład, zakończenie naprawy nieudane.\nSzczegóły: {e}"
+        return success, msg
+
+
 
 

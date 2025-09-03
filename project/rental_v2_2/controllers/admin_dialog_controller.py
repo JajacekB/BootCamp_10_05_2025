@@ -37,8 +37,10 @@ from controllers.update_user_controller import UpdateUserController
 from gui.widgets.add_vehicle_view import AddVehicleView
 from controllers.add_vehicle_controller import AddVehicleController
 
+from gui.widgets.overdue_rental_view import OverdueRentalView
+from controllers.overdue_rental_controller import OverdueRentalController
+
 from gui.windows.rent_vehicle_widget import RentVehicleWidget
-from gui.windows.overdue_rentals_widget import OverdueRentalsWidget
 
 
 class AdminDialogController(QObject):
@@ -238,8 +240,13 @@ class AdminDialogController(QObject):
 
     def show_overdue_rentals_widget(self):
         print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")
-        self.overdue_vehicle_rentals = OverdueRentalsWidget(self.db_session, self.current_user)
-        self.show_widget(self.overdue_vehicle_rentals)
+        view = OverdueRentalView(self.current_role)
+        controller = OverdueRentalController(self.db_session, view, self.current_role)
+        self.controller = controller
+        self.show_widget(view)
+
+        # self.overdue_vehicle_rentals = OverdueRentalsWidget(self.db_session, self.current_user)
+        # self.show_widget(self.overdue_vehicle_rentals)
 
     def show_promo_banner_widget(self):
         print("🔧🔧🔧 Uruchomiono promo_banner_widget()")

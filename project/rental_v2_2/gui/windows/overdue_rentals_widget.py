@@ -8,9 +8,6 @@ from datetime import date
 
 from models.repair_history import RepairHistory
 from models.vehicle import Vehicle
-
-
-
 from gui.windows.calendar_combo_widget import CalendarCombo
 from services.rental_costs import recalculate_cost
 from services.database_update import update_database
@@ -19,6 +16,7 @@ from models.rental_history import RentalHistory
 # from models.vehicle import Vehicle, Car, Scooter, Bike
 from database.base import SessionLocal
 
+
 class OverdueRentalsWidget(QWidget):
     def __init__(self, session = None, user = None):
         super().__init__()
@@ -26,7 +24,8 @@ class OverdueRentalsWidget(QWidget):
         self.session = session or SessionLocal()
         self.user = user
 
-        self.setWindowTitle("Zwroty")
+        self.setWindowTitle("Przeterminowane zwroty")
+
         self.setStyleSheet("""
             QWidget {
                 background-color: #2e2e2e; 
@@ -179,7 +178,7 @@ class OverdueRentalsWidget(QWidget):
         self.overdue_vehicle_rentals()
 
 
-    def overdues_action(self):
+    def overdue_action(self):
         self.rentals_list.clear()
 
         for obj in self.overdues:
@@ -228,10 +227,10 @@ class OverdueRentalsWidget(QWidget):
             f"Czy chcesz zakończyć?\n\n"
             f"ID: {id_number}\n"
             f"Pojazd: {obj.vehicle.brand} {obj.vehicle.vehicle_model}\n"
-            f"Wynajęty/w naprawie od: {obj.start_date.strftime('%d-%m-%Y')} "
+            f"Wynajęty /w naprawie od: {obj.start_date.strftime('%d-%m-%Y')} "
             f"do: {obj.planned_return_date.strftime('%d-%m-%Y')}\n"
             f"Do zapłaty: {cost} zł\n"
-            f"Wynajęty przez: {self.user.first_name} {self.user.last_name}."
+            f"Wynajęty przez / w naprawie w: {self.user.first_name} {self.user.last_name}."
         )
 
         self.overdue_rental_detail.setText(overdues_text)
@@ -277,17 +276,11 @@ class OverdueRentalsWidget(QWidget):
             self._hide_widget()
 
         else:
-            self.overdues_action()
+            self.overdue_action()
 
-    def _hide_widget(self):
-        self.overdue_rental_detail.clear()
-        self.overdue_rental_detail.hide()
-        self.cancel_button.hide()
-        self.finish_button.hide()
-        self.calendar_comment_label.hide()
-        self.calendar_input.hide()
-        self.date_approve.hide()
-        self.rentals_list.clear()
+
+
+
 
     def adjust_list_height(self):
         if self.rentals_list.count() > 0:
