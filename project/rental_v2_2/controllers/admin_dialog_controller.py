@@ -98,10 +98,9 @@ class AdminDialogController(QObject):
         self._handle_command(self.current_role, command_num)
 
     def update_current_user(self, new_user):
-        """Metoda do aktualizacji usera po login/logout"""
         self.current_user = new_user
         self.current_role = new_user.role.lower()
-        self.dialog.user = new_user  # jeśli dialog też używa current_user
+        self.dialog.user = new_user
         print(f"✅ Zaktualizowano aktualnego użytkownika: {self.current_user.first_name} | rola: {self.current_role}")
 
     def show(self):
@@ -127,7 +126,6 @@ class AdminDialogController(QObject):
 
     def show_widget(self, widget):
         layout = self.dialog.dynamic_area.layout()
-        # Wyczyść dynamiczny obszar
         for i in reversed(range(layout.count())):
             w = layout.itemAt(i).widget()
             if w:
