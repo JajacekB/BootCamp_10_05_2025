@@ -40,7 +40,7 @@ def calculate_rental_cost(session, user, daily_rate, rental_days):
 
     return round(price, 2), discount * 100, "lojalność + czasowy" if discount > 0 and loyalty_discount_days else (
         "lojalność" if loyalty_discount_days else (
-        "czasowy" if discount > 0 else "brak"))
+        "czasowy" if discount > 0 else "brak rabatów"))
 
 
 def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, reservation_id: str):

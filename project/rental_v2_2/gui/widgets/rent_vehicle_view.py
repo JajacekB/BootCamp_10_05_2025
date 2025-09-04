@@ -3,7 +3,7 @@ from datetime import date
 from collections import defaultdict
 from PySide6.QtWidgets import (
     QGridLayout, QFormLayout, QHBoxLayout, QVBoxLayout,
-    QWidget, QLabel, QComboBox, QCalendarWidget, QPushButton, QListWidget, QListWidgetItem
+    QWidget, QLabel, QComboBox, QCalendarWidget, QPushButton, QListWidget, QListWidgetItem, QMessageBox
 )
 from PySide6.QtGui import QTextCharFormat
 from PySide6.QtCore import Signal, Qt, QDate
@@ -12,6 +12,9 @@ from PySide6.QtCore import Signal, Qt, QDate
 class RentVehicleView(QWidget):
 
     handle_confirm_button = Signal(object, object, str)
+    handle_single_vehicle = Signal(list)
+    handle_accept_button = Signal()
+    handle_rent_condition_accept = Signal()
 
     def __init__(self, current_user):
         super().__init__()
@@ -146,10 +149,10 @@ class RentVehicleView(QWidget):
             font.setFamily("DejaVu Sans Mono")
 
         self.list_widget.setFont(font)
-        # self.list_widget.itemClicked.connect(
-        #     lambda item: self.handle_single_vehicle_click(item)
-        #     if item.data(Qt.UserRole) is not None else None
-        # )
+        self.list_widget.itemClicked.connect(
+            lambda item: self.on_click_single_vehicle(item)
+            if item.data(Qt.UserRole) is not None else None
+        )
         self.main_layout.addWidget(self.list_widget, 4, 1, 1, 3)
 
         self.main_layout.addWidget(self._build_dynamic_area(), 5, 0, 1, 5)
@@ -189,7 +192,7 @@ class RentVehicleView(QWidget):
             " border-radius: 8px; padding: 6px; ")
 
         self.btn_rent_accept = QPushButton("Wypożycz")
-        # self.btn_rent_accept.clicked.connect(self.handle_rent_accept_button)
+        self.btn_rent_accept.clicked.connect(self._on_click_rent_accept_button)
         self.btn_rent_accept.setStyleSheet(
             "background-color: darkgreen;"
             " font-size: 18px; color: white;"
@@ -207,7 +210,7 @@ class RentVehicleView(QWidget):
             " border-radius: 8px; padding: 6px; ")
 
         self.btn_rent_final_accept = QPushButton("Zakończ")
-        # self.btn_rent_final_accept.clicked.connect(self.handle_rent_final_accept_button)
+        self.btn_rent_final_accept.clicked.connect(self._on_click_rent_conditions_accept)
         self.btn_rent_final_accept.setStyleSheet(
             "background-color: darkgreen;"
             " font-size: 18px; color: white;"
@@ -369,6 +372,93 @@ class RentVehicleView(QWidget):
         if not vehicles_to_rent:
             print("\n🚫 Brak pasujących pojazdów.")
             return
+
+    def on_click_single_vehicle(self, item):
+        if item.data(Qt.UserRole) == "header":
+            return  # ignorujemy kliknięcie w nagłówek
+        self.group = item.data(Qt.UserRole)
+        if not isinstance(self.group, list) or not self.group:
+            return
+
+        self.handle_single_vehicle.emit(self.group)
+
+    def show_chosen_vehicle(self, chosen_vehicle, rental_count):
+
+        self.info_0_label.show()
+        self.info_label.show()
+        self.info_5_label.show()
+        self.append_layout.addWidget(self.info_0_label, 0, 0, 1, 1)
+        self.append_layout.addWidget(self.info_label, 0, 1, 1, 3)
+        self.append_layout.addWidget(self.info_5_label, 0, 5, 1, 1)
+
+        self.info_label.setText(
+            f"Czy na pewno chcesz wypozyczyć ten pojazd?\n\n{chosen_vehicle.get_display_info()}"
+        )
+        self.btn_rent_cancel.show()
+        self.append_layout.addWidget(self.btn_rent_cancel, 1, 1, 1, 1)
+        self.btn_rent_accept.show()
+        self.append_layout.addWidget(self.btn_rent_accept, 1, 3, 1, 1)
+
+    def _on_click_rent_accept_button(self, item):
+        self.handle_accept_button.emit()
+
+    def show_rental_cost(self, total_cost, discount_value, discount_type, total_cost_str):
+
+        self.total_cost = total_cost
+        self.summary_label.show()
+        self.append_layout.addWidget(self.summary_label, 2, 1, 1, 3)
+
+        self.summary_label.setText(total_cost_str)
+        self.btn_rent_final_cancel.show()
+        self.append_layout.addWidget(self.btn_rent_final_cancel, 3, 1, 1, 1)
+        self.btn_rent_final_accept.show()
+        self.append_layout.addWidget(self.btn_rent_final_accept, 3, 3, 1, 1)
+
+    def _on_click_rent_conditions_accept(self):
+        self.handle_rent_condition_accept.emit()
+
+    def show_final_information(self, success, msg):
+
+        if success:
+            QMessageBox.information(
+                self,
+                "Rezerwacja zakończona",
+                f"{msg}"
+            )
+            self.handle_cancel_button()
+
+        else:
+            QMessageBox.critical(
+                self,
+                "Błąd rezerwacji",
+                f"{msg}"
+            )
+            self.handle_cancel_button()
+
+    def handle_cancel_button(self):
+        # reset kalendarza
+        self.calendar_start.setSelectedDate(self.today)
+        self.label_start.setText(f"Wybrany początek najmu: {self.today.toString('dd-MM-yyyy')}")
+        self.label_end.setText(f"Wybrany koniec najmu: {self.tomorrow.toString('dd-MM-yyyy')}")
+        self.calendar_end.setSelectedDate(self.tomorrow)
+        self.type_combo_box.setCurrentIndex(0)
+        # Czyszczenie listy
+        self.list_widget.clear()
+        # Czyszczenie podsumowania i przysisków sterujacych
+        self.info_0_label.setText("")
+        self.info_0_label.hide()
+        self.info_label.setText("")
+        self.info_label.hide()
+        self.btn_rent_cancel.hide()
+        self.btn_rent_accept.hide()
+        self.info_5_label.setText("")
+        self.info_5_label.hide()
+        # Czyszczenie pytania o potwierdzenie i przucsków steujacych
+        self.summary_label.setText("")
+        self.summary_label.hide()
+        self.btn_rent_final_cancel.hide()
+        self.btn_rent_final_accept.hide()
+
 
 
 
