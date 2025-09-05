@@ -8,7 +8,7 @@ from models.rental_history import RentalHistory
 from models.repair_history import RepairHistory
 from models.promotions import Promotion
 from models.invoice import Invoice
-from database.base import Base, engine, Session, SessionLocal
+from database.base import Base, engine,  SessionLocal
 import bcrypt
 
 
@@ -19,7 +19,7 @@ def create_tables():
 
 
 def create_admin_user():
-    session = Session()
+    session = SessionLocal()
     existing_admin = session.query(User).filter_by(login="admin").first()
 
     if not existing_admin:
@@ -27,7 +27,7 @@ def create_admin_user():
             first_name="Admin",
             last_name="",
             login="admin",
-            phone=666555444,
+            phone="666555444",
             email="admin@system.local",
             password_hash=bcrypt.hashpw("admin".encode(), bcrypt.gensalt()).decode(),
             role="admin",
@@ -46,7 +46,7 @@ def create_admin_user():
 
 
 def create_promotions():
-    session = Session()
+    session = SessionLocal()
     promotions_data = [
         {"id": 1, "description": "5% zniżki przy wynajmie na minimum 5 dni", "discount_percent": 5, "min_days": 5, "type": "time"},
         {"id": 2, "description": "9% zniżki przy wynajmie na minimum 7 dni", "discount_percent": 9, "min_days": 7, "type": "time"},

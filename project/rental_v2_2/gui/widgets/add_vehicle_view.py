@@ -121,7 +121,6 @@ class AddVehicleView(QWidget):
     def _update_vehicle_form(self, text):
 
         self.veh_type = self.veh_type_combo_box.currentText()
-
         if hasattr(self, "individual_layout"):
             while self.individual_layout.count():
                 item = self.individual_layout.takeAt(0)
