@@ -7,7 +7,6 @@ class GetUsersController:
         self.view = view
         self.service = service
 
-        # Podpinamy sygnały
         self.view.search_button.clicked.connect(self.on_search_clicked)
         self.view.list_widget.itemClicked.connect(self.on_item_clicked)
 
@@ -35,7 +34,7 @@ class GetUsersController:
                     QMessageBox.information(self.view, "Informacja", "Brak nieaktywnych klientów.")
                     return
 
-            else:  # Wszyscy
+            else:
                 users = self.service.get_all_clients()
                 if not users:
                     QMessageBox.information(self.view, "Informacja", "Brak klientów w bazie.")

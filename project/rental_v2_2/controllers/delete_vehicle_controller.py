@@ -26,9 +26,7 @@ class DeleteVehicleController():
             "Rowery": "bike"
         }
         vehicle_type = type_map.get(v_type, "all")
-
         vehicles = get_available_vehicles(self.session, vehicle_type=vehicle_type)
-
         vehicles_sorted = sorted(
             vehicles, key=lambda v: (v.cash_per_day, v.brand, v.vehicle_model, v.individual_id)
         )
@@ -47,7 +45,6 @@ class DeleteVehicleController():
     def handle_delete_vehicle(self, vehicle_to_delete):
 
         success, text = deactivate_vehicle(self.session, vehicle_to_delete)
-
         if success:
             self.view.success_deactivate(text)
         else:

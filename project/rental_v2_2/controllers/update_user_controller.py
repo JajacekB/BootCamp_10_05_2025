@@ -19,12 +19,10 @@ class UpdateUserController():
 
         success, msg = update_user(self.session, self.user, summary_data)
         user = get_user_by(self.session, user_id=self.user.id)
-
         self.view.update_user_data_confirmation(success, msg, user)
 
     @Slot(dict)
     def _update_password(self, summary_data):
 
         success, msg = update_user(self.session, self.user, summary_data)
-
         self.view.update_password_confirm(success, msg)

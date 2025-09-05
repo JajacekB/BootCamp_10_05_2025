@@ -1,8 +1,7 @@
 # gui.widgets.return_vehicle_view.py
 import platform
-from datetime import date
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox,
-        QApplication, QListWidget, QListWidgetItem, QMessageBox, QGroupBox, QHBoxLayout, QGridLayout
+        QListWidget, QListWidgetItem, QMessageBox, QGroupBox, QHBoxLayout, QGridLayout
     )
 from PySide6.QtCore import Qt, Signal
 
@@ -21,9 +20,6 @@ class ReturnVehicleView(QWidget):
         super().__init__()
         self.controller = None
         self.role = role
-
-        # self.controller.operation_success.connect(self.finalize_success)
-        # self.controller.operation_error.connect(self.finalize_error)
 
         self.setWindowTitle("Pojazdy")
 

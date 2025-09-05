@@ -31,7 +31,6 @@ class RentVehicleController():
         vehicles_to_rent = get_available_vehicles(
             self.session, start_date, planned_return_date, vehicle_type
         )
-
         self.view.show_vehicle_for_rent(vehicles_to_rent)
 
     @Slot(list)
@@ -77,20 +76,15 @@ class RentVehicleController():
 
         if user:
             self.user = user
-
-        print(f"_accept_and_update says {self.user}")
-
         try:
             reservation_id = generate_reservation_id(self.session)
             invoice_number = generate_invoice_number(self.session, self.planned_return_date)
 
-            # Aktualizacja pojazdu
             self.chosen_vehicle.is_available = False
             self.chosen_vehicle.borrower_id = self.user.id
             self.chosen_vehicle.return_date = self.planned_return_date
             self.session.add(self.chosen_vehicle)
 
-            # Aktualizacja historii wypożyczeń
             rental = RentalHistory(
                 reservation_id=reservation_id,
                 user_id=self.user.id,
@@ -103,14 +97,12 @@ class RentVehicleController():
             self.session.add(rental)
             self.session.flush()
 
-            # Faktura
             invoice = Invoice(
                 invoice_number=invoice_number,
                 rental_id=rental.id,
                 amount=self.total_cost,
                 issue_date=self.planned_return_date
             )
-
             self.session.add_all([invoice])
             self.session.commit()
 

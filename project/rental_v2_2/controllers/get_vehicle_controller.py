@@ -1,7 +1,5 @@
 # controllers.get_vehicle_controller.py
-from PySide6.QtCore import Slot, Qt
-from PySide6.QtWidgets import QMessageBox
-from datetime import date, timedelta
+from PySide6.QtCore import Slot
 
 from models.vehicle import Vehicle
 from repositories.get_vehicle_service import GetVehicleService
@@ -30,7 +28,6 @@ class GetVehicleController:
             "Rowery": "bike"
         }
         vehicle_type = type_map.get(v_type, "all")
-
         vehicles_grouped = self.service.get_filtered_vehicles(status, vehicle_type)
 
         if vehicles_grouped:
@@ -44,8 +41,6 @@ class GetVehicleController:
     def on_vehicle_item_clicked(self, vehicle: Vehicle):
         rentals = get_rentals_by_vehicle_id(self.session, vehicle)
         repairs = get_repairs_by_vehicle_id(self.session, vehicle)
-
-
         self.view.show_vehicle_history(vehicle, rentals, repairs)
 
 

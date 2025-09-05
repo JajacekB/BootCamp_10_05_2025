@@ -15,10 +15,9 @@ class RepairController:
         self.session = session
         self.view = view
         self.service = RepairService(session)
+        self.current_vehicle = None
 
-        # Podłącz sygnały z widoku
         self.view.vehicle_selected.connect(self.on_vehicle_item_clicked)
-        # self.view.vehicle_selected.connect(self.on_vehicle_selected)
         self.view.vehicle_id_entered.connect(self.on_vehicle_id_entered)
         self.view.click_summary_button.connect(self.on_confirm_rental_replacement)
         self.view.request_vehicle_list.connect(self.request_vehicle_list)
@@ -39,7 +38,6 @@ class RepairController:
             "Rowery": "bike"
         }
         vehicle_type = type_map.get(v_type, "all")
-
         vehicles_grouped = self.service.get_filtered_vehicles(status, vehicle_type)
 
         if vehicles_grouped:
@@ -51,7 +49,7 @@ class RepairController:
     def on_vehicle_item_clicked(self, vehicle: Vehicle):
         print("on_vehicle_item_clicked")
         self.view.show_repair_inputs(vehicle)
-        # vehicle = item.data(Qt.UserRole)
+
         if not vehicle:
             return
         self.current_vehicle = vehicle
@@ -159,7 +157,6 @@ class RepairController:
             )
 
             if replacement_vehicle:
-                # standardowa zamiana pojazdów
                 result = self.service.finish_after_vehicle_swap(
                     self.current_vehicle,
                     replacement_vehicle,
@@ -175,7 +172,6 @@ class RepairController:
                     self.view.list_widget.addItem("✅ Otrzymałeś droższy pojazd – koszty zostały podniesione.")
                     self.view.adjust_list_height()
             else:
-                # fallback logic
                 if cheaper:
                     # klient chciał tańszy, brak → daj droższy po obecnych kosztach
                     replacement_vehicle = get_replacement_vehicle(
@@ -210,7 +206,7 @@ class RepairController:
                             self.current_vehicle,
                             replacement_vehicle,
                             self.rental,
-                            different_price=False  # koszt całego okresu liczony po tańszym
+                            different_price=False
                         )
                         self.view.show_swap_finished(result)
                         self.view.list_widget.addItem(
@@ -219,7 +215,7 @@ class RepairController:
                         self.view.adjust_list_height()
                     else:
                         self.view.show_no_vehicle_available("Brak pojazdu zastępczego")
-        else:  # Anuluje wynajem
+        else:
             rental, invoice = self.service.finish_broken_rental(self.current_vehicle)
             self.view.show_finished_rental(rental, invoice)
 

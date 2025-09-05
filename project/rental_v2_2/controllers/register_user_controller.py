@@ -42,7 +42,6 @@ class RegisterUserController:
         raw_password = seller_login
         print(f"\nUtworzono login: {seller_login} | hasło: {raw_password}")
         self.view.populate_auto_seller(seller_login, raw_password)
-        # return seller_login, raw_password
 
     def on_registration_cancelled_widget(self):
         print("❌ Rejestracja anulowana – czyszczenie dynamicznego obszaru (RegisterWidget).")

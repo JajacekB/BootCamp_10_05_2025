@@ -58,7 +58,6 @@ class RentVehicleView(QWidget):
             self.client_info_input = QLineEdit()
             self.client_info_input.setPlaceholderText("Zostaw puste pole jeśli wypozyczasz dla siebie!")
             chose_layout.addRow("Podaj numer klienta:", self.client_info_input)
-
             self.main_layout.addLayout(chose_layout, 0, 1, 1, 3)
 
         self.title_label = QLabel("=== WYPOŻYCZENIE POJAZDU ===")

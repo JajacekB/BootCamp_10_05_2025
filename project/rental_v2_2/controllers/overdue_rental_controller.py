@@ -1,5 +1,4 @@
-from datetime import datetime
-from PySide6.QtCore import Qt, Slot, QDate
+from PySide6.QtCore import Slot, QDate
 
 from services.rental_costs import recalculate_cost
 from services.database_update import update_database
@@ -58,9 +57,7 @@ class OverdueRentalController():
         actual_return_date = actual_return_date_input.toPython()
 
         if isinstance(task, RepairHistory):
-
             success, msg = update_rental(self.session, task, actual_return_date)
-
             self.view.summary_update_repair(success, msg)
 
         elif isinstance(task, RentalHistory):
@@ -81,5 +78,4 @@ class OverdueRentalController():
                 extra_fee,
                 task.reservation_id
             )
-
             self.view.summary_rental(summary_text)

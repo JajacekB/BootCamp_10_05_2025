@@ -9,7 +9,6 @@ class DeleteUsersController:
         self.view = view
         self.service = service
 
-        # podłącz sygnały widoku do metod
         self.view.request_users.connect(self.load_users)
         self.view.user_selected.connect(self.show_user_summary)
         self.view.delete_requested.connect(self.delete_user)

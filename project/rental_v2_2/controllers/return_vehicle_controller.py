@@ -1,10 +1,8 @@
 
-from PySide6.QtCore import Qt, Signal, QObject
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtCore import Signal, QObject
 
 from services.rental_costs import recalculate_cost
 from services.database_update import update_database
-from repositories.return_vehicle_service import ReturnVehicleService
 
 
 class ReturnVehicleController(QObject):

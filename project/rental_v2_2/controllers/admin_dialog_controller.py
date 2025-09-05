@@ -52,6 +52,7 @@ class AdminDialogController(QObject):
         self.db_session = db_session
         self.parent_window = parent_window
         self.logout_callback = logout_callback
+        self.controller = None
 
         self.dialog = AdminDialog(user=user, session=db_session, controller=self)
 
@@ -94,8 +95,8 @@ class AdminDialogController(QObject):
         self.dialog.logout.connect(self._handle_logout)
 
     def _handle_command_slot(self, command_num):
-        print(f"{self.current_user=}, {self.current_role=}")
-        """Wywołanie komendy w zależności od aktualnej roli użytkownika"""
+        print(f"✅ Zalogowano: {self.current_user=}, {self.current_role=}")
+
         self._handle_command(self.current_role, command_num)
 
     def update_current_user(self, new_user):
@@ -121,6 +122,7 @@ class AdminDialogController(QObject):
             print(f"❌ Nieznana komenda: {command_num} dla roli {role}")
 
     def _handle_logout(self, user=None):
+        self.current_user = user
         self.dialog.close()
         if self.logout_callback:
             self.logout_callback()
@@ -135,6 +137,7 @@ class AdminDialogController(QObject):
         widget.show()
         print("✅ Widget dodany do dynamic_area")
 
+# ------------------------------- wywołanie widgetów do okna gównego ------------------------------------------------ #
 # ------------------------------------------------------------------------------------------------------------------- #
 
     def handle_add_seller_widget(self):
@@ -143,44 +146,8 @@ class AdminDialogController(QObject):
             return
         view = RegisterUserView(parent=self.dialog, role="seller", auto=True)
         controller = RegisterUserController(self.db_session, view, parent_dialog=self.dialog)
-        # view.set_controller(controller)
         self.controller = controller
         self.show_widget(view)
-
-    def show_delete_seller_widget(self):
-        print("🔧 Wywołano delete_client_widget() - MVC wersja")
-        service = DeleteUsersService(session=self.db_session, role="seller")
-        view = DeleteUsersWidget(role="seller")
-        controller = DeleteUsersController(view, service)
-        self.delete_seller_controller = controller
-        self.show_widget(view)
-
-    def handle_register_widget(self):
-        if self.dialog is None:
-            print("❌ Błąd: AdminDialog nie został zainicjalizowany.")
-            return
-        view = RegisterUserView(parent=self.dialog, role="client", auto=False)
-        controller = RegisterUserController(self.db_session, view, parent_dialog=self.dialog)
-        # view.set_controller(controller)
-        self.controller = controller
-        self.show_widget(view)
-
-    def show_delete_client_widget(self):
-        print("🔧 Wywołano delete_client_widget() - MVC wersja")
-        service = DeleteUsersService(session=self.db_session, role="client")
-        view = DeleteUsersWidget(role="client")
-        controller = DeleteUsersController(view, service)
-        self.delete_client_controller = controller
-        self.show_widget(view)
-
-    def show_get_users_widget(self):
-        print("🔧 Wywołano show_get_users_widget()")
-        service = GetUsersService(self.db_session)
-        view = GetUsersWidget()
-        controller = GetUsersController(view=view, service=service)
-        self.get_users_controller = controller
-        if self.dialog:
-            self.dialog.load_widget(view)
 
     def show_add_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano add_vehicle_widget()")
@@ -189,23 +156,66 @@ class AdminDialogController(QObject):
         self.controller = controller
         self.show_widget(view)
 
-        # self.add_vehicle_widget = AddVehicleWidget(self.db_session)
-        # self.show_widget(self.add_vehicle_widget)
+    def show_delete_client_widget(self):
+        print("🔧 Wywołano delete_client_widget() - MVC wersja")
+        service = DeleteUsersService(session=self.db_session, role="client")
+        view = DeleteUsersWidget(role="client")
+        controller = DeleteUsersController(view, service)
+        self.controller = controller
+        self.show_widget(view)
+
+    def show_delete_seller_widget(self):
+        print("🔧 Wywołano delete_client_widget() dla role = seller")
+        service = DeleteUsersService(session=self.db_session, role="seller")
+        view = DeleteUsersWidget(role="seller")
+        controller = DeleteUsersController(view, service)
+        self.controller = controller
+        self.show_widget(view)
+
+    def show_get_users_widget(self):
+        print("🔧 Wywołano show_get_users_widget()")
+        service = GetUsersService(self.db_session)
+        view = GetUsersWidget()
+        controller = GetUsersController(view=view, service=service)
+        self.controller = controller
+        if self.dialog:
+            self.dialog.load_widget(view)
+
+    def show_get_vehicle_widget(self):
+        print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
+        view = GetVehicleView(self.current_role)
+        service = GetVehicleService(self.db_session, view)
+        controller = GetVehicleController(view=view, session=self.db_session)
+        self.controller = controller
+        self.show_widget(view)
+
+    def show_overdue_rentals_widget(self):
+        print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")
+        view = OverdueRentalView(self.current_role)
+        controller = OverdueRentalController(self.db_session, view, self.current_role)
+        self.controller = controller
+        self.show_widget(view)
+
+    def show_promo_banner_widget(self):
+        print("🔧🔧🔧 Uruchomiono promo_banner_widget()")
+        view = PromoBannerView()
+        controller = PromoBannerController(self.db_session, view)
+        self.controller = controller
+        self.show_widget(view)
+
+    def handle_register_widget(self):
+        if self.dialog is None:
+            print("❌ Błąd: AdminDialog nie został zainicjalizowany.")
+            return
+        view = RegisterUserView(parent=self.dialog, role="client", auto=False)
+        controller = RegisterUserController(self.db_session, view, parent_dialog=self.dialog)
+        self.controller = controller
+        self.show_widget(view)
 
     def show_remove_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano remove_vehicle_widget()")
         view = DeleteVehicleView()
         controller = DeleteVehicleController(self.db_session, view)
-        self.controller = controller
-
-        self.show_widget(view)
-
-    def show_get_vehicle_widget(self):
-        print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
-        role = self.current_user.role
-        view = GetVehicleView(role=role)
-        service = GetVehicleService(self.db_session, view)
-        controller = GetVehicleController(view=view, session=self.db_session)
         self.controller = controller
         self.show_widget(view)
 
@@ -216,9 +226,13 @@ class AdminDialogController(QObject):
         self.controller = controller
         self.show_widget(view)
 
-
-        # self.rent_vehicle_widget = RentVehicleWidget(self.db_session, self.current_user)
-        # self.show_widget(self.rent_vehicle_widget)
+    def show_repair_vehicle_widget(self):
+        print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
+        view = RepairVehicleView()
+        service = RepairService(self.db_session)
+        controller = RepairController(view=view, session=self.db_session)
+        self.controller = controller
+        self.show_widget(view)
 
     def show_return_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano return_vehicle_widget()")
@@ -228,35 +242,14 @@ class AdminDialogController(QObject):
         view.set_controller(controller)
         self.show_widget(view)
 
-    def show_repair_vehicle_widget(self):
-        print("🔧🔧🔧 Uruchomiono repair_vehicle_widget()")
-        view = RepairVehicleView()
-        service = RepairService(self.db_session)
-        controller = RepairController(view=view, session=self.db_session)
-        self.repair_vehicle_controller = controller
-        self.show_widget(view)
-
     def show_update_user_widget(self):
         print("🔧🔧🔧 Uruchomiono update_user_widget()")
-        viev = UpdateUserView(self.current_user)
-        controller = UpdateUserController(self.db_session, viev, self.current_user)
-        self.controller = controller
-        self.show_widget(viev)
-
-    def show_overdue_rentals_widget(self):
-        print("🔧🔧🔧 Uruchomiono overdue_rentals_widget()")
-        view = OverdueRentalView(self.current_role)
-        controller = OverdueRentalController(self.db_session, view, self.current_role)
+        view = UpdateUserView(self.current_user)
+        controller = UpdateUserController(self.db_session, view, self.current_user)
         self.controller = controller
         self.show_widget(view)
 
-        # self.overdue_vehicle_rentals = OverdueRentalsWidget(self.db_session, self.current_user)
-        # self.show_widget(self.overdue_vehicle_rentals)
 
-    def show_promo_banner_widget(self):
-        print("🔧🔧🔧 Uruchomiono promo_banner_widget()")
-        view = PromoBannerView()
-        controller = PromoBannerController(self.db_session, view)
-        self.controller = controller
-        self.show_widget(view)
+
+
 

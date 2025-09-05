@@ -83,14 +83,8 @@ class RepairService:
         return rental, invoice
 
     def finish_after_vehicle_swap(self, broken_vehicle: Vehicle, replacement_vehicle: Vehicle,
-                                  old_rental: RentalHistory, different_price: bool):
-        """
-        Obsługa podmiany pojazdu:
-        - broken_vehicle -> warsztat (naprawa)
-        - replacement_vehicle -> klient na resztę okresu wynajmu
-        - old_rental: obecny rental popsutego pojazdu
-        - different_price: True -> liczymy proporcjonalnie do ceny nowego pojazdu
-        """
+                                old_rental: RentalHistory, different_price: bool):
+
         today = date.today()
 
         # 🔹 Zamiana statusu starego pojazdu
