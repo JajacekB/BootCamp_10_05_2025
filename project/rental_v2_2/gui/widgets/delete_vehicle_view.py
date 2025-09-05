@@ -42,8 +42,8 @@ class DeleteVehicleView(QWidget):
 
         self.main_layout = QVBoxLayout()
 
-        self.title_label = QLabel("Przegląd pojazdów w wypozyczalni:")
-        self.title_label.setStyleSheet("font-size: 28px; color: white; ")
+        self.title_label = QLabel("=== Przegląd pojazdów w wypozyczalni ===")
+        self.title_label.setStyleSheet("font-size: 28px; color: #A9C1D9; ")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label)
 

@@ -38,10 +38,10 @@ class AddVehicleView(QWidget):
     def _build_ui(self):
         self.main_layout = QGridLayout(self)
 
-        title_label = QLabel("Dodaj nowe pojazdy na stan wypożyczalni.")
-        title_label.setStyleSheet("font-size: 22px; color: white; ")
+        title_label = QLabel("=== Dodaj nowe pojazdy na stan wypożyczalni ===.")
+        title_label.setStyleSheet("font-size: 24px; color: #A9C1D9; ")
         title_label.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(title_label, 0, 0, 1, 2)
+        self.main_layout.addWidget(title_label, 1, 0, 1, 2)
 
         self.veh_type_combo_box = QComboBox()
         self.veh_type_combo_box.addItems(["-wybierz-", "Samochody", "Skutery", "Rowery"])
@@ -52,22 +52,22 @@ class AddVehicleView(QWidget):
         self.veh_count_layout = QFormLayout(self)
         self.veh_count_layout.addRow("Ile pojazdów dodajesz?", self.vehicle_count)
         self.vehicle_count.editingFinished.connect(self._add_vehicle_individual)
-        self.main_layout.addLayout(self.veh_count_layout, 1, 0, 1, 1)
+        self.main_layout.addLayout(self.veh_count_layout, 2, 0, 1, 1)
 
         form1_layout = QFormLayout()
         form1_layout.addRow("Jakie pojazdy dodajesz?", self.veh_type_combo_box)
         self.veh_type_combo_box.currentTextChanged.connect(self._update_vehicle_form)
-        self.main_layout.addLayout(form1_layout, 2, 0, 1, 1)
+        self.main_layout.addLayout(form1_layout, 3, 0, 1, 1)
 
         data1_label = QLabel("Dane wspólne dla serii.")
         data1_label.setStyleSheet("font-size: 21px; color: #A9C1D9; ")
         data1_label.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(data1_label, 3, 0, 1, 1)
+        self.main_layout.addWidget(data1_label, 4, 0, 1, 1)
 
         self.data2_label = QLabel("Numer indywidualny pojazdu\n(nr rejestracyjny lub nr seryjny):")
         self.data2_label.setStyleSheet("font-size: 21px; color: #A9C1D9; ")
         self.data2_label.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(self.data2_label, 3, 1, 1, 1)
+        self.main_layout.addWidget(self.data2_label, 4, 1, 1, 1)
         self.data2_label.hide()
 
         self.veh_brand = QLineEdit()
@@ -81,12 +81,12 @@ class AddVehicleView(QWidget):
         form2_layout.addRow("Producent pojazdu:", self.veh_brand)
         form2_layout.addRow("Model pjazdu:", self.veh_model)
         form2_layout.addRow("Cena najmu za dzień:", self.veh_cash_per_day)
-        self.main_layout.addLayout(form2_layout, 4, 0, 1, 1)
+        self.main_layout.addLayout(form2_layout, 5, 0, 1, 1)
 
         data2_label = QLabel("Dane indywidualne dla pojazdu.")
         data2_label.setStyleSheet("font-size: 21px; color: #A9C1D9; ")
         data2_label.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(data2_label, 5, 0, 1, 1)
+        self.main_layout.addWidget(data2_label, 6, 0, 1, 1)
 
         self.cancel1_button = QPushButton("Anuluj")
         self.cancel1_button.setMinimumSize(150, 35)
@@ -96,7 +96,7 @@ class AddVehicleView(QWidget):
             " border-radius: 8px; padding: 4px;"
         )
         self.cancel1_button.clicked.connect(self._cancel_adding)
-        self.main_layout.addWidget(self.cancel1_button, 7, 0, 1, 1, alignment=Qt.AlignLeft)
+        self.main_layout.addWidget(self.cancel1_button, 8, 0, 1, 1, alignment=Qt.AlignLeft)
 
         self.confirm_button = QPushButton("Zatwierdź")
         self.confirm_button.setEnabled(True)
@@ -107,7 +107,7 @@ class AddVehicleView(QWidget):
             " border-radius: 8px; padding: 4px;"
         )
         self.confirm_button.clicked.connect(self._build_veh_list)
-        self.main_layout.addWidget(self.confirm_button, 7, 1, 1, 1, alignment=Qt.AlignRight)
+        self.main_layout.addWidget(self.confirm_button, 8, 1, 1, 1, alignment=Qt.AlignRight)
 
         col_count = self.main_layout.columnCount()
         for col in range(col_count):
@@ -167,7 +167,7 @@ class AddVehicleView(QWidget):
             self.individual_layout.addRow("Wybierz rodzaj roweru:", self.bike_typ_combo_box)
             self.individual_layout.addRow("Wybierz czy jest elektryczny:", self.bike_electric_combo_box)
 
-        self.main_layout.addLayout(self.individual_layout, 6, 0, 1, 1)
+        self.main_layout.addLayout(self.individual_layout, 7, 0, 1, 1)
 
     def _add_vehicle_individual(self):
 
@@ -205,7 +205,7 @@ class AddVehicleView(QWidget):
             self.individual_number_fields.append(line_edit)
 
         if self.individual_number_layout.parent() is None:
-            self.main_layout.addLayout(self.individual_number_layout, 4, 1, 1, 1)
+            self.main_layout.addLayout(self.individual_number_layout, 5, 1, 1, 1)
 
     def _build_veh_list(self):
 
@@ -330,7 +330,7 @@ class AddVehicleView(QWidget):
         self.confirm_label.setStyleSheet("font-size: 21px; color: #A9C1D9; ")
         self.confirm_label.setAlignment(Qt.AlignCenter)
         self.confirm_label.show()
-        self.main_layout.addWidget(self.confirm_label, 8, 0, 1, 2)
+        self.main_layout.addWidget(self.confirm_label, 9, 0, 1, 2)
 
         if hasattr(self, 'vehicles_list_widget'):
             self.main_layout.removeWidget(self.vehicles_list_widget)
@@ -355,7 +355,7 @@ class AddVehicleView(QWidget):
             QListWidgetItem(vehicle_str, self.vehicles_list_widget)
             self.adjust_list_height()
         self.vehicles_list_widget.show()
-        self.main_layout.addWidget(self.vehicles_list_widget, 9, 0, 1, 2)
+        self.main_layout.addWidget(self.vehicles_list_widget, 10, 0, 1, 2)
 
         self.update_db_button = QPushButton("Zapisz")
         self.update_db_button.setMinimumSize(150, 35)
@@ -366,7 +366,7 @@ class AddVehicleView(QWidget):
         )
         self.update_db_button.show()
         self.update_db_button.clicked.connect(self.update_db_request.emit)
-        self.main_layout.addWidget(self.update_db_button, 10, 1, 1, 1, alignment=Qt.AlignRight)
+        self.main_layout.addWidget(self.update_db_button, 11, 1, 1, 1, alignment=Qt.AlignRight)
 
 
     def show_results(self, success: bool, msg: str):

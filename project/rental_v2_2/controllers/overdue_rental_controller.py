@@ -17,6 +17,7 @@ class OverdueRentalController():
         self.view = view
         self.current_role = role
 
+        self.view.handle_overdue_tasks_details.connect(self.overdue_rental_details)
         self.view.handle_get_overdue.connect(self._get_overdue_tasks)
         self.view.handle_overdue_update_db.connect(self.overdue_update_db)
 
@@ -60,7 +61,7 @@ class OverdueRentalController():
 
             success, msg = update_rental(self.session, task, actual_return_date)
 
-            self.view.summary_opdate_repair(success, msg)
+            self.view.summary_update_repair(success, msg)
 
         elif isinstance(task, RentalHistory):
 

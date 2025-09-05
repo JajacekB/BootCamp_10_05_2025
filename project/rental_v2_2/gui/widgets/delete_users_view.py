@@ -32,11 +32,11 @@ class DeleteUsersWidget(QWidget):
         main_layout = QVBoxLayout()
 
         if self.role == "seller":
-            title_label = QLabel("Przegląd pracowników wypożyczalni:")
+            title_label = QLabel("=== Przegląd pracowników wypożyczalni ===")
         else:
-            title_label = QLabel("Przegląd klientów wypożyczalni niemających wypożyczeń:")
+            title_label = QLabel("=== Przegląd klientów wypożyczalni niemających wypożyczeń ===")
 
-        title_label.setStyleSheet("font-size: 28px; color: white;")
+        title_label.setStyleSheet("font-size: 28px; color: #A9C1D9;")
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
 

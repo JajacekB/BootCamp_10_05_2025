@@ -47,6 +47,7 @@ class UpdateUserView(QWidget):
         main_layout = QVBoxLayout()
 
         self.header_label = QLabel(">>> PRZEGLĄD PROFILU <<<")
+        self.header_label.setStyleSheet("font-size: 24px; color: #A9C1D9; ")
         main_layout.addWidget(self.header_label)
 
         self.label_keys = QLabel()
@@ -340,6 +341,7 @@ class UpdateUserView(QWidget):
 
         if success:
             self._reset_edit_mode()
+            self.header_label.setText(">>> PRZEGLĄD PROFILU <<<")
             self.user = user
             QMessageBox.information(self, "Sukces", "✅ Zaktualizowano pomyślnie!")
         else:
@@ -347,6 +349,7 @@ class UpdateUserView(QWidget):
 
 
     def _on_change_password(self):
+        self.header_label.setText(">>> ZMIANA HASŁA <<<")
         self.container_1.hide()
         self.container_2.hide()
         self.container_3.show()
@@ -387,6 +390,7 @@ class UpdateUserView(QWidget):
     def update_password_confirm(self, success, msg):
 
         if success:
+            self.header_label.setText(">>> PRZEGLĄD PROFILU <<<")
             self.new_password_input.setStyleSheet(self.regular_style)
             self.new_password_input.clear()
             self.confirm_new_password_input.setStyleSheet(self.regular_style)
@@ -402,6 +406,7 @@ class UpdateUserView(QWidget):
     def _reset_edit_mode(self):
 
         self.populate_user_data()
+        self.header_label.setText(">>> PRZEGLĄD PROFILU <<<")
         self.container_3.hide()
         self.container_2.hide()
         self.container_1.show()

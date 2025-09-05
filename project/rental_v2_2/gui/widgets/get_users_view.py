@@ -18,8 +18,8 @@ class GetUsersWidget(QWidget):
 
         main_layout = QVBoxLayout()
 
-        title_label = QLabel("Przegląd klientów wypożyczalni:")
-        title_label.setStyleSheet("font-size: 28px; color: white; ")
+        title_label = QLabel("=== Przegląd klientów wypożyczalni ===")
+        title_label.setStyleSheet("font-size: 28px; color: #A9C1D9; ")
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
 

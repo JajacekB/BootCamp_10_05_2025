@@ -52,8 +52,8 @@ class ReturnVehicleView(QWidget):
     def _build_ui(self):
         self.main_layout = QVBoxLayout()
 
-        self.title_label = QLabel("Historia wypożyczeń:")
-        self.title_label.setStyleSheet("font-size: 26px; color: white; ")
+        self.title_label = QLabel("=== Historia wypożyczeń ===")
+        self.title_label.setStyleSheet("font-size: 26px; color: #A9C1D9; ")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label)
 

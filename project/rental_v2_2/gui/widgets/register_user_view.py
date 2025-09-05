@@ -49,7 +49,7 @@ class RegisterUserView(QDialog):
 
         self.title_label = QLabel("Podaj dane osobiste:", self)
         self.title_label.setAlignment(Qt.AlignCenter)
-        self.title_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        self.title_label.setStyleSheet("color: #A9C1D9; font-size: 20px; font-weight: bold;")
         self.main_layout.addWidget(self.title_label, 0, 0, 1, 2)
 
         self.first_name_input = QLineEdit()
@@ -69,7 +69,7 @@ class RegisterUserView(QDialog):
 
         self.address_label = QLabel("Podaj adres zamieszkania:", self)
         self.address_label.setAlignment(Qt.AlignCenter)
-        self.address_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        self.address_label.setStyleSheet("color: #A9C1D9; font-size: 20px; font-weight: bold;")
         self.main_layout.addWidget(self.address_label, 2, 0, 1, 2)
 
         self.street_input = QLineEdit()
@@ -91,7 +91,7 @@ class RegisterUserView(QDialog):
 
         self.login_label = QLabel("Podaj dane logowania:", self)
         self.login_label.setAlignment(Qt.AlignCenter)
-        self.login_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold;")
+        self.login_label.setStyleSheet("color: #A9C1D9; font-size: 20px; font-weight: bold;")
         self.main_layout.addWidget(self.login_label, 4, 0, 1, 2)
 
         if self.auto and self.role == "seller":

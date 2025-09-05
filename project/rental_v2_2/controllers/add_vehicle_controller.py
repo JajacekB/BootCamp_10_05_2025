@@ -1,4 +1,5 @@
 from PySide6.QtCore import Slot
+from sqlalchemy.exc import IntegrityError
 
 from services.id_generators import generate_vehicle_id
 from models.user import User
@@ -52,9 +53,16 @@ class AddVehicleController():
                     is_electric=data["is_electric"],
                     individual_id=data["individual_id"],
                 )
-            self.session.add(vehicle)
-            self.session.flush()
-            vehicles.append(vehicle)
+            try:
+
+                self.session.add(vehicle)
+                self.session.flush()
+                vehicles.append(vehicle)
+
+            except IntegrityError as e:
+                self.session.rollback()
+
+
 
         self.view.show_vehicles_list(vehicles)
 

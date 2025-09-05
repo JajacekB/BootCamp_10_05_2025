@@ -116,7 +116,7 @@ class OverdueRentalView(QWidget):
             " font-size: 20px; color: white;"
         )
         self.date_approve.setFixedSize(150, 45)
-        # self.date_approve.clicked.connect(self.overdue_update_database)
+        self.date_approve.clicked.connect(self.overdue_update_database)
         hbox2.addWidget(self.date_approve)
 
         hbox2.addStretch()
@@ -163,6 +163,7 @@ class OverdueRentalView(QWidget):
 
 
     def _on_overdue_tasks_details(self, item):
+        print(f"{item=}")
 
         obj = item.data(Qt.UserRole)
         self.handle_overdue_tasks_details.emit(obj)
@@ -177,10 +178,7 @@ class OverdueRentalView(QWidget):
 
     def overdue_update_database(self, item):
 
-        self.handle_overdue_update_db.emit()
-
         actual_return_date_input = self.calendar_input.get_date()
-
 
         for item in self.rentals_list.selectedItems():
             task = item.data(Qt.UserRole)
@@ -192,7 +190,7 @@ class OverdueRentalView(QWidget):
         if success:
             QMessageBox.information(
                 self,
-                "Sukces, pojazd został zwrócony",
+                "Sukces, pojazd wrócił z naprawy",
                 f"{msg}"
             )
         else:
@@ -218,9 +216,6 @@ class OverdueRentalView(QWidget):
     def overdue_finish(self):
         for widget in (self.calendar_comment_label, self.calendar_input, self.date_approve):
             widget.show()
-
-
-
 
     def _hide_widget(self):
         self.overdue_rental_detail.clear()

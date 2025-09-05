@@ -211,6 +211,7 @@ class OverdueRentalsWidget(QWidget):
         self.adjust_list_height()
 
     def overdue_rental_details(self, item):
+        print("Wybrany pojazd")
         self.overdue_rental_detail.clear()
 
         obj = item.data(Qt.UserRole)

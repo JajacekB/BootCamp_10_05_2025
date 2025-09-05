@@ -40,7 +40,8 @@ from controllers.add_vehicle_controller import AddVehicleController
 from gui.widgets.overdue_rental_view import OverdueRentalView
 from controllers.overdue_rental_controller import OverdueRentalController
 
-from gui.windows.rent_vehicle_widget import RentVehicleWidget
+from gui.widgets.rent_vehicle_view import RentVehicleView
+from controllers.rent_vehicle_controller import RentVehicleController
 
 
 class AdminDialogController(QObject):
@@ -210,8 +211,14 @@ class AdminDialogController(QObject):
 
     def show_rent_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano rent_vehicle_widget()")
-        self.rent_vehicle_widget = RentVehicleWidget(self.db_session, self.current_user)
-        self.show_widget(self.rent_vehicle_widget)
+        view = RentVehicleView(self.current_role)
+        controller = RentVehicleController(self.db_session, view, self.current_user)
+        self.controller = controller
+        self.show_widget(view)
+
+
+        # self.rent_vehicle_widget = RentVehicleWidget(self.db_session, self.current_user)
+        # self.show_widget(self.rent_vehicle_widget)
 
     def show_return_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano return_vehicle_widget()")

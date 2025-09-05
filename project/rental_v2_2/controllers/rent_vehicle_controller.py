@@ -4,6 +4,7 @@ from PySide6.QtCore import Slot
 from models.vehicle import Vehicle
 from models.invoice import Invoice
 from models.rental_history import RentalHistory
+from repositories.read_methods import get_user_by
 from services.rental_costs import calculate_rental_cost
 from services.vehicle_avability import get_available_vehicles
 from services.id_generators import generate_reservation_id, generate_invoice_number
@@ -53,8 +54,12 @@ class RentVehicleController():
 
         self.view.show_chosen_vehicle(self.chosen_vehicle, rental_count)
 
-    def _accept_rent_chose(self):
-        # self.user = self.session.query(User).filter(User.role == "admin").first()
+    @Slot(str)
+    def _accept_rent_chose(self, client_info):
+        if client_info:
+            self.user = get_user_by(self.session ,user_id=client_info)
+
+        print(f"{self.user}")
 
         rent_days = (self.planned_return_date - self.start_date).days
         self.base_cost = rent_days * self.chosen_vehicle.cash_per_day
@@ -65,9 +70,15 @@ class RentVehicleController():
             f"Całkowity koszt {self.total_cost} zł\n"
             f"Kwota bazowa {self.base_cost} zł, udzielone rabaty {discount_value} zł {discount_type}"
         )
-        self.view.show_rental_cost(self.total_cost, discount_value, discount_type, total_cost_str)
+        self.view.show_rental_cost(self.total_cost, discount_value, discount_type, total_cost_str, self.user)
 
-    def _accept_and_update_rental(self):
+    @Slot(object)
+    def _accept_and_update_rental(self, user: object=None):
+
+        if user:
+            self.user = user
+
+        print(f"_accept_and_update says {self.user}")
 
         try:
             reservation_id = generate_reservation_id(self.session)
