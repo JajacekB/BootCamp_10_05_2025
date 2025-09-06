@@ -309,11 +309,6 @@ class ReturnVehicleView(QWidget):
 
 
 
-
-
-
-
-
     def adjust_list_height(self):
         if self.rentals_list.count() > 0:
             row_height = self.rentals_list.sizeHintForRow(0)

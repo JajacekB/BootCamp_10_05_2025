@@ -1,9 +1,14 @@
 # get_users_view.py
+import platform
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox, QListWidget, QListWidgetItem, QGroupBox, QHBoxLayout
-from PySide6.QtCore import Qt
-from datetime import date
+from PySide6.QtCore import Qt, Signal
+
 
 class GetUsersWidget(QWidget):
+
+    handle_search_clicked = Signal()
+    handle_item_clicked = Signal(object)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._build_ui()
@@ -33,6 +38,7 @@ class GetUsersWidget(QWidget):
         self.search_button.setStyleSheet(
             "background-color: green; font-size: 20px; color: white; border-radius: 8px; padding: 5px;"
         )
+        self.search_button.clicked.connect(self._on_clicked_search_button)
         self.search_button.setFixedSize(150, 35)
 
         button_layout = QHBoxLayout()
@@ -49,17 +55,37 @@ class GetUsersWidget(QWidget):
 
         self.list_widget = QListWidget()
         self.list_widget.setWordWrap(True)
+
+        font = self.list_widget.font()
+        system = platform.system()
+        if system == "Windows":
+            font.setFamily("Consolas")
+        elif system == "Darwin":
+            font.setFamily("Menlo")
+        else:
+            font.setFamily("DejaVu Sans Mono")
+        self.list_widget.setFont(font)
+        self.list_widget.addItem("")
+        self.adjust_list_height()
+
+        self.list_widget.itemClicked.connect(self._on_list_item_clicked)
         main_layout.addWidget(self.list_widget)
         self.adjust_list_height()
 
         main_layout.addStretch()
         self.setLayout(main_layout)
 
+    def _on_clicked_search_button(self):
+        self.handle_search_clicked.emit()
+
     def add_user_to_list(self, uid, user_str):
-        item = QListWidgetItem(user_str)
-        item.setData(Qt.UserRole, uid)
-        self.list_widget.addItem(item)
+        self.item = QListWidgetItem(user_str)
+        self.item.setData(Qt.UserRole, uid)
+        self.list_widget.addItem(self.item)
         self.adjust_list_height()
+
+    def _on_list_item_clicked(self):
+        self.handle_item_clicked.emit(self.item)
 
     def show_user_details(self, details: dict):
         self.list_widget.blockSignals(True)
@@ -84,9 +110,12 @@ class GetUsersWidget(QWidget):
             else:
                 vehicle_str = "Pojazd: brak danych"
 
-            if details.get("start_date") and details.get("planned_date"):
-                start_str = details["start_date"].strftime("%Y-%m-%d")
-                planned_str = details["planned_date"].strftime("%Y-%m-%d")
+            # if details.get("start_date") and details.get("planned_date"):
+            if details["vehicle"]:
+                # start_str = details["start_date"].strftime("%Y-%m-%d")
+                start_str = rent.start_date.strftime("%Y-%m-%d")
+                # planned_str = details["planned_date"].strftime("%Y-%m-%d")
+                planned_str = rent.planned_return_date.strftime("%Y-%m-%d")
                 rental_str = f"Wynajęty od {start_str} do {planned_str}"
             else:
                 rental_str = "Brak aktywnego wynajmu"

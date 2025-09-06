@@ -7,11 +7,11 @@ class GetUsersController:
         self.view = view
         self.service = service
 
-        self.view.search_button.clicked.connect(self.on_search_clicked)
-        self.view.list_widget.itemClicked.connect(self.on_item_clicked)
+        self.view.handle_search_clicked.connect(self._on_search_clicked)
+        self.view.handle_item_clicked.connect(self.on_item_clicked)
 
     @Slot()
-    def on_search_clicked(self):
+    def _on_search_clicked(self):
         self.view.list_widget.clear()
         users_type = self.view.status_combo_box.currentText()
 
@@ -46,7 +46,7 @@ class GetUsersController:
         except Exception as e:
             QMessageBox.critical(self.view, "Błąd", f"Wystąpił błąd podczas pobierania danych:\n{e}")
 
-    @Slot()
+    @Slot(object)
     def on_item_clicked(self, item):
         uid = item.data(Qt.UserRole)
         if not isinstance(uid, int):

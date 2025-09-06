@@ -10,7 +10,7 @@ class GetUsersService:
         self.session = session
 
     def get_users_with_rent(self):
-        """Klienci mający aktywne wypożyczenie (niezależnie od aktywności)."""
+
         vehicles = self.session.query(Vehicle).filter(Vehicle.is_available == False).all()
         if not vehicles:
             return []
@@ -18,27 +18,27 @@ class GetUsersService:
         return (
             self.session.query(User)
             .filter(User.id.in_(user_ids), User.role == "client")
-            .order_by(User.first_name, User.last_name)
+            .order_by(User.last_name, User.first_name)
             .all()
         )
 
     def get_users_without_rent(self):
-        """Aktywni klienci bez wypożyczenia."""
+
         vehicles = self.session.query(Vehicle).filter(Vehicle.is_available == False).all()
         user_ids = [v.borrower_id for v in vehicles] if vehicles else []
         return (
             self.session.query(User)
             .filter(User.id.notin_(user_ids), User.role == "client", User.is_active == True)
-            .order_by(User.first_name, User.last_name)
+            .order_by(User.last_name, User.first_name)
             .all()
         )
 
     def get_all_clients(self):
-        """Wszyscy klienci: aktywni na górze, nieaktywni na dole."""
+
         active = (
             self.session.query(User)
             .filter(User.role == "client", User.is_active == True)
-            .order_by(User.first_name, User.last_name)
+            .order_by(User.last_name, User.first_name)
             .all()
         )
         inactive = (
@@ -50,7 +50,7 @@ class GetUsersService:
         return active + inactive
 
     def get_inactive_users(self):
-        """Wyłącznie nieaktywni klienci."""
+
         return (
             self.session.query(User)
             .filter(User.role == "client", User.is_active == False)
@@ -73,14 +73,27 @@ class GetUsersService:
         """Zwraca dane o użytkowniku i ostatnim wypożyczeniu"""
         user = self.session.query(User).filter_by(id=user_id).first()
         vehicle = self.session.query(Vehicle).filter_by(borrower_id=user_id).first()
-        rent = (
-            self.session.query(RentalHistory)
-            .filter_by(user_id=user_id)
-            .order_by(desc(RentalHistory.planned_return_date))
-            .first()
-        )
+        active_rentals = self.session.query(RentalHistory).filter(
+            RentalHistory.user_id == user_id,
+            RentalHistory.actual_return_date.is_(None)
+        ).order_by(RentalHistory.planned_return_date.desc()).all()
+
+        historical_rentals = self.session.query(RentalHistory).filter(
+            RentalHistory.user_id == user_id,
+            RentalHistory.actual_return_date.isnot(None)
+        ).order_by(RentalHistory.planned_return_date.desc()).all()
+
+        rentals = active_rentals + historical_rentals
+
+
+        # rent = (
+        #     self.session.query(RentalHistory)
+        #     .filter_by(user_id=user_id)
+        #     .order_by(desc(RentalHistory.planned_return_date))
+        #     .first()
+        # )
         return {
             "user": user,
             "vehicle": vehicle if vehicle else None,
-            "rent": rent if rent else None,
+            "rent": rentals if rentals else None,
         }
