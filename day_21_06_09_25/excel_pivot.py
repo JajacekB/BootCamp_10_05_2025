@@ -20,3 +20,25 @@ for row in data:
 pivot_ws = wb.create_sheet("Tabela Przestawna")
 
 wb.save("tabela_przestawna.xlsx")
+
+# Dodawanie arkusza z danymi
+ws = wb.add_worksheet("Dane")
+ws.write_row('A1', data[0])  # Nagłówki
+for row_num, row in enumerate(data[1:], start=1):
+    ws.write_row(f'A{row_num + 1}', row)  # Wiersze danych
+
+# Dodawanie arkusza, gdzie będzie tabela przestawna
+pivot_ws = wb.add_worksheet("Tabela Przestawna")
+
+# Tworzenie tabeli przestawnej
+pivot_table_range = 'A1:D6'  # Zakres danych
+pivot_table_location = 'A1'  # Lokalizacja tabeli przestawnej w nowym arkuszu
+
+# Tworzymy obiekt PivotTable
+pivot_table = pivot_ws.add_pivot_table(
+    pivot_table_location,
+    range=pivot_table_range,
+    rows=['Kategoria'],  # Kolumny wierszy
+    columns=['Produkt'],  # Kolumny
+    values={'Sprzedaj': 'sum'},  # Agregacja danych
+)
