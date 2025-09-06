@@ -43,18 +43,8 @@ class CalendarCombo(QWidget):
         fmt = QTextCharFormat()
         fmt.setForeground(Qt.black)
         self.cal.setHeaderTextFormat(fmt)
-
-        # today = QDate.currentDate()
-        # self.cal.setSelectedDate(today)
-        # self.line_edit.setText(today.toString("dd-MM-yyyy"))
-
         self.cal.selectionChanged.connect(lambda: self.update_date(dlg))
 
-        # self.cal.selectionChanged.connect(lambda: self.line_edit.setText(
-        #     self.cal.selectedDate().toString("dd-MM-yyyy")
-        # ))
-
-        # dlg.move(self.mapToGlobal(self.button.pos()))
         dlg.exec()
 
     def update_date(self, dlg):
@@ -63,7 +53,6 @@ class CalendarCombo(QWidget):
         dlg.accept()
 
     def get_date(self):
-        """Zwraca aktualnie wybraną datę jako QDate"""
         return self.selected_date
 
 

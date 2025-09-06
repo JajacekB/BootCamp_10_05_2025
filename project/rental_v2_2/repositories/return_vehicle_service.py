@@ -8,15 +8,16 @@ class ReturnVehicleService:
         self.session = session
         self.user = user
 
-    def get_rentals_from_db(self, mode):
+    def get_rentals_from_db(self, mode, id_user):
+        print(f"service says {id_user=}")
 
         active_rentals = self.session.query(RentalHistory).filter(
-            RentalHistory.user_id == self.user.id,
+            RentalHistory.user_id == id_user,
             RentalHistory.actual_return_date.is_(None)
         ).order_by(RentalHistory.planned_return_date.desc()).all()
 
         historical_rentals = self.session.query(RentalHistory).filter(
-            RentalHistory.user_id == self.user.id,
+            RentalHistory.user_id == id_user,
             RentalHistory.actual_return_date.isnot(None)
         ).order_by(RentalHistory.planned_return_date.desc()).all()
 

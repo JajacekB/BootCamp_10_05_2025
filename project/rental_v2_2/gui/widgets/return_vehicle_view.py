@@ -1,7 +1,7 @@
 # gui.widgets.return_vehicle_view.py
 import platform
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox,
-        QListWidget, QListWidgetItem, QMessageBox, QGroupBox, QHBoxLayout, QGridLayout
+        QListWidget, QListWidgetItem, QMessageBox, QGroupBox, QHBoxLayout, QGridLayout, QLineEdit
     )
 from PySide6.QtCore import Qt, Signal
 
@@ -10,16 +10,17 @@ from gui.windows.calendar_combo_widget import CalendarCombo
 
 class ReturnVehicleView(QWidget):
 
-    handle_rentals_list = Signal(str)
+    handle_rentals_list = Signal(str, str)
     handle_rental_detail = Signal(object)
     handle_end_rental = Signal(object, object, str)
     handle_finalize_rental = Signal(object)
 
 
-    def __init__(self, role = "client"):
+    def __init__(self, role = "client", id_user: str = None):
         super().__init__()
         self.controller = None
-        self.role = role
+        self.current_role = role
+        self.id_user = id_user
 
         self.setWindowTitle("Pojazdy")
 
@@ -52,6 +53,13 @@ class ReturnVehicleView(QWidget):
         self.title_label.setStyleSheet("font-size: 26px; color: #A9C1D9; ")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label)
+
+        if self.current_role in ["admin", "seller"]:
+            chose_layout = QFormLayout()
+            self.client_info_input = QLineEdit()
+            self.client_info_input.setPlaceholderText("Zostaw puste pole jeśli kończysz swoje wypozyczenie!")
+            chose_layout.addRow("Podaj numer klienta:", self.client_info_input)
+            self.main_layout.addLayout(chose_layout)
 
         self.filters_group = QGroupBox("Filtry wyszukiwania")
         self.form_layout = QFormLayout()
@@ -95,8 +103,6 @@ class ReturnVehicleView(QWidget):
         self.adjust_list_height()
         self.main_layout.addWidget(self.rentals_list)
         self.rentals_list.itemClicked.connect(self.on_click_rental_details)
-
-
 
         self.grid_layout = QGridLayout()
         self.grid_widget = QWidget()
@@ -164,8 +170,23 @@ class ReturnVehicleView(QWidget):
         self.setLayout(self.main_layout)
 
     def on_click_rental_list(self):
-        mode = self.rentals_combo_box.currentText()
-        self.handle_rentals_list.emit(mode)
+
+        if self.current_role == "client":
+            print(f"_on_click_rental_list says {self.id_user=}")
+            mode = self.rentals_combo_box.currentText()
+            self.handle_rentals_list.emit(mode, str(self.id_user))
+
+        elif self.current_role in ["admin", "seller"]:
+            client_info = self.client_info_input.text()
+            if not client_info:
+                print(f"_on_click_rental_list says {self.id_user=}")
+                mode = self.rentals_combo_box.currentText()
+                self.handle_rentals_list.emit(mode, str(self.id_user))
+
+            else:
+                print(f"_on_click_rental_list says {client_info=}")
+                mode = self.rentals_combo_box.currentText()
+                self.handle_rentals_list.emit(mode, client_info)
 
     def on_click_rental_details(self):
         item = self.rentals_list.currentItem()
@@ -204,10 +225,10 @@ class ReturnVehicleView(QWidget):
 
             return_date = rental.actual_return_date or rental.planned_return_date
             text = (
-                f"|{rental.reservation_id:>7} "
-                f"|{rental.vehicle.brand:>11} "
-                f"|{rental.vehicle.vehicle_model:>13} "
-                f"|{rental.vehicle.type:>7} "
+                f"|{rental.reservation_id:<7} "
+                f"|{rental.vehicle.brand:<11} "
+                f"|{rental.vehicle.vehicle_model:<13} "
+                f"|{rental.vehicle.type:<9} "
                 f"|{rental.start_date.strftime('%d-%m-%Y'):>11} → "
                 f"{return_date.strftime('%d-%m-%Y'):<11}"
                 f"|{rental.total_cost:>7} zł |"

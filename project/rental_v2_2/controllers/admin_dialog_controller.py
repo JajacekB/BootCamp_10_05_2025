@@ -48,7 +48,8 @@ class AdminDialogController(QObject):
     def __init__(self, user, db_session, parent_window, logout_callback):
         super().__init__()
         self.current_user = user
-        self.current_role = user.role.lower()
+        self.current_role = user.role
+        self.current_user_id = user.id
         self.db_session = db_session
         self.parent_window = parent_window
         self.logout_callback = logout_callback
@@ -236,7 +237,7 @@ class AdminDialogController(QObject):
 
     def show_return_vehicle_widget(self):
         print("🔧🔧🔧 Wywołano return_vehicle_widget()")
-        view = ReturnVehicleView(role="client")
+        view = ReturnVehicleView(role=self.current_role, id_user=self.current_user_id)
         service = ReturnVehicleService(self.db_session, self.current_user)
         controller = ReturnVehicleController(self.db_session, view, service, self.current_user)
         view.set_controller(controller)

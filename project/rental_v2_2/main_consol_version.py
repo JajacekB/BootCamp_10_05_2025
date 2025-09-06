@@ -5,7 +5,7 @@ from ui.menu_admin import menu_admin
 from ui.menu_seller import menu_seller
 from ui.menu_client import menu_client
 from services.overdue_check import check_overdue_vehicles
-from database.base import SessionLocal, Session
+from database.base import SessionLocal
 from config import DATABASE_URL
 
 

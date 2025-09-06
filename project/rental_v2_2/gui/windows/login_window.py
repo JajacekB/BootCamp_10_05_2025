@@ -94,13 +94,10 @@ class LoginDialog(QDialog):
         button_layout.addWidget(self.cancel_button)
         main_layout.addLayout(button_layout)
 
-        # Set focus to the login input initially
         self.login_input.setFocus()
 
     def _perform_login(self):
-        """
-        Attempts to log in the user using the provided credentials.
-        """
+
         login_or_email = self.login_input.text().strip()
         password = self.password_input.text().strip()
 
@@ -109,26 +106,23 @@ class LoginDialog(QDialog):
             self.message_label.setStyleSheet("color: red;")
             return
 
-        # Call the new GUI-friendly login function from auth_service
         user = login_user_gui(self.db_session, login_or_email, password)
 
         if user:
             self.message_label.setText(f"Zalogowano jako {user.first_name} {user.last_name} ({user.role}!")
             self.message_label.setStyleSheet("color: green;")
-            # Emit the signal with the user object and close the dialog
+
             self.login_successful.emit(user)
-            self.accept() # Close dialog with QDialog.Accepted result
+            self.accept()
         else:
             self.message_label.setText("Nieprawidłowy login/email lub hasło.")
             self.message_label.setStyleSheet("color: red;")
-            # Clear password field for security
+
             self.password_input.clear()
 
     def _cancel_login(self):
-        """
-        Handles the cancel button click.
-        """
+
         self.login_cancelled.emit()
-        self.reject() # Close dialog with QDialog.Rejected result
+        self.reject()
 
 

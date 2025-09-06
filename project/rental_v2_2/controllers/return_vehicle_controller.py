@@ -1,6 +1,7 @@
 
-from PySide6.QtCore import Signal, QObject
+from PySide6.QtCore import Signal, QObject, Slot
 
+from models.user import User
 from services.rental_costs import recalculate_cost
 from services.database_update import update_database
 
@@ -16,15 +17,16 @@ class ReturnVehicleController(QObject):
         self.service = service
         self.user = user
 
-
         self.view.handle_rentals_list.connect(self.on_handle_rentals)
         self.view.handle_rental_detail.connect(self.get_rental_details)
         self.view.handle_end_rental.connect(self.get_rental_cost)
         self.view.handle_finalize_rental.connect(self.update_rental_data)
 
-    def on_handle_rentals(self, mode: str):
+    @Slot(str, str)
+    def on_handle_rentals(self, mode: str, id_user: str=None):
+        print(f"Controller says {id_user=}")
 
-        rentals = self.service.get_rentals_from_db(mode)
+        rentals = self.service.get_rentals_from_db(mode, id_user)
         self.view.load_rentals(rentals)
 
     def get_rental_details(self, rental):

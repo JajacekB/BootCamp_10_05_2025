@@ -53,17 +53,17 @@ class RentVehicleView(QWidget):
 
         self.main_layout = QGridLayout()
 
+        self.title_label = QLabel("=== WYPOŻYCZENIE POJAZDU ===")
+        self.title_label.setStyleSheet("font-size: 24px; color: #A9C1D9; ")
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.main_layout.addWidget(self.title_label, 0, 1, 1, 3)
+
         if self.current_role in ["admin", "seller"]:
             chose_layout = QFormLayout()
             self.client_info_input = QLineEdit()
             self.client_info_input.setPlaceholderText("Zostaw puste pole jeśli wypozyczasz dla siebie!")
             chose_layout.addRow("Podaj numer klienta:", self.client_info_input)
-            self.main_layout.addLayout(chose_layout, 0, 1, 1, 3)
-
-        self.title_label = QLabel("=== WYPOŻYCZENIE POJAZDU ===")
-        self.title_label.setStyleSheet("font-size: 24px; color: #A9C1D9; ")
-        self.title_label.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(self.title_label, 1, 1, 1, 3)
+            self.main_layout.addLayout(chose_layout, 1, 1, 1, 3)
 
         self.title_label = QLabel("")
         self.title_label.setStyleSheet("font-size: 24px; color: white; ")

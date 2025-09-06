@@ -76,12 +76,27 @@ class GetUsersWidget(QWidget):
         if not rent:
             vehicle_item = QListWidgetItem("Nigdy nie wypożyczał żadnego pojazdu")
         else:
-            start_str = rent.start_date.strftime("%d.%m.%Y") if rent.start_date else "brak daty startu"
-            planned_str = rent.planned_return_date.strftime("%d.%m.%Y") if rent.planned_return_date else "brak daty zwrotu"
-            vehicle_text = [
-                f"Pojazd: {details['vehicle']}" if details["vehicle"] else "Pojazd: brak danych",
-                f"Wynajęty od {start_str} do {planned_str}"
-            ]
+            # start_str = rent.start_date.strftime("%d.%m.%Y") if rent.start_date else "brak daty startu"
+            # planned_str = rent.planned_return_date.strftime("%d.%m.%Y") if rent.planned_return_date else "brak daty zwrotu"
+
+            if details["vehicle"]:
+                vehicle_str = f"Pojazd: {details['vehicle']}"
+            else:
+                vehicle_str = "Pojazd: brak danych"
+
+            if details.get("start_date") and details.get("planned_date"):
+                start_str = details["start_date"].strftime("%Y-%m-%d")
+                planned_str = details["planned_date"].strftime("%Y-%m-%d")
+                rental_str = f"Wynajęty od {start_str} do {planned_str}"
+            else:
+                rental_str = "Brak aktywnego wynajmu"
+
+            vehicle_text = [vehicle_str, rental_str]
+
+            # vehicle_text = [
+            #     f"Pojazd: {details['vehicle']}" if details["vehicle"] else "Pojazd: brak danych",
+            #     f"Wynajęty od {start_str} do {planned_str}"
+            # ]
             vehicle_item = QListWidgetItem("\n".join(vehicle_text))
 
         vehicle_item.setFlags(Qt.NoItemFlags)

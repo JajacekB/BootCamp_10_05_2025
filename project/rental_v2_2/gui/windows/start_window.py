@@ -75,7 +75,6 @@ class StartWindow(QWidget):
         logo_label.setAlignment(Qt.AlignCenter)
 
         self.title_label = QLabel("🚗  MOTO VIBE 3000  🚗\nWYPOŻYCZALNIA POJAZDÓW")
-        # self.title_label.setFont(QFont("Arial", 36, QFont.Bold))
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setStyleSheet("font-family: Arial; color: white; font-size: 36px; font-weight: bold;")
 
@@ -89,7 +88,6 @@ class StartWindow(QWidget):
         for btn in [self.btn_login, self.btn_register]:
             btn.setFixedSize(550, 50)
             btn.setStyleSheet("font-family: Arial; font-size: 22px;")
-
 
         self.btn_login.clicked.connect(self.login_requested.emit)
         self.btn_register.clicked.connect(lambda: self.register_requested.emit(self))
@@ -117,7 +115,6 @@ class StartWindow(QWidget):
             f"🚗  MOTO VIBE 3000  🚗\n\n"
             f">>> Do widzenia <<<"
         )
-        # self.title_label.setFont(QFont("Arial", 40, QFont.Bold))
         self.title_label.setStyleSheet("font-family: Arial; color: #FFD700; font-size: 40px; font-weight: bold;")
         self.btn_login.hide()
         self.btn_register.hide()
