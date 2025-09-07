@@ -1,13 +1,16 @@
 # get_users_view.py
 import platform
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QComboBox, QListWidget, QListWidgetItem, QGroupBox, QHBoxLayout
+from PySide6.QtWidgets import (
+        QWidget, QVBoxLayout, QFormLayout, QPushButton, QLabel, QMessageBox,
+        QComboBox, QListWidget, QListWidgetItem, QGroupBox, QHBoxLayout
+    )
 from PySide6.QtCore import Qt, Signal
 
 
 class GetUsersWidget(QWidget):
 
     handle_search_clicked = Signal()
-    handle_item_clicked = Signal(object)
+    handle_item_clicked = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -78,59 +81,64 @@ class GetUsersWidget(QWidget):
     def _on_clicked_search_button(self):
         self.handle_search_clicked.emit()
 
-    def add_user_to_list(self, uid, user_str):
-        self.item = QListWidgetItem(user_str)
-        self.item.setData(Qt.UserRole, uid)
-        self.list_widget.addItem(self.item)
+    def show_users_list(self, formatted_users, success: bool, message: str):
+        self.list_widget.clear()
+
+        if not success:
+            QMessageBox.information(self, "Informacja", message)
+            return
+
+        for uid, user_str in formatted_users:
+            self._add_user_to_list(uid, user_str)
+
+    def _add_user_to_list(self, uid, user_str):
+        item = QListWidgetItem(user_str)
+        item.setData(Qt.UserRole, uid)
+        self.list_widget.addItem(item)
         self.adjust_list_height()
 
-    def _on_list_item_clicked(self):
-        self.handle_item_clicked.emit(self.item)
+    def _on_list_item_clicked(self, item):
+        uid = item.data(Qt.UserRole)
+        if uid is not None:
+            self.handle_item_clicked.emit(uid)
 
     def show_user_details(self, details: dict):
         self.list_widget.blockSignals(True)
         self.list_widget.clear()
 
-        # Użytkownik
-        user_item = QListWidgetItem(f"Użytkownik: {details['user']}" if details["user"] else "Użytkownik: brak danych")
-        user_item.setFlags(Qt.NoItemFlags)
-        user_item.setData(Qt.UserRole, None)
-        self.list_widget.addItem(user_item)
+        user = details["user"]
+        user_item = f"Uzytkownik: {user}"
+        header = QListWidgetItem(user_item)
+        header.setFlags(Qt.NoItemFlags)
+        self.list_widget.addItem(header)
 
-        # Pojazd / wypożyczenie
-        rent = details["rent"]
-        if not rent:
-            vehicle_item = QListWidgetItem("Nigdy nie wypożyczał żadnego pojazdu")
-        else:
-            # start_str = rent.start_date.strftime("%d.%m.%Y") if rent.start_date else "brak daty startu"
-            # planned_str = rent.planned_return_date.strftime("%d.%m.%Y") if rent.planned_return_date else "brak daty zwrotu"
+        rentals = details["rent"]
 
-            if details["vehicle"]:
-                vehicle_str = f"Pojazd: {details['vehicle']}"
-            else:
-                vehicle_str = "Pojazd: brak danych"
+        for rental in rentals:
+            if rental is None:
+                separator_item = QListWidgetItem("")
+                separator_item.setFlags(Qt.NoItemFlags)
+                self.list_widget.addItem(separator_item)
+                continue
 
-            # if details.get("start_date") and details.get("planned_date"):
-            if details["vehicle"]:
-                # start_str = details["start_date"].strftime("%Y-%m-%d")
-                start_str = rent.start_date.strftime("%Y-%m-%d")
-                # planned_str = details["planned_date"].strftime("%Y-%m-%d")
-                planned_str = rent.planned_return_date.strftime("%Y-%m-%d")
-                rental_str = f"Wynajęty od {start_str} do {planned_str}"
-            else:
-                rental_str = "Brak aktywnego wynajmu"
+            return_date = rental.actual_return_date or rental.planned_return_date
+            text = (
+                f"|{rental.reservation_id:<7} "
+                f"|{rental.vehicle.brand:<11} "
+                f"|{rental.vehicle.vehicle_model:<13} "
+                f"|{rental.vehicle.type:<9} "
+                f"|{rental.start_date.strftime('%d-%m-%Y'):>11} → "
+                f"{return_date.strftime('%d-%m-%Y'):<11}"
+                f"|{rental.total_cost:>7} zł |"
+            )
 
-            vehicle_text = [vehicle_str, rental_str]
+            item = QListWidgetItem(text)
+            item.setFlags(Qt.NoItemFlags)
+            if rental.actual_return_date is not None:
+                item.setForeground(Qt.gray)
 
-            # vehicle_text = [
-            #     f"Pojazd: {details['vehicle']}" if details["vehicle"] else "Pojazd: brak danych",
-            #     f"Wynajęty od {start_str} do {planned_str}"
-            # ]
-            vehicle_item = QListWidgetItem("\n".join(vehicle_text))
+            self.list_widget.addItem(item)
 
-        vehicle_item.setFlags(Qt.NoItemFlags)
-        vehicle_item.setData(Qt.UserRole, None)
-        self.list_widget.addItem(vehicle_item)
         self.adjust_list_height()
         self.list_widget.blockSignals(False)
 

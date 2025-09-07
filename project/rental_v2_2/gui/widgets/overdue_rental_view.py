@@ -79,11 +79,11 @@ class OverdueRentalView(QWidget):
         self.cancel_button = QPushButton("Anuluj")
         self.cancel_button.hide()
         self.cancel_button.setStyleSheet(
-            "background-color: red;"
+            "background-color: brown;"
             " font-size: 20px; color: white;"
         )
-        self.cancel_button.setFixedSize(150, 45)
-        # self.cancel_button.clicked.connect(self.cancel_rentals)
+        self.cancel_button.setFixedSize(150, 35)
+        self.cancel_button.clicked.connect(self.cancel_rentals)
         hbox1.addWidget(self.cancel_button)
 
         self.finish_button = QPushButton("Tak")
@@ -92,7 +92,7 @@ class OverdueRentalView(QWidget):
             "background-color: darkgreen;"
             " font-size: 20px; color: white;"
         )
-        self.finish_button.setFixedSize(150, 45)
+        self.finish_button.setFixedSize(150, 35)
         self.finish_button.clicked.connect(self.overdue_finish)
         hbox1.addWidget(self.finish_button)
 
@@ -115,7 +115,7 @@ class OverdueRentalView(QWidget):
             "background-color: grey;"
             " font-size: 20px; color: white;"
         )
-        self.date_approve.setFixedSize(150, 45)
+        self.date_approve.setFixedSize(150, 35)
         self.date_approve.clicked.connect(self.overdue_update_database)
         hbox2.addWidget(self.date_approve)
 
@@ -216,6 +216,11 @@ class OverdueRentalView(QWidget):
     def overdue_finish(self):
         for widget in (self.calendar_comment_label, self.calendar_input, self.date_approve):
             widget.show()
+
+    def cancel_rentals(self):
+        self.title_label.hide()
+        self.rentals_list.hide()
+        self._hide_widget()
 
     def _hide_widget(self):
         self.overdue_rental_detail.clear()

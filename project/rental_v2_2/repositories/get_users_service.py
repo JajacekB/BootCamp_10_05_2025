@@ -69,7 +69,7 @@ class GetUsersService:
             for (uid, first, last, login) in user_view
         ]
 
-    def get_user_details(self, user_id: int) -> dict:
+    def show_user_details(self, user_id: int) -> dict:
         """Zwraca dane o użytkowniku i ostatnim wypożyczeniu"""
         user = self.session.query(User).filter_by(id=user_id).first()
         vehicle = self.session.query(Vehicle).filter_by(borrower_id=user_id).first()

@@ -5,16 +5,14 @@ from sqlalchemy import Column, Integer, String, Date, Boolean
 from sqlalchemy.orm import relationship
 from datetime import date
 from database.base import Base
-from models.vehicle import Vehicle
-from models.repair_history import RepairHistory
-from models.rental_history import RentalHistory
+
 
 
 class User(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    role = Column(String, nullable=False)  # 'admin', 'seller', 'client'
+    role = Column(String, nullable=False)
     first_name = Column(String, nullable=False)
     last_name = Column(String, nullable=False)
     login = Column(String, unique=True, nullable=False)
@@ -30,6 +28,8 @@ class User(Base):
     repairs_done = relationship("RepairHistory", back_populates="mechanic", foreign_keys="RepairHistory.mechanic_id")
 
     def __repr__(self):
-        return (f"Klient: [ID={self.id}]\n"
-                f"  {self.first_name} {self.last_name}"
-            )
+        return (
+            f"\n [ID={self.id}] {self.first_name} {self.last_name} login: {self.login}\n"
+            f"zamieszkały: {self.address}\n"
+            f"Telefon: {self.phone} email: {self.email}\n"
+        )

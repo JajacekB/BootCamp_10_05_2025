@@ -26,7 +26,10 @@ class GetVehicleService:
             vehicles = self.session.query(Vehicle).filter(Vehicle.is_active == False).all()
 
         else:
-            vehicles = self.session.query(Vehicle).filter(Vehicle.is_active == True).all()
+            vehicles = (self.session.query(Vehicle).filter
+                        (Vehicle.is_active == True,
+                         Vehicle.type == vehicle_type
+                         ).all())
 
         if not vehicles:
             print("\n🚫 Brak pasujących pojazdów.")

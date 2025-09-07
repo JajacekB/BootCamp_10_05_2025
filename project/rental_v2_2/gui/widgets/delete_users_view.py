@@ -46,9 +46,9 @@ class DeleteUsersWidget(QWidget):
         self.adjust_list_height()
 
         self.search_button = QPushButton("Pokaż")
-        self.search_button.setFixedSize(155, 45)
+        self.search_button.setFixedSize(155, 35)
         self.search_button.setStyleSheet(
-            "background-color: green;"
+            "background-color: darkgreen;"
             "font-size: 24px; color: white;"
             "border-radius: 8px; padding: 5px;"
         )
@@ -63,18 +63,18 @@ class DeleteUsersWidget(QWidget):
         btn_layout = QHBoxLayout()
 
         self.cancel_button = QPushButton("Anuluj")
-        self.cancel_button.setFixedSize(155, 40)
+        self.cancel_button.setFixedSize(155, 35)
         self.cancel_button.setStyleSheet(
-            "background-color: #F44336; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
+            "background-color: brown; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
         )
         self.cancel_button.setVisible(False)
         self.cancel_button.clicked.connect(lambda: self.cancel_requested.emit())
         btn_layout.addWidget(self.cancel_button)
 
         self.delete_user_button = QPushButton("Usuń użytkownika")
-        self.delete_user_button.setFixedSize(155, 40)
+        self.delete_user_button.setFixedSize(155, 35)
         self.delete_user_button.setStyleSheet(
-            "background-color: #4CAF50; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
+            "background-color: darkgreen; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
         )
         self.delete_user_button.setVisible(False)
         self.delete_user_button.clicked.connect(self._on_delete_clicked)
