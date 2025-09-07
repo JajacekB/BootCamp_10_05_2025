@@ -26,7 +26,7 @@ class GetUsersWidget(QWidget):
 
         main_layout = QVBoxLayout()
 
-        title_label = QLabel("=== Przegląd klientów wypożyczalni ===")
+        title_label = QLabel("=== Przegląd klientów wypożyczalni ===\n")
         title_label.setStyleSheet("font-size: 28px; color: #A9C1D9; ")
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
@@ -39,7 +39,7 @@ class GetUsersWidget(QWidget):
 
         self.search_button = QPushButton("Pokaż")
         self.search_button.setStyleSheet(
-            "background-color: green; font-size: 20px; color: white; border-radius: 8px; padding: 5px;"
+            "background-color: green; font-size: 18px; color: white; border-radius: 10px; padding: 5px;"
         )
         self.search_button.clicked.connect(self._on_clicked_search_button)
         self.search_button.setFixedSize(150, 35)

@@ -25,8 +25,9 @@ class AddVehicleView(QWidget):
                     font-size: 16px;
                 }
                 QPushButton {
+                    font-size: 18px;
                     background-color: #555;
-                    border-radius: 5px;
+                    border-radius: 10px;
                     padding: 5px;
                 }
                 QLineEdit {
@@ -92,8 +93,8 @@ class AddVehicleView(QWidget):
         self.cancel1_button.setMinimumSize(150, 35)
         self.cancel1_button.setStyleSheet(
             "background-color: brown;"
-            "font-size: 20px; color: white;"
-            " border-radius: 8px; padding: 4px;"
+            "font-size: 18px; color: white;"
+            " border-radius: 10px; padding: 5px;"
         )
         self.cancel1_button.clicked.connect(self._cancel_adding)
         self.main_layout.addWidget(self.cancel1_button, 8, 0, 1, 1, alignment=Qt.AlignLeft)
@@ -103,8 +104,8 @@ class AddVehicleView(QWidget):
         self.confirm_button.setMinimumSize(150, 35)
         self.confirm_button.setStyleSheet(
             "background-color: darkgreen;"
-            " font-size: 20px; color: white; color: white;"
-            " border-radius: 8px; padding: 4px;"
+            " font-size: 18px; color: white; color: white;"
+            " border-radius: 10px; padding: 5px;"
         )
         self.confirm_button.clicked.connect(self._build_veh_list)
         self.main_layout.addWidget(self.confirm_button, 8, 1, 1, 1, alignment=Qt.AlignRight)
@@ -119,22 +120,26 @@ class AddVehicleView(QWidget):
         self.setLayout(self.main_layout)
 
     def _update_vehicle_form(self, text):
-
         self.veh_type = self.veh_type_combo_box.currentText()
-        if hasattr(self, "individual_layout"):
-            while self.individual_layout.count():
-                item = self.individual_layout.takeAt(0)
-                if item.widget():
-                    item.widget().deleteLater()
-            self.main_layout.removeItem(self.individual_layout)
 
+        # usuń poprzedni kontener, jeśli istnieje
+        if hasattr(self, "individual_container"):
+            self.main_layout.removeWidget(self.individual_container)
+            self.individual_container.deleteLater()
+
+        # nowy kontener + layout
+        self.individual_container = QWidget()
+        self.individual_layout = QFormLayout(self.individual_container)
+
+        # reset atrybutów
         self.size_combo_box = None
         self.fuel_combo_box = None
         self.scooter_speed = None
         self.bike_typ_combo_box = None
         self.bike_electric_combo_box = None
 
-        self.individual_layout = QFormLayout()
+        # flag: czy coś dodaliśmy
+        has_fields = False
 
         if self.veh_type == "Samochody":
             self.vehicle_type = "car"
@@ -147,14 +152,16 @@ class AddVehicleView(QWidget):
 
             self.individual_layout.addRow("Wybierz klasę samochodu:", self.size_combo_box)
             self.individual_layout.addRow("Wybierz rodzaj paliwa/zasilania:", self.fuel_combo_box)
+            has_fields = True
 
         elif self.veh_type == "Skutery":
             self.vehicle_type = "scooter"
 
             self.scooter_speed = QLineEdit()
-            self.individual_layout.addRow("Prędkość maksymalna", self.scooter_speed)
+            self.individual_layout.addRow("Prędkość maksymalna:", self.scooter_speed)
+            has_fields = True
 
-        else:
+        elif self.veh_type == "Rower":
             self.vehicle_type = "bike"
 
             self.bike_typ_combo_box = QComboBox()
@@ -165,8 +172,76 @@ class AddVehicleView(QWidget):
 
             self.individual_layout.addRow("Wybierz rodzaj roweru:", self.bike_typ_combo_box)
             self.individual_layout.addRow("Wybierz czy jest elektryczny:", self.bike_electric_combo_box)
+            has_fields = True
 
-        self.main_layout.addLayout(self.individual_layout, 7, 0, 1, 1)
+        # tylko jeśli coś dodaliśmy – wrzucamy do głównego layoutu
+        if has_fields:
+            self.main_layout.addWidget(self.individual_container, 7, 0, 1, 1)
+        else:
+            self.individual_container.deleteLater()
+
+    # def _update_vehicle_form(self, text):
+    #
+    #     self.veh_type = self.veh_type_combo_box.currentText()
+    #
+    #     if hasattr(self, "individual_container"):
+    #         self.main_layout.removeWidget(self.individual_container)
+    #         self.individual_container.deleteLater()
+    #
+    #         while self.individual_layout.count():
+    #             item = self.individual_layout.takeAt(0)
+    #             if item.widget():
+    #                 item.widget().deleteLater()
+    #         self.main_layout.removeItem(self.individual_layout)
+    #
+    #     self.individual_container = QWidget()
+    #     self.individual_container.setLayout(self.individual_layout)
+    #
+    #
+    #     self.size_combo_box = None
+    #     self.fuel_combo_box = None
+    #     self.scooter_speed = None
+    #     self.bike_typ_combo_box = None
+    #     self.bike_electric_combo_box = None
+    #
+    #     has_fields = False
+    #
+    #     # self.individual_layout = QFormLayout()
+    #
+    #     if self.veh_type == "Samochody":
+    #         self.vehicle_type = "car"
+    #
+    #         self.size_combo_box = QComboBox()
+    #         self.size_combo_box.addItems(["-wybierz-", "Miejski", "Kompaktowy", "Limuzyna", "SUV"])
+    #
+    #         self.fuel_combo_box = QComboBox()
+    #         self.fuel_combo_box.addItems(["-wybierz-", "Benzyna", "Diesel", "Hybryda", "Elektryczny"])
+    #
+    #         self.individual_layout.addRow("Wybierz klasę samochodu:", self.size_combo_box)
+    #         self.individual_layout.addRow("Wybierz rodzaj paliwa/zasilania:", self.fuel_combo_box)
+    #
+    #     elif self.veh_type == "Skutery":
+    #         self.vehicle_type = "scooter"
+    #
+    #         self.scooter_speed = QLineEdit()
+    #         self.individual_layout.addRow("Prędkość maksymalna", self.scooter_speed)
+    #
+    #     else:
+    #         self.vehicle_type = "bike"
+    #
+    #         self.bike_typ_combo_box = QComboBox()
+    #         self.bike_typ_combo_box.addItems(["-wybierz-", "Szosowy", "MTB", "Miejski"])
+    #
+    #         self.bike_electric_combo_box = QComboBox()
+    #         self.bike_electric_combo_box.addItems(["-wybierz-", "Normalny", "Elektryczny"])
+    #
+    #         self.individual_layout.addRow("Wybierz rodzaj roweru:", self.bike_typ_combo_box)
+    #         self.individual_layout.addRow("Wybierz czy jest elektryczny:", self.bike_electric_combo_box)
+    #
+    #     if has_fields:
+    #         self.main_layout.addWidget(self.individual_container, 7, 0, 1, 1)
+    #     else:
+    #         self.individual_container.deleteLater()
 
     def _add_vehicle_individual(self):
 
@@ -245,13 +320,10 @@ class AddVehicleView(QWidget):
                     self.individual_number_fields.remove(field)
             required_fields.extend(texts)
 
-
-
         if any(not value for value in required_fields):
             QMessageBox.warning(self, "Błąd", "Uzupełnij wszystkie pola przed zatwierdzeniem.")
             return
 
-        results = []
         self.vehicles = []
         vehicles_data = []
 
@@ -360,8 +432,8 @@ class AddVehicleView(QWidget):
         self.update_db_button.setMinimumSize(150, 35)
         self.update_db_button.setStyleSheet(
             "background-color: darkgreen;"
-            " font-size: 21px; color: white; color: white;"
-            " border-radius: 8px; padding: 4px;"
+            " font-size: 18px; color: white; color: white;"
+            " border-radius: 10px; padding: 5px;"
         )
         self.update_db_button.show()
         self.update_db_button.clicked.connect(self.update_db_request.emit)
@@ -391,29 +463,36 @@ class AddVehicleView(QWidget):
         self.veh_type_combo_box.setCurrentIndex(0)
         self.confirm_button.setEnabled(True)
 
-        if getattr(self, "size_combo_box", None) is not None:
-            self.size_combo_box.setCurrentIndex(0)
+        # if hasattr(self, "individual_container"):
+        #     self.main_layout.removeWidget(self.individual_container)
+        #     self.individual_container.deleteLater()
 
-        if getattr(self, "fuel_combo_box", None) is not None:
-            self.fuel_combo_box.setCurrentIndex(0)
+        if hasattr(self, "individual_container"):
+            self.individual_container.hide()
 
-        if getattr(self, "bike_typ_combo_box", None) is not None:
-            self.bike_typ_combo_box.setCurrentIndex(0)
-
-        if getattr(self, "bike_electric_combo_box", None) is not None:
-            self.bike_electric_combo_box.setCurrentIndex(0)
-
-        if hasattr(self, "size_combo_box") and self.size_combo_box is not None:
-            self.size_combo_box.setCurrentIndex(0)
-
-        if hasattr(self, "fuel_combo_box") and self.fuel_combo_box is not None:
-            self.fuel_combo_box.setCurrentIndex(0)
-
-        if hasattr(self, "bike_typ_combo_box") and self.bike_typ_combo_box is not None:
-            self.bike_typ_combo_box.setCurrentIndex(0)
-
-        if hasattr(self, "bike_electric_combo_box") and self.bike_electric_combo_box is not None:
-            self.bike_electric_combo_box.setCurrentIndex(0)
+        # if getattr(self, "size_combo_box", None) is not None:
+        #     self.size_combo_box.setCurrentIndex(0)
+        #     # self.size_combo_box.hide()
+        #
+        # if getattr(self, "fuel_combo_box", None) is not None:
+        #     self.fuel_combo_box.setCurrentIndex(0)
+        #     # self.fuel_combo_box.hide()
+        #
+        # if getattr(self, "bike_typ_combo_box", None) is not None:
+        #     self.bike_typ_combo_box.setCurrentIndex(0)
+        #     # self.bike_typ_combo_box.hide()
+        #
+        # if getattr(self, "bike_electric_combo_box", None) is not None:
+        #     self.bike_electric_combo_box.setCurrentIndex(0)
+        #     # self.bike_electric_combo_box.hide()
+        #
+        # if hasattr(self, "bike_typ_combo_box") and self.bike_typ_combo_box is not None:
+        #     self.bike_typ_combo_box.setCurrentIndex(0)
+        #     self.bike_typ_combo_box.hide()
+        #
+        # if hasattr(self, "bike_electric_combo_box") and self.bike_electric_combo_box is not None:
+        #     self.bike_electric_combo_box.setCurrentIndex(0)
+        #     self.bike_electric_combo_box.hide()
 
         if hasattr(self, "individual_number_layout"):
             while self.individual_number_layout.count():

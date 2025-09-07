@@ -25,7 +25,7 @@ class DeleteUsersWidget(QWidget):
 
         self.setStyleSheet("""
                     QWidget { background-color: #2e2e2e; color: #eee; font-size: 16px; }
-                    QPushButton { background-color: #555; border-radius: 8px; padding: 5px; }
+                    QPushButton { font-size: 18; background-color: #555; border-radius: 10px; padding: 5px; }
                     QLineEdit { font-size: 14px; }
                 """)
 
@@ -36,7 +36,7 @@ class DeleteUsersWidget(QWidget):
         else:
             title_label = QLabel("=== Przegląd klientów wypożyczalni niemających wypożyczeń ===")
 
-        title_label.setStyleSheet("font-size: 28px; color: #A9C1D9;")
+        title_label.setStyleSheet("font-size: 24px; color: #A9C1D9;")
         title_label.setAlignment(Qt.AlignCenter)
         main_layout.addWidget(title_label)
 
@@ -49,8 +49,8 @@ class DeleteUsersWidget(QWidget):
         self.search_button.setFixedSize(155, 35)
         self.search_button.setStyleSheet(
             "background-color: darkgreen;"
-            "font-size: 24px; color: white;"
-            "border-radius: 8px; padding: 5px;"
+            "font-size: 18px; color: white;"
+            "border-radius: 10px; padding: 5px;"
         )
         self.search_button.clicked.connect(lambda: self.request_users.emit())
         main_layout.addWidget(self.search_button, alignment=Qt.AlignLeft)
@@ -65,7 +65,7 @@ class DeleteUsersWidget(QWidget):
         self.cancel_button = QPushButton("Anuluj")
         self.cancel_button.setFixedSize(155, 35)
         self.cancel_button.setStyleSheet(
-            "background-color: brown; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
+            "background-color: brown; font-size: 18px; color: white; border-radius: 10px; padding: 5px;"
         )
         self.cancel_button.setVisible(False)
         self.cancel_button.clicked.connect(lambda: self.cancel_requested.emit())
@@ -74,7 +74,7 @@ class DeleteUsersWidget(QWidget):
         self.delete_user_button = QPushButton("Usuń użytkownika")
         self.delete_user_button.setFixedSize(155, 35)
         self.delete_user_button.setStyleSheet(
-            "background-color: darkgreen; font-size: 18px; color: white; border-radius: 8px; padding: 5px;"
+            "background-color: darkgreen; font-size: 18px; color: white; border-radius: 10px; padding: 5px;"
         )
         self.delete_user_button.setVisible(False)
         self.delete_user_button.clicked.connect(self._on_delete_clicked)
