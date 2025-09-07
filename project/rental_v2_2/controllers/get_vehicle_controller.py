@@ -12,7 +12,6 @@ class GetVehicleController:
         self.session = session
         self.view = view
 
-
         self.view.request_vehicle_list.connect(self.request_vehicle_list)
         self.view.vehicle_selected.connect(self.on_vehicle_item_clicked)
 

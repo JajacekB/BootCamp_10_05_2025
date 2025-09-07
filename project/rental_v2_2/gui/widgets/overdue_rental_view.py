@@ -77,7 +77,7 @@ class OverdueRentalView(QWidget):
         hbox1 = QHBoxLayout()
 
         self.cancel_button = QPushButton("Anuluj")
-        self.cancel_button.hide()
+        # self.cancel_button.hide()
         self.cancel_button.setStyleSheet(
             "background-color: brown;"
             " font-size: 20px; color: white;"

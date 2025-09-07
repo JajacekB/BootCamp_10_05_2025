@@ -1,7 +1,6 @@
 
 from PySide6.QtCore import Signal, QObject, Slot
 
-from models.user import User
 from services.rental_costs import recalculate_cost
 from services.database_update import update_database
 

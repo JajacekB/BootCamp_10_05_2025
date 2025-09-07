@@ -36,6 +36,7 @@ class AddVehicleView(QWidget):
             """)
         self._build_ui()
 
+
     def _build_ui(self):
         self.main_layout = QGridLayout(self)
 
@@ -122,23 +123,23 @@ class AddVehicleView(QWidget):
     def _update_vehicle_form(self, text):
         self.veh_type = self.veh_type_combo_box.currentText()
 
-        # usuń poprzedni kontener, jeśli istnieje
-        if hasattr(self, "individual_container"):
-            self.main_layout.removeWidget(self.individual_container)
-            self.individual_container.deleteLater()
+        if not hasattr(self, "individual_container"):
+            self.individual_container = QWidget()
+            self.individual_layout = QFormLayout(self.individual_container)
+            self.main_layout.addWidget(self.individual_container, 7, 0, 1, 1)
 
-        # nowy kontener + layout
-        self.individual_container = QWidget()
-        self.individual_layout = QFormLayout(self.individual_container)
+        while self.individual_layout.count():
+            item = self.individual_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
 
-        # reset atrybutów
         self.size_combo_box = None
         self.fuel_combo_box = None
         self.scooter_speed = None
         self.bike_typ_combo_box = None
         self.bike_electric_combo_box = None
 
-        # flag: czy coś dodaliśmy
         has_fields = False
 
         if self.veh_type == "Samochody":
@@ -161,7 +162,7 @@ class AddVehicleView(QWidget):
             self.individual_layout.addRow("Prędkość maksymalna:", self.scooter_speed)
             has_fields = True
 
-        elif self.veh_type == "Rower":
+        elif self.veh_type == "Rowery":
             self.vehicle_type = "bike"
 
             self.bike_typ_combo_box = QComboBox()
@@ -174,74 +175,11 @@ class AddVehicleView(QWidget):
             self.individual_layout.addRow("Wybierz czy jest elektryczny:", self.bike_electric_combo_box)
             has_fields = True
 
-        # tylko jeśli coś dodaliśmy – wrzucamy do głównego layoutu
         if has_fields:
-            self.main_layout.addWidget(self.individual_container, 7, 0, 1, 1)
+            self.individual_container.show()
         else:
-            self.individual_container.deleteLater()
+            self.individual_container.hide()
 
-    # def _update_vehicle_form(self, text):
-    #
-    #     self.veh_type = self.veh_type_combo_box.currentText()
-    #
-    #     if hasattr(self, "individual_container"):
-    #         self.main_layout.removeWidget(self.individual_container)
-    #         self.individual_container.deleteLater()
-    #
-    #         while self.individual_layout.count():
-    #             item = self.individual_layout.takeAt(0)
-    #             if item.widget():
-    #                 item.widget().deleteLater()
-    #         self.main_layout.removeItem(self.individual_layout)
-    #
-    #     self.individual_container = QWidget()
-    #     self.individual_container.setLayout(self.individual_layout)
-    #
-    #
-    #     self.size_combo_box = None
-    #     self.fuel_combo_box = None
-    #     self.scooter_speed = None
-    #     self.bike_typ_combo_box = None
-    #     self.bike_electric_combo_box = None
-    #
-    #     has_fields = False
-    #
-    #     # self.individual_layout = QFormLayout()
-    #
-    #     if self.veh_type == "Samochody":
-    #         self.vehicle_type = "car"
-    #
-    #         self.size_combo_box = QComboBox()
-    #         self.size_combo_box.addItems(["-wybierz-", "Miejski", "Kompaktowy", "Limuzyna", "SUV"])
-    #
-    #         self.fuel_combo_box = QComboBox()
-    #         self.fuel_combo_box.addItems(["-wybierz-", "Benzyna", "Diesel", "Hybryda", "Elektryczny"])
-    #
-    #         self.individual_layout.addRow("Wybierz klasę samochodu:", self.size_combo_box)
-    #         self.individual_layout.addRow("Wybierz rodzaj paliwa/zasilania:", self.fuel_combo_box)
-    #
-    #     elif self.veh_type == "Skutery":
-    #         self.vehicle_type = "scooter"
-    #
-    #         self.scooter_speed = QLineEdit()
-    #         self.individual_layout.addRow("Prędkość maksymalna", self.scooter_speed)
-    #
-    #     else:
-    #         self.vehicle_type = "bike"
-    #
-    #         self.bike_typ_combo_box = QComboBox()
-    #         self.bike_typ_combo_box.addItems(["-wybierz-", "Szosowy", "MTB", "Miejski"])
-    #
-    #         self.bike_electric_combo_box = QComboBox()
-    #         self.bike_electric_combo_box.addItems(["-wybierz-", "Normalny", "Elektryczny"])
-    #
-    #         self.individual_layout.addRow("Wybierz rodzaj roweru:", self.bike_typ_combo_box)
-    #         self.individual_layout.addRow("Wybierz czy jest elektryczny:", self.bike_electric_combo_box)
-    #
-    #     if has_fields:
-    #         self.main_layout.addWidget(self.individual_container, 7, 0, 1, 1)
-    #     else:
-    #         self.individual_container.deleteLater()
 
     def _add_vehicle_individual(self):
 
@@ -280,6 +218,7 @@ class AddVehicleView(QWidget):
 
         if self.individual_number_layout.parent() is None:
             self.main_layout.addLayout(self.individual_number_layout, 5, 1, 1, 1)
+
 
     def _build_veh_list(self):
 
@@ -393,6 +332,7 @@ class AddVehicleView(QWidget):
         self.confirm_button.setEnabled(False)
         self.handle_vehicles_data.emit(vehicles_data)
 
+
     def show_vehicles_list(self, vehicles):
 
         self.vehicles = vehicles
@@ -463,36 +403,8 @@ class AddVehicleView(QWidget):
         self.veh_type_combo_box.setCurrentIndex(0)
         self.confirm_button.setEnabled(True)
 
-        # if hasattr(self, "individual_container"):
-        #     self.main_layout.removeWidget(self.individual_container)
-        #     self.individual_container.deleteLater()
-
         if hasattr(self, "individual_container"):
             self.individual_container.hide()
-
-        # if getattr(self, "size_combo_box", None) is not None:
-        #     self.size_combo_box.setCurrentIndex(0)
-        #     # self.size_combo_box.hide()
-        #
-        # if getattr(self, "fuel_combo_box", None) is not None:
-        #     self.fuel_combo_box.setCurrentIndex(0)
-        #     # self.fuel_combo_box.hide()
-        #
-        # if getattr(self, "bike_typ_combo_box", None) is not None:
-        #     self.bike_typ_combo_box.setCurrentIndex(0)
-        #     # self.bike_typ_combo_box.hide()
-        #
-        # if getattr(self, "bike_electric_combo_box", None) is not None:
-        #     self.bike_electric_combo_box.setCurrentIndex(0)
-        #     # self.bike_electric_combo_box.hide()
-        #
-        # if hasattr(self, "bike_typ_combo_box") and self.bike_typ_combo_box is not None:
-        #     self.bike_typ_combo_box.setCurrentIndex(0)
-        #     self.bike_typ_combo_box.hide()
-        #
-        # if hasattr(self, "bike_electric_combo_box") and self.bike_electric_combo_box is not None:
-        #     self.bike_electric_combo_box.setCurrentIndex(0)
-        #     self.bike_electric_combo_box.hide()
 
         if hasattr(self, "individual_number_layout"):
             while self.individual_number_layout.count():
@@ -509,6 +421,7 @@ class AddVehicleView(QWidget):
             self.vehicles_list_widget.hide()
         if hasattr(self, "update_db_button"):
             self.update_db_button.hide()
+
 
     def adjust_list_height(self):
         count = self.vehicles_list_widget.count()

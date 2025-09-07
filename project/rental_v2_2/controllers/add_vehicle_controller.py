@@ -2,8 +2,7 @@ from PySide6.QtCore import Slot
 from sqlalchemy.exc import IntegrityError
 
 from services.id_generators import generate_vehicle_id
-from models.user import User
-from models.vehicle import  Bike, Car, Scooter, Vehicle
+from models.vehicle import  Bike, Car, Scooter
 
 
 class AddVehicleController():

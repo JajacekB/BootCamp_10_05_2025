@@ -139,7 +139,6 @@ class AdminDialogController(QObject):
         print("✅ Widget dodany do dynamic_area")
 
 # ------------------------------- wywołanie widgetów do okna gównego ------------------------------------------------ #
-# ------------------------------------------------------------------------------------------------------------------- #
 
     def handle_add_seller_widget(self):
         if self.dialog is None:

@@ -44,7 +44,7 @@ class GetUsersController:
                 else:
                     formatted_users = self.service.format_users(users)
 
-            else:  # Wszyscy
+            else:
                 users = self.service.get_all_clients()
                 if not users:
                     success = False

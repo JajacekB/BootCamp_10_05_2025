@@ -19,7 +19,6 @@ class RegisterUserController:
 
 
     def on_registration_finished_widget(self, user):
-        print("Controler: uruchamiam on registration_widget")
 
         success, text = add_user(self.session, user)
 

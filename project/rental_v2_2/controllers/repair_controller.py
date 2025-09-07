@@ -109,8 +109,12 @@ class RepairController:
         else:
             self.start_date = date.today()
             self.replacement_vehicle = next(
-                (v for v in get_available_vehicles(self.session, self.start_date, self.planned_return_date,
-                                                self.current_vehicle.type)
+                (v for v in get_available_vehicles(
+                    self.session,
+                    self.start_date,
+                    self.planned_return_date,
+                    self.current_vehicle.type
+                )
                 if v.cash_per_day == self.current_vehicle.cash_per_day),
                 None
             )
