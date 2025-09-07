@@ -64,6 +64,7 @@ def deactivate_vehicle(session, vehicle: Vehicle):
                     f"{vehicle.vehicle_model} o numerze {vehicle.individual_id} "
                     f"z eksploatacji. szczegóły: {str(e)}")
 
+
 def update_rental(session, repair, actual_return_date):
 
     try:
@@ -75,7 +76,6 @@ def update_rental(session, repair, actual_return_date):
         success = True
         msg = "Sukces, pojazd wrócił z naprawy"
         return success, msg
-
 
     except Exception as e:
         success = False

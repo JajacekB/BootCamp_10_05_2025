@@ -3,8 +3,8 @@ import sys
 from PySide6.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QSpacerItem, QSizePolicy, QApplication
 )
-from PySide6.QtGui import QFont, QPixmap, QPalette, QColor
-from PySide6.QtCore import Qt, QTimer, Signal # Import Signal for custom signals
+from PySide6.QtGui import QPixmap, QPalette, QColor
+from PySide6.QtCore import Qt, QTimer, Signal
 
 
 class StartWindow(QWidget):

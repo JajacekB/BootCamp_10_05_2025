@@ -17,14 +17,14 @@ def get_replacement_vehicle(session, reference_vehicle, planned_return_date, pre
     )
 
     if prefer_cheaper:
-        # Najdroższy z tańszych
+
         vehicle = next(
             (v for v in sorted(available_vehicles, key=lambda v: v.cash_per_day, reverse=True)
             if v.cash_per_day < reference_vehicle.cash_per_day),
             None
         )
     else:
-        # Najtańszy z droższych
+
         vehicle = next(
             (v for v in sorted(available_vehicles, key=lambda v: v.cash_per_day)
             if v.cash_per_day > reference_vehicle.cash_per_day),
@@ -34,7 +34,6 @@ def get_replacement_vehicle(session, reference_vehicle, planned_return_date, pre
     return vehicle
 
 def get_rental_for_vehicle(session, vehicle_id, planned_return_date):
-    # szukanie rezerwacji w podanm okresie
 
     today = date.today()
     rental = session.query(RentalHistory).filter(
@@ -46,22 +45,8 @@ def get_rental_for_vehicle(session, vehicle_id, planned_return_date):
     return rental
 
 def get_vehicle_by_id(session, vehicle_id):
-    # Szukanie pojazdów po numerze katalogowym (vehicle_id)
-    return session.query(Vehicle).filter(Vehicle.vehicle_id == vehicle_id).one_or_none()
 
-# def get_user_by(session, **kwargs):
-#     allowed_keys = {"user_id": User.id, "user_login": User.login, "email": User.email}
-#
-#     if len(kwargs) != 1:
-#         raise ValueError("Podaj dokładnie jeden parametr: user_id, user_login albo email")
-#
-#     key, value = next(iter(kwargs.items()))
-#
-#     if key not in allowed_keys:
-#         raise ValueError(f"Niepoprawny parametr: {key}. Dozwolone: {list(allowed_keys.keys())}")
-#
-#     column = allowed_keys[key]
-#     return session.query(User).filter(column == value).one_or_none()
+    return session.query(Vehicle).filter(Vehicle.vehicle_id == vehicle_id).one_or_none()
 
 def get_user_by(session, only_one: bool=True, **kwargs):
     allowed_keys = {
@@ -104,11 +89,13 @@ def get_repairs_by_vehicle_id(session, vehicle):
         .all()
     )
 
+
 def promo_banner_data(session):
     time_promos = session.query(Promotion).filter_by(type='time').order_by(Promotion.min_days).all()
     loyalty_promos = session.query(Promotion).filter_by(type='loyalty').all()
 
     return time_promos, loyalty_promos
+
 
 def overdue_tasks(session):
     today = date.today()
@@ -126,7 +113,6 @@ def overdue_tasks(session):
                 RepairHistory.actual_return_date == None)
         .all()
     )
-
     return [
         {
             "type": "rental",

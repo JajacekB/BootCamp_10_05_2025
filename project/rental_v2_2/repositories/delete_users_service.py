@@ -8,8 +8,8 @@ class DeleteUsersService:
         self.session = session
         self.role = role
 
+
     def get_candidates(self):
-        """Zwraca listę kandydatów do usunięcia."""
         active_renters_ids = {
             v.borrower_id
             for v in self.session.query(Vehicle.borrower_id).
@@ -29,6 +29,7 @@ class DeleteUsersService:
             {"id": u.id, "first_name": u.first_name, "last_name": u.last_name, "login": u.login}
             for u in candidates
         ]
+
 
     def get_user_details(self, uid):
         user = self.session.query(User).filter(User.id == uid).first()

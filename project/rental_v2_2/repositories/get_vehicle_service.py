@@ -1,12 +1,8 @@
-# repositories.get_vehicle_service.py
+
 from collections import defaultdict
 
-from models.user import User
 from models.vehicle import Vehicle
-from models.rental_history import RentalHistory
-from models.repair_history import RepairHistory
 from services.vehicle_avability import get_unavailable_vehicle, get_available_vehicles
-from gui.widgets.get_vehicle_view import GetVehicleView
 
 
 class GetVehicleService:
@@ -28,8 +24,8 @@ class GetVehicleService:
         else:
             vehicles = (self.session.query(Vehicle).filter
                         (Vehicle.is_active == True,
-                         Vehicle.type == vehicle_type
-                         ).all())
+                        Vehicle.type == vehicle_type
+                        ).all())
 
         if not vehicles:
             print("\n🚫 Brak pasujących pojazdów.")

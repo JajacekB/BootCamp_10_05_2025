@@ -1,8 +1,8 @@
 import sys
-from PySide6.QtCore import Qt, Signal, QObject
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont, QPalette, QColor
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QApplication
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 )
 
 from services.auth_service import login_user_gui
@@ -27,19 +27,18 @@ class LoginDialog(QDialog):
 
         self.setup_ui()
 
+
     def setup_ui(self):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(30, 30, 30, 30)
         main_layout.setSpacing(15)
 
-        # Title
         title_label = QLabel("Zaloguj się", self)
         title_label.setFont(QFont("Arial", 24, QFont.Bold))
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet("color: white;")
         main_layout.addWidget(title_label)
 
-        # Message label for errors/feedback
         self.message_label = QLabel("", self)
         self.message_label.setFont(QFont("Arial", 12))
         self.message_label.setAlignment(Qt.AlignCenter)
@@ -85,7 +84,7 @@ class LoginDialog(QDialog):
                 "border-radius: 8px;"
                 "padding: 5px 15px;"
             )
-            btn.setCursor(Qt.PointingHandCursor) # Change cursor on hover
+            btn.setCursor(Qt.PointingHandCursor)
 
         self.login_button.clicked.connect(self._perform_login)
         self.cancel_button.clicked.connect(self._cancel_login)
@@ -95,6 +94,7 @@ class LoginDialog(QDialog):
         main_layout.addLayout(button_layout)
 
         self.login_input.setFocus()
+
 
     def _perform_login(self):
 
@@ -119,6 +119,7 @@ class LoginDialog(QDialog):
             self.message_label.setStyleSheet("color: red;")
 
             self.password_input.clear()
+
 
     def _cancel_login(self):
 

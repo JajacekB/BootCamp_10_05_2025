@@ -102,8 +102,6 @@ class AdminDialog(QMainWindow):
         self.menu_container.setLayout(menu_layout)
         self.grid_layout.addWidget(self.menu_container, 0, 0, alignment=Qt.AlignTop | Qt.AlignLeft)
 
-        # ----------------------------------------------------------------------------------------------------------- #
-
         self.hamburger_button = QPushButton("☰")
         self.hamburger_button.setMinimumSize(40, 40)
         self.hamburger_button.setStyleSheet(
@@ -114,8 +112,6 @@ class AdminDialog(QMainWindow):
 
         self.hamburger_button.hide()
         QTimer.singleShot(0, self.adjust_menu_visibility)
-
-        # ----------------------------------------------------------------------------------------------------------- #
 
         self.dynamic_area = QWidget()
         self.dynamic_area.setLayout(QVBoxLayout())
@@ -129,8 +125,6 @@ class AdminDialog(QMainWindow):
 
         if self.user.role == "client":
             QTimer.singleShot(0, lambda :self._saf_show_promo_banner())
-
-
 
 
     def _get_menu_for_role(self, role: str) -> list[str]:
@@ -172,6 +166,7 @@ class AdminDialog(QMainWindow):
         else:
             return []
 
+
     def clear_dynamic_area(self):
         layout = self.dynamic_area.layout()
         if layout is None:
@@ -185,6 +180,7 @@ class AdminDialog(QMainWindow):
                 widget.deleteLater()
 
         self.current_widget = None
+
 
     def _on_dynamic_button_clicked_with_highlight(self, button, command_num):
 
@@ -200,19 +196,23 @@ class AdminDialog(QMainWindow):
 
         self._on_dynamic_button_clicked(command_num, button)
 
+
     def _on_dynamic_button_clicked(self, command_num: str, button):
         print(f"Emituję command_selected: {command_num}")
         self.command_selected.emit(command_num)
         self._set_active_menu_button(button)
 
+
     def _on_logout_clicked(self):
         print("Emituję sygnał logout")
         self.logout.emit(self.user)
+
 
     def load_widget(self, widget):
         self.clear_dynamic_area()
         self.dynamic_area.layout().addWidget(widget)
         self.current_widget = widget
+
 
     def _safe_show_overdue_rentals(self):
         try:
@@ -220,11 +220,13 @@ class AdminDialog(QMainWindow):
         except Exception as e:
             print(f"❌ Błąd podczas sprawdzania zaległości: {e}")
 
+
     def _saf_show_promo_banner(self):
         try:
             self.controller.show_promo_banner_widget()
         except Exception as e:
             print(f"❌ Błąd podczas odczytywania promocji: {e}")
+
 
     def _set_active_menu_button(self, button):
 
@@ -237,6 +239,7 @@ class AdminDialog(QMainWindow):
         self.active_menu_button.setStyleSheet(
             "color: black; border-radius: 8px; padding-left: 10px; background-color: beige;"
         )
+
 
     def _build_promo_banner(self):
         time_promos = self.session.query(Promotion).filter_by(type='time').order_by(Promotion.min_days).all()
@@ -255,7 +258,6 @@ class AdminDialog(QMainWindow):
 
         return banner_text
 
-    # --------------------------------------------------------------------------------------------------------------- #
 
     def toggle_menu(self):
 
@@ -264,10 +266,12 @@ class AdminDialog(QMainWindow):
         else:
             self.menu_container.show()
 
+
     def resizeEvent(self, event):
 
         super().resizeEvent(event)
         self.adjust_menu_visibility()
+
 
     def adjust_menu_visibility(self):
         window_width = self.width()

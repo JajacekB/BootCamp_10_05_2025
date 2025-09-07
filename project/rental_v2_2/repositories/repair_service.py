@@ -2,13 +2,11 @@
 from datetime import date
 from collections import defaultdict
 
-from models.user import User
 from models.vehicle import Vehicle
 from models.invoice import Invoice
 from models.repair_history import RepairHistory
 from models.rental_history import RentalHistory
 from services.id_generators import generate_repair_id
-from services.rental_costs import calculate_rental_cost
 from services.vehicle_avability import get_available_vehicles, get_unavailable_vehicle
 
 
@@ -47,7 +45,6 @@ class RepairService:
         return grouped
 
     def finish_broken_rental(self, vehicle: Vehicle):
-        """Zakończenie wynajmu pojazdu popsutego (bez commita)."""
         today = date.today()
 
         rental = self.session.query(RentalHistory).filter(
@@ -87,25 +84,21 @@ class RepairService:
 
         today = date.today()
 
-        # 🔹 Zamiana statusu starego pojazdu
         broken_vehicle.is_available = False
-        broken_vehicle.borrower_id = None  # klient zwraca
+        broken_vehicle.borrower_id = None
         broken_vehicle.return_date = old_rental.planned_return_date
 
-        # 🔹 Zakończenie starego rentalu
         old_rental.actual_return_date = today
-        old_rental.total_cost = old_rental.total_cost  # zostawiamy jak było
+        old_rental.total_cost = old_rental.total_cost
         self.session.add(old_rental)
         self.session.add(broken_vehicle)
 
-        # 🔹 Konfiguracja nowego rentalu dla zastępczego pojazdu
         rental_days_remaining = (old_rental.planned_return_date - today).days
         rental_days_remaining = max(rental_days_remaining, 1)
 
         if different_price:
             new_total_cost = replacement_vehicle.cash_per_day * rental_days_remaining
         else:
-            # koszt liczony po starej cenie pojazdu
             new_total_cost = old_rental.base_cost * rental_days_remaining
 
         replacement_vehicle.is_available = False
@@ -151,7 +144,7 @@ class RepairService:
         vehicle.borrower_id = work_user.id
         vehicle.return_date = planned_return_date
 
-        # self.session.commit()
+        self.session.commit()
 
         print("Utworzono nowy object RepairHistory")
         return repair
