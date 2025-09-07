@@ -50,6 +50,22 @@ filtered_arr = arr[arr > 0.5]
 print("Większa od 0.5", filtered_arr)
 
 
+filtered_arr = arr[np.arange(len(arr) % 2 == 0)]
+print("Warości parzystych indeksach:", filtered_arr)
 
+mask = np.arange(len(arr)) % 2 == 0
+print('Maska filrowanie:', mask)
 
+arr = np.array([1, 2, np.nan, 4, np.inf, 6, -np.inf, 8])
+
+print(arr)
+
+filtered_arr_inf = arr[np.isinf(arr)]
+print(filtered_arr_inf)
+
+filtered_arr_nan = arr[np.isnan(arr)]
+print(filtered_arr_nan)
+
+filtered_arr = arr[np.isfinite(arr)]
+print(filtered_arr)
 
