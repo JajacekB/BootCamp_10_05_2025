@@ -12,9 +12,6 @@ from models.vehicle import Vehicle
 def calculate_rental_cost(session, user, daily_rate, rental_days):
     session = session or SessionLocal
 
-    """
-    Zwraca koszt z uwzględnieniem rabatu czasowego i lojalnościowego.
-    """
     # Zlicz zakończone wypożyczenia
     past_rentals = session.query(RentalHistory).filter_by(user_id=user.id).count()
     next_rental_number = past_rentals + 1
@@ -69,7 +66,7 @@ def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, r
         total_cost = base_to_calculate + extra_fee
         case_text = (
             f"⏰ Zwrot po terminie — opłata bazowa: {base_to_calculate:.2f} zł + "
-            f"kara za {extra_days} dni spóźnienia: {extra_fee:.2f} zł."
+            f"dopłata za {extra_days} dni spóźnienia: {extra_fee:.2f} zł."
         )
 
     elif return_date == planned_return_date:

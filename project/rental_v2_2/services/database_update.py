@@ -1,7 +1,5 @@
 # directory: services
 # file: database_update.py
-import re
-from sqlalchemy import or_
 
 from datetime import date
 from models.vehicle import Vehicle

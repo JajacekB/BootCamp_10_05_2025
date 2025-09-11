@@ -1,7 +1,7 @@
 # directory: services
 # file: overdue_check.py
 
-from datetime import date, datetime
+from datetime import date
 from models.vehicle import Vehicle
 from models.repair_history import RepairHistory
 from models.rental_history import RentalHistory
@@ -98,13 +98,11 @@ def check_overdue_vehicles(session, user):
                 rental.total_cost = rental.base_cost + extra_fee
                 print(f"⚠️ Zwrot po terminie. Kara: {extra_fee:.2f} zl")
 
-            # Faktura
             if rental.invoice:
                 rental.invoice.amount = rental.total_cost
             else:
                 print("Brak faktury do aktualizacji.")
 
-            # Aktualizacja pojazdu
             vehicle.is_available = True
             vehicle.borrower_id = None
             vehicle.return_date = None

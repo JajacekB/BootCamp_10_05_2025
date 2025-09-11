@@ -49,6 +49,7 @@ class RentVehicleView(QWidget):
 
         self._build_ui()
 
+
     def _build_ui(self):
 
         self.main_layout = QGridLayout()
@@ -77,12 +78,12 @@ class RentVehicleView(QWidget):
         self.main_layout.addLayout(self.form_layout, 2, 1, 1, 3)
 
         self.title_label = QLabel("Ustaw datę początku wynajmu:")
-        self.title_label.setStyleSheet("font-size: 16px; color: white; ")
+        self.title_label.setStyleSheet("font-size: 17px; color: #A9C1D9; ")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label, 3, 1, 1, 1)
 
         self.title_label = QLabel("Ustaw datę końca wynajmu:")
-        self.title_label.setStyleSheet("font-size: 16px; color: white; ")
+        self.title_label.setStyleSheet("font-size: 17px; color: #A9C1D9; ")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.main_layout.addWidget(self.title_label, 3, 3, 1, 1)
 
@@ -175,12 +176,10 @@ class RentVehicleView(QWidget):
         self.setLayout(self.main_layout)
 
 
-
     def _build_dynamic_area(self):
-        # 1. Tworzę kontener QWidget
+
         self.dynamic_widget = QWidget()
 
-        # 2. Wkładam w niego QGridLayout
         self.append_layout = QGridLayout()
         self.append_layout.setAlignment(Qt.AlignTop)
         self.dynamic_widget.setLayout(self.append_layout)
@@ -228,6 +227,7 @@ class RentVehicleView(QWidget):
 
         return self.dynamic_widget
 
+
     def update_start_label(self):
         start_date = self.calendar_start.selectedDate()
         self.label_start.setText(f"Wybrany początek najmu: {start_date.toString('dd-MM-yyyy')}")
@@ -239,6 +239,7 @@ class RentVehicleView(QWidget):
             self.calendar_end.setSelectedDate(min_end_date)
             self.label_end.setText(f"Wybrany koniec najmu: {min_end_date.toString('dd-MM-yyyy')}")
 
+
     def update_end_label(self):
         end_date = self.calendar_end.selectedDate()
         start_date = self.calendar_start.selectedDate()
@@ -249,6 +250,7 @@ class RentVehicleView(QWidget):
             end_date = min_end_date
 
         self.label_end.setText(f"Wybrany koniec najmu: {end_date.toString('dd-MM-yyyy')}")
+
 
     def _on_click_confirm_button(self):
         start_date_input = self.calendar_start.selectedDate()
@@ -268,6 +270,7 @@ class RentVehicleView(QWidget):
         self.vehicle_type = vehicle_type_map.get(self.vehicle_type_input)
 
         self.handle_confirm_button.emit(self.start_date, self.planned_return_date, self.vehicle_type)
+
 
     def show_vehicle_for_rent(self, vehicles_to_rent):
 
@@ -383,6 +386,7 @@ class RentVehicleView(QWidget):
             print("\n🚫 Brak pasujących pojazdów.")
             return
 
+
     def on_click_single_vehicle(self, item):
         if item.data(Qt.UserRole) == "header":
             return  # ignorujemy kliknięcie w nagłówek
@@ -391,6 +395,7 @@ class RentVehicleView(QWidget):
             return
 
         self.handle_single_vehicle.emit(self.group)
+
 
     def show_chosen_vehicle(self, chosen_vehicle, rental_count):
 
@@ -404,15 +409,18 @@ class RentVehicleView(QWidget):
         self.info_label.setText(
             f"Czy na pewno chcesz wypozyczyć ten pojazd?\n\n{chosen_vehicle.get_display_info()}"
         )
+        self.info_label.setStyleSheet("font-size: 16px; color: white; ")
         self.btn_rent_cancel.show()
         self.append_layout.addWidget(self.btn_rent_cancel, 2, 1, 1, 1)
         self.btn_rent_accept.show()
         self.append_layout.addWidget(self.btn_rent_accept, 2, 3, 1, 1)
 
+
     def _on_click_rent_accept_button(self, item):
         self.client_info = self.client_info_input.text()
         print(f"_on_click_rent_accept_button says {self.client_info=}")
         self.handle_accept_button.emit(self.client_info)
+
 
     def show_rental_cost(self, total_cost, discount_value, discount_type, total_cost_str, user):
 
@@ -427,8 +435,10 @@ class RentVehicleView(QWidget):
         self.btn_rent_final_accept.show()
         self.append_layout.addWidget(self.btn_rent_final_accept, 4, 3, 1, 1)
 
+
     def _on_click_rent_conditions_accept(self):
         self.handle_rent_condition_accept.emit(self.user)
+
 
     def show_final_information(self, success, msg):
 
@@ -448,16 +458,17 @@ class RentVehicleView(QWidget):
             )
             self.handle_cancel_button()
 
+
     def handle_cancel_button(self):
-        # reset kalendarza
+
         self.calendar_start.setSelectedDate(self.today)
         self.label_start.setText(f"Wybrany początek najmu: {self.today.toString('dd-MM-yyyy')}")
         self.label_end.setText(f"Wybrany koniec najmu: {self.tomorrow.toString('dd-MM-yyyy')}")
         self.calendar_end.setSelectedDate(self.tomorrow)
         self.type_combo_box.setCurrentIndex(0)
-        # Czyszczenie listy
+
         self.list_widget.clear()
-        # Czyszczenie podsumowania i przysisków sterujacych
+
         self.info_0_label.setText("")
         self.info_0_label.hide()
         self.info_label.setText("")
@@ -466,15 +477,11 @@ class RentVehicleView(QWidget):
         self.btn_rent_accept.hide()
         self.info_5_label.setText("")
         self.info_5_label.hide()
-        # Czyszczenie pytania o potwierdzenie i przucsków steujacych
+
         self.summary_label.setText("")
         self.summary_label.hide()
         self.btn_rent_final_cancel.hide()
         self.btn_rent_final_accept.hide()
-
-
-
-
 
 
     def adjust_list_height(self):

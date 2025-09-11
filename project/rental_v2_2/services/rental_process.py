@@ -336,7 +336,7 @@ def return_vehicle(session, user):
     )
 
     print(
-        f"\n💸 — KKW (Rzeczywisty Koszt Wynajmu) wynosi: {total_cost} zł.{overdue_fee_text}"
+        f"\n💸 — RKW (Rzeczywisty Koszt Wynajmu) wynosi: {total_cost} zł.{overdue_fee_text}"
     )
 
     choice = yes_or_not_menu(

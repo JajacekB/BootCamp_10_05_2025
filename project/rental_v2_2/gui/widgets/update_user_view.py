@@ -66,7 +66,7 @@ class UpdateUserView(QWidget):
         self.update_profile_button.setFixedHeight(30)
         self.update_profile_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.update_profile_button.setStyleSheet(
-            "background-color: grey;"
+            "background-color: darkgreen;"
             " font-size: 18px; color: white;"
         )
         self.update_profile_button.clicked.connect(self._on_update_profile)
@@ -76,7 +76,7 @@ class UpdateUserView(QWidget):
         self.change_password_button.setFixedHeight(30)
         self.change_password_button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.change_password_button.setStyleSheet(
-            "background-color: grey;"
+            "background-color: darkblue;"
             " font-size: 18px; color: white;"
         )
         self.change_password_button.clicked.connect(self._on_change_password)
@@ -131,7 +131,7 @@ class UpdateUserView(QWidget):
         self.cancel_button = QPushButton("Anuluj")
         self.cancel_button.setMinimumSize(200, 30)
         self.cancel_button.setStyleSheet(
-            "background-color: darkgreen;"
+            "background-color: brown;"
             " font-size: 18px; color: white;"
         )
         self.cancel_button.clicked.connect(self._on_click_clear_data)
@@ -140,7 +140,7 @@ class UpdateUserView(QWidget):
         self.confirm_button = QPushButton("Zatwierdź")
         self.confirm_button.setMinimumSize(200, 30)
         self.confirm_button.setStyleSheet(
-            "background-color: grey;"
+            "background-color: darkgreen;"
             " font-size: 18px; color: white;"
         )
         self.confirm_button.clicked.connect(self._handle_summary_data)
@@ -153,7 +153,7 @@ class UpdateUserView(QWidget):
         self.save_data_button = QPushButton("Zapisz zmiany")
         self.save_data_button.setMinimumSize(200, 30)
         self.save_data_button.setStyleSheet(
-            "background-color: grey;"
+            "background-color: darkgreen;"
             " font-size: 18px; color: white;"
         )
         self.save_data_button.clicked.connect(self._on_click_update)
@@ -189,7 +189,7 @@ class UpdateUserView(QWidget):
         self.cancel_1_button = QPushButton("Anuluj")
         self.cancel_1_button.setMinimumSize(200, 30)
         self.cancel_1_button.setStyleSheet(
-            "background-color: darkgreen;"
+            "background-color: brown;"
             " font-size: 18px; color: white;"
         )
         self.cancel_1_button.clicked.connect(self._on_click_clear_data)
@@ -198,7 +198,7 @@ class UpdateUserView(QWidget):
         self.confirm_1_button = QPushButton("Potwierdź hasło")
         self.confirm_1_button.setMinimumSize(200, 30)
         self.confirm_1_button.setStyleSheet(
-            "background-color: grey;"
+            "background-color: darkgreen;"
             " font-size: 18px; color: white;"
         )
         self.confirm_1_button.clicked.connect(self._on_click_old_password)
@@ -216,7 +216,7 @@ class UpdateUserView(QWidget):
         self.cancel_2_button = QPushButton("Anuluj")
         self.cancel_2_button.setMinimumSize(200, 30)
         self.cancel_2_button.setStyleSheet(
-            "background-color: darkgreen;"
+            "background-color: brown;"
             " font-size: 18px; color: white;"
         )
         self.cancel_2_button.clicked.connect(self._on_click_clear_data)
@@ -225,7 +225,7 @@ class UpdateUserView(QWidget):
         self.confirm_2_button = QPushButton("Zmień")
         self.confirm_2_button.setMinimumSize(200, 30)
         self.confirm_2_button.setStyleSheet(
-            "background-color: grey;"
+            "background-color: darkgreen;"
             " font-size: 18px; color: white;"
         )
         self.confirm_2_button.clicked.connect(self._handle_update_password)

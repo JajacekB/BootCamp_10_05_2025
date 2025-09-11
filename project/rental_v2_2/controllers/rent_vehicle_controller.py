@@ -67,7 +67,7 @@ class RentVehicleController():
         )
         total_cost_str = (
             f"Całkowity koszt {self.total_cost} zł\n"
-            f"Kwota bazowa {self.base_cost} zł, udzielone rabaty {discount_value} zł {discount_type}"
+            f"Kwota bazowa {self.base_cost} zł, udzielone rabaty {discount_value} % {discount_type}"
         )
         self.view.show_rental_cost(self.total_cost, discount_value, discount_type, total_cost_str, self.user)
 
