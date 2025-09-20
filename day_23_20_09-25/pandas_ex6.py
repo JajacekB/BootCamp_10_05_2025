@@ -44,15 +44,26 @@ mediana_cal = df["Calories"].median()
 df['Calories'] = df["Calories"].fillna(mediana_cal)
 print("Mediana cal: ", mediana_cal)
 print(df.loc[141])
+print(111 * "#")
+print()
 
 
+df = pd.read_csv('data.csv')
+mode_data = df["Calories"].mode()
+print("Najczęstsza wartość: ", mode_data)
+df['Calories'] = df["Calories"].fillna(mode_data[0])
+print(df.loc[141])
 
 
+print(111 * "#")
+print()
 
+df = pd.read_csv('data.csv')
+print(df[df.isna().any(axis=1)])
 
+print(111 * "#")
+print()
 
-
-
-
+print(df[df["Calories"].isna()])
 
 
