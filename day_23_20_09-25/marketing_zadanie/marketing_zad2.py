@@ -56,4 +56,14 @@ print(subscribers)
 channel_retention_rate = (retained / subscribers) * 100
 print(channel_retention_rate)
 
+import matplotlib.pyplot as plt
+
+channel_retention_rate.plot(kind="bar")
+plt.title("Wskaźnik utrzymania wg kanału")
+plt.xlabel("Kanał", size=14)
+plt.ylabel("Konwersja (%)", size=14)
+plt.xticks(rotation=45)
+
+plt.show()
+
 
