@@ -6,7 +6,7 @@ from models.invoice import Invoice
 from models.rental_history import RentalHistory
 from repositories.read_methods import get_user_by
 from services.rental_costs import calculate_rental_cost
-from services.vehicle_avability import get_available_vehicles
+from services.vehicle_availability import get_available_vehicles
 from services.id_generators import generate_reservation_id, generate_invoice_number
 
 
@@ -23,7 +23,7 @@ class RentVehicleController():
         self.view.handle_rent_condition_accept.connect(self._accept_and_update_rental)
 
     @Slot(object, object, str)
-    def _get_vehicle_for_rent(self, start_date, planned_return_date, vehicle_type: str= "all"):
+    def _get_vehicle_for_rent(self, start_date, planned_return_date, vehicle_type: str="all"):
         self.start_date = start_date
         self.planned_return_date = planned_return_date
         self.vehicle_type = vehicle_type
@@ -33,8 +33,8 @@ class RentVehicleController():
         )
         self.view.show_vehicle_for_rent(vehicles_to_rent)
 
-    @Slot(list)
-    def _chose_single_vehicle(self, group):
+    @Slot(list, str)
+    def _chose_single_vehicle(self, group, client_info: str=None):
 
         matching_ids = [v.id for v in group]
 
@@ -50,8 +50,11 @@ class RentVehicleController():
         else:
             self.chosen_vehicle = group[0] if group else None
             rental_count = 0
-
-        self.view.show_chosen_vehicle(self.chosen_vehicle, rental_count)
+        if client_info:
+            user = get_user_by(self.session ,user_id=client_info)
+            self.view.show_chosen_vehicle(self.chosen_vehicle, rental_count, user)
+        else:
+            self.view.show_chosen_vehicle(self.chosen_vehicle, rental_count, self.user)
 
     @Slot(str)
     def _accept_rent_chose(self, client_info):

@@ -14,11 +14,7 @@ from utils.iput_helpers import choice_menu, yes_or_not_menu, get_date_from_user
 
 
 def register_user(session, role="client", auto=False):
-    """
-    Rejestracja nowego użytkownika.
-    :param role: 'client' lub 'seller'
-    :param auto: jeśli True, login i hasło są generowane automatycznie (dla sprzedawcy).
-    """
+
     print(f"\n=== REJESTRACJA NOWEGO {'SPRZEDAWCY' if role == 'seller' else 'KLIENTA'} ===")
 
     print("\nPodaj dane potrzebne do rejestracji")
@@ -303,7 +299,7 @@ def get_clients(session):
 
 
 def get_users_by_role(session, role_name: str) -> List[User]:
-    """Zwraca listę użytkowników o podanej roli."""
+
     return session.query(User).filter_by(role=role_name).all()
 
 

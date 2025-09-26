@@ -2,7 +2,7 @@
 from collections import defaultdict
 
 from models.vehicle import Vehicle
-from services.vehicle_avability import get_unavailable_vehicle, get_available_vehicles
+from services.vehicle_availability import get_unavailable_vehicle, get_available_vehicles
 
 
 class GetVehicleService:

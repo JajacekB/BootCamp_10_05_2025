@@ -6,11 +6,11 @@ from models.vehicle import Bike, Car, Scooter, Vehicle
 from utils.iput_helpers import choice_menu, yes_or_not_menu
 from services.id_generators import generate_vehicle_id
 from services.utils import get_positive_int, get_positive_float
-from services.vehicle_avability import get_unavailable_vehicle, get_available_vehicles
+from services.vehicle_availability import get_unavailable_vehicle, get_available_vehicles
 
 
 def add_vehicles_batch(session):
-    # Krok 1. Wybór typu pojazdu
+
     vehicle_type_map = {
         "samochód": "car",
         "skuter": "scooter",
@@ -29,13 +29,11 @@ def add_vehicles_batch(session):
     prefix = type_prefix_map[vehicle_type_input]
     count = get_positive_int("\nIle pojazdów chcesz dodać? ")
 
-    # Krok 2.a Wprowadzenie wspólnych danych
     print("\n--- Dane wspólne dla całej serii ---")
     brand = input("Producent: ").strip().capitalize()
     model = input("Model: ").strip().capitalize()
     cash_per_day = get_positive_float("Cena za jedną dobę w zł: ")
 
-    # Krok 2.b Wprowadzenie danych indywidualnych
     specific_fields = {}
     if vehicle_type == "car":
         specific_fields["size"] = input("Rozmiar (Miejski, Kompakt, Limuzyna, Crosover, SUV): ").strip().capitalize()
@@ -47,7 +45,6 @@ def add_vehicles_batch(session):
         electric_input = input("Czy rower jest elektryczny (tak/nie): ").strip().lower()
         specific_fields["is_electric"] = electric_input in ("tak", "t", "yes", "y")
 
-    # Krok 3. Tworzenie pojazdów
     vehicles = []
     for i in range(count):
         print(f"\n--- POJAZD #{i + 1} ---")
@@ -99,12 +96,9 @@ def add_vehicles_batch(session):
 
         vehicles.append(vehicle)
 
-    # Krok 4. Przegląd wpisanych pojazdów
     print("\n--- PRZEGLĄD POJAZDÓW ---")
     for i, v in enumerate(vehicles, 1):
         print(f"\n[{i}] {v}")
-
-    # Krok 5. Czy wszystko się zgadza? Czy poprawić?
 
     answer = yes_or_not_menu(f"\nSprawdź uważnie czy wszystko się zgadza?")
 
@@ -146,7 +140,6 @@ def add_vehicles_batch(session):
             if new_electric:
                 specific_fields["is_electric"] = new_electric in ("tak", "t", "yes", "y")
 
-        # Krok 6 Aktualizacja wszystkich w serii
         for v in vehicles:
             v.brand = brand
             v.vehicle_model = model
@@ -168,7 +161,6 @@ def add_vehicles_batch(session):
         print("🤔 Nie rozumiem, spróbuj jeszcze raz.")
         return
 
-    # Krok 7 Zapis do bazy
     existing_ids = [v.individual_id for v in vehicles]
     if len(existing_ids) != len(set(existing_ids)):
         print("❌ Duplikat identyfikatorów indywidualnych w serii. Operacja przerwana.")
@@ -266,7 +258,6 @@ def get_vehicle(session, only_available: bool = False):
             print("🚫 Niestety brak pojazdów w ypożyczalni. Jesteśmy bankrutami. Komornik zają wszystkie pojazdy.")
             return
 
-    # Przygotowujemy gotowe stringi WEWNĄTRZ sesji
     print("\n=== POJAZDY ===")
 
     current_type = None

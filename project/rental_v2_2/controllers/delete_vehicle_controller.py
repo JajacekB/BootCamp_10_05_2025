@@ -2,7 +2,7 @@ from PySide6.QtCore import Slot
 from collections import defaultdict
 
 from repositories.write_methods import deactivate_vehicle
-from services.vehicle_avability import get_available_vehicles
+from services.vehicle_availability import get_available_vehicles
 
 
 class DeleteVehicleController():

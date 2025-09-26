@@ -7,7 +7,7 @@ from models.vehicle import Vehicle
 from services.user_service import get_users_by_role
 from repositories.repair_service import RepairService
 from repositories.read_methods import get_rental_for_vehicle, get_vehicle_by_id, get_replacement_vehicle
-from services.vehicle_avability import get_available_vehicles
+from services.vehicle_availability import get_available_vehicles
 
 
 class RepairController:

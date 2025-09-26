@@ -12,16 +12,13 @@ from models.vehicle import Vehicle
 def calculate_rental_cost(session, user, daily_rate, rental_days):
     session = session or SessionLocal
 
-    # Zlicz zakończone wypożyczenia
     past_rentals = session.query(RentalHistory).filter_by(user_id=user.id).count()
     next_rental_number = past_rentals + 1
 
-    # Sprawdzenie promocji lojalnościowej (co 10. wypożyczenie)
     loyalty_discount_days = 1 if next_rental_number % 10 == 0 else 0
     if loyalty_discount_days == 1:
         print("🎉 To Twoje 10., 20., 30... wypożyczenie – pierwszy dzień za darmo!")
 
-    # Pobierz rabaty czasowe z tabeli
     time_promos = session.query(Promotion).filter_by(type="time").order_by(Promotion.min_days.desc()).all()
 
     discount = 0.0
@@ -31,7 +28,6 @@ def calculate_rental_cost(session, user, daily_rate, rental_days):
             print(f"\n✅ Przyznano rabat {int(promo.discount_percent)}% ({promo.description})")
             break
 
-    # Cena po uwzględnieniu rabatu i 1 dnia gratis (jeśli przysługuje)
     paid_days = max(rental_days - loyalty_discount_days, 0)
     price = paid_days * daily_rate * (1 - discount)
 
@@ -89,7 +85,7 @@ def recalculate_cost(session, user: User, vehicle: Vehicle, return_date: date, r
 
 
     summary_text = (
-        f"\n💸 — KKW (Rzeczywisty Koszt Wynajmu): {total_cost:.2f} zł.\n"
+        f"\n💸 — RKW (Rzeczywisty Koszt Wynajmu): {total_cost:.2f} zł.\n"
         f"{case_text}"
     )
 

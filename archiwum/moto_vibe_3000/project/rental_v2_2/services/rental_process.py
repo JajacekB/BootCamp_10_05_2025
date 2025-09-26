@@ -8,7 +8,7 @@ from models.vehicle import Vehicle
 from models.rental_history import RentalHistory
 from models.invoice import Invoice
 from services.utils import get_positive_int, format_date_pl
-from services.vehicle_avability import get_available_vehicles
+from services.vehicle_availability import get_available_vehicles
 from services.rental_costs import calculate_rental_cost, recalculate_cost
 from services.id_generators import generate_reservation_id, generate_invoice_number
 from services.database_update import update_database

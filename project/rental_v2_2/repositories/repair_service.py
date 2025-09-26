@@ -7,7 +7,7 @@ from models.invoice import Invoice
 from models.repair_history import RepairHistory
 from models.rental_history import RentalHistory
 from services.id_generators import generate_repair_id
-from services.vehicle_avability import get_available_vehicles, get_unavailable_vehicle
+from services.vehicle_availability import get_available_vehicles, get_unavailable_vehicle
 
 
 class RepairService:

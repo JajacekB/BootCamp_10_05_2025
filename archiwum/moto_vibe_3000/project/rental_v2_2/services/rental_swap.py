@@ -3,7 +3,7 @@
 from datetime import date
 from models.user import User
 from models.rental_history import RentalHistory
-from services.vehicle_avability import get_available_vehicles
+from services.vehicle_availability import get_available_vehicles
 from services.rental_costs import calculate_rental_cost
 
 def update_database_after_vehicle_swap(

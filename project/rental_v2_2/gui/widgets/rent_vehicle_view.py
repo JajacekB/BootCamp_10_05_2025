@@ -12,7 +12,7 @@ from PySide6.QtCore import Signal, Qt, QDate
 class RentVehicleView(QWidget):
 
     handle_confirm_button = Signal(object, object, str)
-    handle_single_vehicle = Signal(list)
+    handle_single_vehicle = Signal(list, str)
     handle_accept_button = Signal(str)
     handle_rent_condition_accept = Signal(object)
 
@@ -187,8 +187,11 @@ class RentVehicleView(QWidget):
         self.info_0_label = QLabel()
         self.info_0_label.setWordWrap(True)
 
-        self.info_label = QLabel()
-        self.info_label.setWordWrap(True)
+        self.info_vehicle_label = QLabel()
+        self.info_vehicle_label.setWordWrap(True)
+
+        self.info_user_label = QLabel()
+        self.info_user_label.setWordWrap(True)
 
         self.info_5_label = QLabel()
         self.info_5_label.setWordWrap(True)
@@ -268,6 +271,8 @@ class RentVehicleView(QWidget):
             "Rower": "bike"
         }
         self.vehicle_type = vehicle_type_map.get(self.vehicle_type_input)
+
+        self.client_info = self.client_info_input.text()
 
         self.handle_confirm_button.emit(self.start_date, self.planned_return_date, self.vehicle_type)
 
@@ -394,22 +399,30 @@ class RentVehicleView(QWidget):
         if not isinstance(self.group, list) or not self.group:
             return
 
-        self.handle_single_vehicle.emit(self.group)
+        self.handle_single_vehicle.emit(self.group, self.client_info)
 
 
-    def show_chosen_vehicle(self, chosen_vehicle, rental_count):
-
+    def show_chosen_vehicle(self, chosen_vehicle, rental_count, user):
         self.info_0_label.show()
-        self.info_label.show()
+        self.info_vehicle_label.show()
+        self.info_user_label.show()
         self.info_5_label.show()
         self.append_layout.addWidget(self.info_0_label, 1, 0, 1, 1)
-        self.append_layout.addWidget(self.info_label, 1, 1, 1, 3)
+        self.append_layout.addWidget(self.info_vehicle_label, 1, 1, 1, 3)
+        self.append_layout.addWidget(self.info_user_label, 1, 3, 1, 3)
         self.append_layout.addWidget(self.info_5_label, 1, 5, 1, 1)
 
-        self.info_label.setText(
-            f"Czy na pewno chcesz wypozyczyć ten pojazd?\n\n{chosen_vehicle.get_display_info()}"
+        self.info_vehicle_label.setText(
+            f"Czy wypozyczyć ten pojazd?\n\n{chosen_vehicle.get_display_info()}"
         )
-        self.info_label.setStyleSheet("font-size: 16px; color: white; ")
+        self.info_vehicle_label.setStyleSheet("font-size: 16px; color: white; ")
+        self.info_user_label.setText(
+            f"Pojazd wypozyczany dla klienta:\n"
+            f"{user}\n"
+            f"W terminie:\n"
+            f"od {self.start_date} do {self.planned_return_date}"
+        )
+        self.info_user_label.setStyleSheet("font-size: 16px; color: white; ")
         self.btn_rent_cancel.show()
         self.append_layout.addWidget(self.btn_rent_cancel, 2, 1, 1, 1)
         self.btn_rent_accept.show()
@@ -471,8 +484,10 @@ class RentVehicleView(QWidget):
 
         self.info_0_label.setText("")
         self.info_0_label.hide()
-        self.info_label.setText("")
-        self.info_label.hide()
+        self.info_vehicle_label.setText("")
+        self.info_vehicle_label.hide()
+        self.info_user_label.setText("")
+        self.info_user_label.hide()
         self.btn_rent_cancel.hide()
         self.btn_rent_accept.hide()
         self.info_5_label.setText("")

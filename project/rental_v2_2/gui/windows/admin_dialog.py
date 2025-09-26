@@ -132,16 +132,17 @@ class AdminDialog(QMainWindow):
             return [
                 "1. Dodaj nowego sprzedawcę",
                 "2. Usuń sprzedawcę",
-                "3. Dodaj nowego klienta",
-                "4. Usuń klienta",
-                "5. Przeglądaj klientów",
-                "6. Dodaj nowy pojazd",
-                "7. Usuń pojazd z użytkowania",
-                "8. Przeglądaj pojazdy",
-                "9. Wypożycz pojazd klientowi",
-                "10. Zwróć pojazd",
-                "11. Oddaj pojazd do naprawy",
-                "12. Aktualizuj profil"
+                "3. Dodaj nowego księgowego",
+                "4. Dodaj nowego klienta",
+                "5. Usuń klienta",
+                "6. Przeglądaj klientów",
+                "7. Dodaj nowy pojazd",
+                "8. Usuń pojazd z użytkowania",
+                "9. Przeglądaj pojazdy",
+                "10. Wypożycz pojazd klientowi",
+                "11. Zwróć pojazd",
+                "12. Oddaj pojazd do naprawy",
+                "13. Aktualizuj profil"
             ]
         elif role == "seller":
             return [

@@ -61,16 +61,17 @@ class AdminDialogController(QObject):
             "admin": {
                 "1": self.handle_add_seller_widget,
                 "2": self.show_delete_seller_widget,
-                "3": self.handle_register_widget,
-                "4": self.show_delete_client_widget,
-                "5": self.show_get_users_widget,
-                "6": self.show_add_vehicle_widget,
-                "7": self.show_remove_vehicle_widget,
-                "8": self.show_get_vehicle_widget,
-                "9": self.show_rent_vehicle_widget,
-                "10": self.show_return_vehicle_widget,
-                "11": self.show_repair_vehicle_widget,
-                "12": self.show_update_user_widget
+                "3": self.handle_add_accountant_widget,
+                "4": self.handle_register_widget,
+                "5": self.show_delete_client_widget,
+                "6": self.show_get_users_widget,
+                "7": self.show_add_vehicle_widget,
+                "8": self.show_remove_vehicle_widget,
+                "9": self.show_get_vehicle_widget,
+                "10": self.show_rent_vehicle_widget,
+                "11": self.show_return_vehicle_widget,
+                "12": self.show_repair_vehicle_widget,
+                "13": self.show_update_user_widget
             },
             "seller": {
                 "1": self.handle_register_widget,
@@ -145,6 +146,15 @@ class AdminDialogController(QObject):
             print("❌ Błąd: AdminDialog nie został zainicjalizowany.")
             return
         view = RegisterUserView(parent=self.dialog, role="seller", auto=True)
+        controller = RegisterUserController(self.db_session, view, parent_dialog=self.dialog)
+        self.controller = controller
+        self.show_widget(view)
+
+    def handle_add_accountant_widget(self):
+        if self.dialog is None:
+            print("❌ Błąd: AdminDialog nie został zainicjalizowany.")
+            return
+        view = RegisterUserView(parent=self.dialog, role="accountant", auto=True)
         controller = RegisterUserController(self.db_session, view, parent_dialog=self.dialog)
         self.controller = controller
         self.show_widget(view)

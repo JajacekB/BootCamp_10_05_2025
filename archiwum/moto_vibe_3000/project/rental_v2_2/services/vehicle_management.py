@@ -6,7 +6,7 @@ from models.vehicle import Bike, Car, Scooter, Vehicle
 from utils.iput_helpers import choice_menu, yes_or_not_menu
 from services.id_generators import generate_vehicle_id
 from services.utils import get_positive_int, get_positive_float
-from services.vehicle_avability import get_unavailable_vehicle, get_available_vehicles
+from services.vehicle_availability import get_unavailable_vehicle, get_available_vehicles
 
 
 def add_vehicles_batch(session):

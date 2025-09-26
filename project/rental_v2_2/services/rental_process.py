@@ -8,7 +8,7 @@ from models.vehicle import Vehicle
 from models.rental_history import RentalHistory
 from models.invoice import Invoice
 from services.utils import get_positive_int, format_date_pl
-from services.vehicle_avability import get_available_vehicles
+from services.vehicle_availability import get_available_vehicles
 from services.rental_costs import calculate_rental_cost, recalculate_cost
 from services.id_generators import generate_reservation_id, generate_invoice_number
 from services.database_update import update_database
@@ -55,8 +55,6 @@ def rent_vehicle_for_client(session, user: User):
 def rent_vehicle(session=None, user: User = None):
     print("\n=== WYPOŻYCZENIE POJAZDU ===\n")
 
-    # Wprowadzenie danych wyporzyczenia (typ pojazdu i okres wypożyczenia)
-
     vehicle_type_input = choice_menu(
         "Jaki typ pojazdu chcesz wypozyczyć?",
         ["samochód", "skuter", "rower"]
@@ -71,14 +69,12 @@ def rent_vehicle(session=None, user: User = None):
     start_date = get_date_from_user("\nData rozpoczęcia (DD-MM-YYYY) Enter = dziś: ")
     planned_return_date = get_date_from_user("\nData zakończenia (DD-MM-YYYY): ")
 
-    # Krok 1: Znajdź dostępne pojazdy
     available_vehicles = get_available_vehicles(session, start_date, planned_return_date, vehicle_type)
 
     if not available_vehicles:
         print("\n🚫 Brak dostępnych pojazdów w tym okresie.")
         return
 
-    # Krok 2: Sortuj i grupuj pojazdy
     if vehicle_type == "car":
         vehicles_sorted = sorted(
             available_vehicles,
@@ -157,7 +153,6 @@ def rent_vehicle(session=None, user: User = None):
                 f"|{index:>4} | {brand:<15}| {model:<15}| {bike_variety:<21}| {formated_price:>15} |{len(bike):^12}|"
             )
 
-    # Krok 3: Wybór modelu
     while True:
         chosen_model = input("\nPodaj model pojazdu do wypożyczenia: ").strip()
         matching_vehicles = [v for v in available_vehicles if v.vehicle_model.lower() == chosen_model.lower()]
@@ -166,9 +161,6 @@ def rent_vehicle(session=None, user: User = None):
             print("🚫 Nie znaleziono pojazdu o podanym modelu. Wybierz ponownie.")
             continue
 
-        # Szukaj najmniej wypożyczanego w bazie
-
-        # Lista ID dostępnych pojazdów danego modelu
         matching_ids = [v.id for v in matching_vehicles]
 
         result = session.query(
@@ -181,7 +173,7 @@ def rent_vehicle(session=None, user: User = None):
         if result:
             chosen_vehicle, rental_count = result
         else:
-            # fallback — pierwszy dostępny z listy
+
             chosen_vehicle = matching_vehicles[0]
             rental_count = 0
         print(
@@ -193,14 +185,12 @@ def rent_vehicle(session=None, user: User = None):
         else:
             break
 
-    # Krok 4: Oblicz koszty i rabaty
     rent_days = (planned_return_date - start_date).days
     base_cost = rent_days * chosen_vehicle.cash_per_day
     total_cost, discount_value, discount_type = calculate_rental_cost(
         user, chosen_vehicle.cash_per_day, rent_days
     )
 
-    # Krok 5: Potwierdzenie
     print(f"\nKoszt podstawowy: {base_cost} zł")
     confirm = yes_or_not_menu(
         f"\nCałkowity koszt wypożyczenia po rabatach: {total_cost:.2f} zł."
@@ -211,17 +201,14 @@ def rent_vehicle(session=None, user: User = None):
         print("\n🚫 Anulowano rezerwację.")
         return
 
-    # Krok 6: Zapis danych do bazy
     reservation_id = generate_reservation_id(session)
     invoice_number = generate_invoice_number(session, planned_return_date)
 
-    # Aktualizacja pojazdu
     chosen_vehicle.is_available = False
     chosen_vehicle.borrower_id = user.id
     chosen_vehicle.return_date = planned_return_date
     session.add(chosen_vehicle)
 
-    # Historia wypożyczeń
     rental = RentalHistory(
         reservation_id=reservation_id,
         user_id=user.id,
@@ -234,7 +221,6 @@ def rent_vehicle(session=None, user: User = None):
     session.add(rental)
     session.flush()
 
-    # Faktura
     invoice = Invoice(
         invoice_number=invoice_number,
         rental_id=rental.id,
@@ -252,7 +238,6 @@ def rent_vehicle(session=None, user: User = None):
 
 
 def return_vehicle(session, user):
-    # Pobieranie aktywnie wynajętych i zarejestrowanych pojazdów
 
     if user.role == "client":
 
@@ -272,7 +257,6 @@ def return_vehicle(session, user):
             print("\nBrak wynajętych pojazdów")
             return
 
-        # lista wynajętych pojazdów
         rented_vehs = session.query(RentalHistory).filter(
             RentalHistory.vehicle_id.in_(unavailable_veh_ids),
             RentalHistory.actual_return_date.is_(None)
@@ -301,7 +285,6 @@ def return_vehicle(session, user):
             f"|{p.id:>4} |{date_str:>21} |{p.brand:>15} |{p.vehicle_model:>15} | {p.individual_id:>24} |"
         )
 
-    # Wybór pojazdu do zwrotu i potwierdzenie chęci anulowania wynajmu lub rezerwacji
     choice = get_positive_int(
         f"\nKtóry pojazd chcesz zwrócić?"
         f"\nPodaj nr ID: "
@@ -320,7 +303,6 @@ def return_vehicle(session, user):
 
     actual_return_date_input = get_date_from_user(f"\nPodaj rzeczywistą datę zwrotu (DD-MM-YYYY) Enter = dziś: ")
 
-    # Znajdź odpowiednią rezerwację (reservation_id) dla wybranego pojazdu i użytkownika
     selected_rental = None
     for rental in rented_vehs:
         if rental.vehicle_id == vehicle.id and rental.user_id == vehicle.borrower_id:

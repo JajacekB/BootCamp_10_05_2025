@@ -29,7 +29,9 @@ class User(Base):
 
     def __repr__(self):
         return (
-            f"\n [ID={self.id}] {self.first_name} {self.last_name} login: {self.login}\n"
+            f"\n[ID={self.id}]\n"
+            f"{self.first_name} {self.last_name}\n"
+            f"Login: {self.login}\n"
             f"zamieszkały: {self.address}\n"
             f"Telefon: {self.phone} email: {self.email}\n"
         )

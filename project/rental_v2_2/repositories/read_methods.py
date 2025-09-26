@@ -7,7 +7,7 @@ from models.vehicle import Vehicle
 from models.promotions import Promotion
 from models.rental_history import RentalHistory
 from models.repair_history import RepairHistory
-from services.vehicle_avability import get_available_vehicles
+from services.vehicle_availability import get_available_vehicles
 
 
 def get_replacement_vehicle(session, reference_vehicle, planned_return_date, prefer_cheaper: bool):

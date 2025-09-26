@@ -1,19 +1,20 @@
 
-import bcrypt
-import pycountry
-from sqlalchemy.exc import IntegrityError
-from PySide6.QtCore import Qt, Signal, QTimer
-from PySide6.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QFormLayout, QComboBox, QPushButton, QDialog
 
-from models.user import User
+import pycountry
+from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtWidgets import (
+    QWidget, QGridLayout, QLabel, QLineEdit, QFormLayout, QComboBox, QPushButton, QDialog, QMessageBox
+)
+
 from validation.validation import is_valid_phone, is_valid_email
+from gui.windows.admin_dialog import AdminDialog
 
 
 class RegisterUserView(QDialog):
 
     registration_cancelled = Signal()
-    registration_finished = Signal(object)
-    handle_login_password = Signal()
+    registration_finished = Signal(dict)
+    handle_login_password = Signal(str)
 
     def __init__(self, parent=None, role="client", auto=False):
         super().__init__(parent)
@@ -94,7 +95,7 @@ class RegisterUserView(QDialog):
         self.login_label.setStyleSheet("color: #A9C1D9; font-size: 20px; font-weight: bold;")
         self.main_layout.addWidget(self.login_label, 4, 0, 1, 2)
 
-        if self.auto and self.role == "seller":
+        if self.auto and self.role in ("seller", "accountant"):
 
             self.login_input = QLineEdit()
             self.password_input = QLineEdit()
@@ -183,9 +184,9 @@ class RegisterUserView(QDialog):
         last_row = self.main_layout.rowCount()
         self.main_layout.setRowStretch(last_row, 1)
 
-        if self.auto and self.role == "seller":
+        if self.auto and self.role in ("seller", "accountant"):
             print("⏳ Zaplanowano emit handle_login_password (następna kolejka)")
-            QTimer.singleShot(0, lambda: self.handle_login_password.emit())
+            QTimer.singleShot(0, lambda: self.handle_login_password.emit(self.role))
 
     def populate_auto_seller(self, seller_login, raw_password):
         self.login_input.setText(seller_login)
@@ -232,9 +233,11 @@ class RegisterUserView(QDialog):
             any(char.isupper() for char in password) and
             any(char.isdigit() for char in password)
         )
-        confirm_password_valid = password == self.confirm_password_input.text()
-
-        return phone_valid and email_valid and password_valid and confirm_password_valid
+        if self.role == "client":
+            confirm_password_valid = password == self.confirm_password_input.text()
+            return phone_valid and email_valid and password_valid and confirm_password_valid
+        else:
+            return phone_valid and email_valid and password_valid
 
     def _get_full_address(self):
         return (
@@ -275,33 +278,27 @@ class RegisterUserView(QDialog):
         print("View: tworzę usera")
         if self._is_form_valid():
             print("View: formularz bez błędów")
-            first_name = self.first_name_input.text()
-            last_name = self.last_name_input.text()
-            login = self.login_input.text()
-            phone = self.phone_input.text()
-            email = self.email_input.text()
-
-            password_hash = bcrypt.hashpw(self.password_input.text().encode('utf-8'), bcrypt.gensalt()).decode()
             full_address = self._get_full_address()
 
-            new_user = User(
-                first_name=first_name,
-                last_name=last_name,
-                login=login,
-                phone=phone,
-                email=email,
-                password_hash=password_hash,
-                address=full_address,
-                role=self.role
-            )
-            self.registration_finished.emit(new_user)
+            user_data = {
+                "first_name": self.first_name_input.text(),
+                "last_name": self.last_name_input.text(),
+                "login": self.login_input.text(),
+                "phone": self.phone_input.text(),
+                "email": self.email_input.text(),
+                "password": self.password_input.text(),
+                "address": full_address,
+                "role": self.role,
+            }
+
+            self.registration_finished.emit(user_data)
 
             self.add_user_button.setEnabled(False)
             self.add_user_button.setVisible(False)
             self.cancel2_button.setEnabled(False)
             self.cancel2_button.setVisible(False)
 
-            return new_user
+            return user_data
 
         else:
             print("View: Formularz ma błędy")
@@ -309,6 +306,14 @@ class RegisterUserView(QDialog):
             self.summary_label.setStyleSheet("color: #F44336; font-size: 14px;")
             self.summary_label.setVisible(True)
             return None
+
+    def show_success(self, success, text):
+        if success:
+            QMessageBox.information(self,"Sukces", f"{text}")
+            self._cancel_registration()
+
+        else:
+            QMessageBox.warning(self, "Niepowodzenie", f"{text}")
 
     def _hide_summary(self):
         self.summary_label.setVisible(False)

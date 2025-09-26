@@ -6,7 +6,7 @@ from models.rental_history import RentalHistory
 from models.repair_history import RepairHistory
 from utils.iput_helpers import choice_menu, yes_or_not_menu
 from services.utils import get_positive_int, get_positive_float
-from services.vehicle_avability import get_available_vehicles, get_unavailable_vehicle
+from services.vehicle_availability import get_available_vehicles, get_unavailable_vehicle
 from services.database_update import update_database
 from services.rental_process import recalculate_cost
 from services.rental_swap import find_replacement_vehicle, update_database_after_vehicle_swap
