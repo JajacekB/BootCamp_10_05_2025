@@ -21,6 +21,7 @@ class Vehicle(Base):
     individual_id = Column(String, unique=True, nullable=False)
     purchase_date = Column(Date, default=date.today)
     type = Column(String)  # 'car', 'scooter', 'bike'
+    is_active = Column(Boolean, nullable=False, default=True)
 
     borrower = relationship("User", back_populates="vehicles")
     rental_history = relationship("RentalHistory", back_populates="vehicle")
@@ -30,6 +31,20 @@ class Vehicle(Base):
         'polymorphic_on': type,
         'polymorphic_identity': 'vehicle'
     }
+
+    def get_display_info(self):
+
+        purchase_year = self.purchase_date.year if self.purchase_date else "brak danych"
+        status = "Dostępny" if self.is_available else f"Niedostępny do {self.return_date}"
+        return (
+            f"ID ewidencyjne: {self.vehicle_id}\n"
+            f"Marka / model: {self.brand} {self.vehicle_model}\n"
+            f"Rok produkcji: {purchase_year}\n"
+            f"Numer rejestracyjny / seryjny: {self.individual_id}\n"
+            f"Typ pojazdu: {self.type}\n"
+            f"Cena za dzień: {self.cash_per_day:.2f} zł\n"
+            f"Status: {status}\n"
+        )
 
 
 class Car(Vehicle):
@@ -52,6 +67,14 @@ class Car(Vehicle):
             f"{'Dostępny' if self.is_available else f'Niedostępny do {self.return_date}'}\n"
         )
 
+    def get_display_info(self):
+        base_info = super().get_display_info()
+        return (
+            f"{base_info}"
+            f"Rozmiar: {self.size}\n"
+            f"Rodzaj paliwa: {self.fuel_type}\n"
+        )
+
 
 class Scooter(Vehicle):
     __tablename__ = 'scooters'
@@ -70,6 +93,13 @@ class Scooter(Vehicle):
             f"Numer rejestracyjny: {self.individual_id} "
             f"{self.cash_per_day}zł za dzień "
             f"{'Dostępny' if self.is_available else f'Niedostępny do {self.return_date}'}\n"
+        )
+
+    def get_display_info(self):
+        base_info = super().get_display_info()
+        return (
+            f"{base_info}"
+            f"Maksymalna prędkość: {self.max_speed} km/h\n"
         )
 
 
@@ -91,4 +121,13 @@ class Bike(Vehicle):
             f"Numer seryjny: {self.individual_id} "
             f"{self.cash_per_day}zł za dzień "
             f"{'Dostępny' if self.is_available else f'Niedostępny do {self.return_date}'}\n"
+        )
+
+    def get_display_info(self):
+        base_info = super().get_display_info()
+        naped = "Elektryczny" if self.is_electric else "Zwykły"
+        return (
+            f"{base_info}"
+            f"Rodzaj roweru: {self.bike_type}\n"
+            f"Napęd: {naped}\n"
         )

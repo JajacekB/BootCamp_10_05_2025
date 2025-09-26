@@ -16,7 +16,6 @@ from services.id_generators import generate_repair_id
 
 def repair_vehicle(session):
 
-    # pobranie i wyświetlenie wszytskich pojazdów z podziałem na wynajęte i wolne
     rented_broken_vehs, _ = get_unavailable_vehicle(session)
     available_broken_vehs = get_available_vehicles(session)
 
@@ -49,12 +48,11 @@ def repair_vehicle(session):
                 f"| {vehicle.id:>4}| {vehicle.brand:<13}| {vehicle.vehicle_model:13}| {vehicle.individual_id:<19}|"
             )
 
-    # wybór niesprawnego pojazdu
     broken_veh_id = get_positive_int("\nPodaj id pojadu do naprawy: ")
     repair_days = get_positive_int(f"Podaj szacunkową ilość dni naprawy: ")
 
     today = date.today()
-    planned_end_date = datetime.today().date() + timedelta(days=repair_days)
+    planned_start_date = datetime.today().date() + timedelta(days=repair_days)
 
     broken_veh = session.query(Vehicle).filter(
         Vehicle.id == broken_veh_id
@@ -62,25 +60,18 @@ def repair_vehicle(session):
     if not broken_veh:
         print("❌ Nie znaleziono pojazdu o podanym ID.")
         return False
-    #
-    # if broken_veh.is_under_repair:
-    #     print("ℹ️ Pojazd już znajduje się w naprawie.")
-    #     return False
 
-    # sprawdzenie czy pojazd ma aktywny najem
     broken_rent = session.query(RentalHistory).filter(
         RentalHistory.vehicle_id == broken_veh_id,
         today <= RentalHistory.planned_return_date,
-        RentalHistory.start_date <= planned_end_date
+        RentalHistory.start_date <= planned_start_date
     ).first()
 
-    # jeśli brak najmu - oddanie do naprawy
     if not broken_rent:
         mark_as_under_repair(session, broken_veh, repair_days)
         print("🛠️  Pojazd został oznaczony jako w naprawie.")
         return True
 
-    # jeśli pojazd został uszkodzony podczas najmu uruchomienie procedury wymiany pojazdu i rekalkulacji kosztów
     process_vehicle_swap_and_recalculate(session, broken_veh, broken_rent, repair_days)
 
     return True
@@ -154,7 +145,7 @@ def process_vehicle_swap_and_recalculate(session, broken_veh, broken_rental, rep
                 else:
                     return finalize_rental_and_repair(session, broken_veh, broken_rental, repair_days)
 
-    return True  # na wszelki wypadek fallback
+    return True
 
 
 def finalize_rental_and_repair(session, broken_veh, broken_rental, repair_days):
@@ -185,7 +176,7 @@ def mark_as_under_repair(session, vehicle, repair_days):
     workshop_choice = get_positive_int("Wybierz numer warsztatu: ", max_value=len(workshops)) - 1
     selected_workshop = workshops[workshop_choice]
 
-    planned_end_date = date.today() + timedelta(days=repair_days)
+    planned_return_date = date.today() + timedelta(days=repair_days)
 
     repair_cost_per_day = get_positive_float("\nPodaj jednostkowy koszt naprawy: ")
     repair_cost = repair_cost_per_day * repair_days
@@ -194,27 +185,25 @@ def mark_as_under_repair(session, vehicle, repair_days):
 
     repair_id = generate_repair_id(session)
 
-    # Generowanie naprawy
     repair = RepairHistory(
         repair_id=repair_id,
         vehicle_id=vehicle.id,
         mechanic_id=selected_workshop.id,
         start_date=date.today(),
-        planned_end_date=planned_end_date,
+        planned_return_date=planned_return_date,
         actual_return_date=None,
         cost=repair_cost,
         description=description
     )
     session.add(repair)
 
-    # Aktualizacja pojazdu
     vehicle.is_available = False
     vehicle.borrower_id = selected_workshop.id
-    vehicle.return_date = planned_end_date
+    vehicle.return_date = planned_return_date
 
     session.commit()
     print(
         f"\nPojazd {vehicle.brand} {vehicle.vehicle_model} {vehicle.individual_id}"
-        f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planned_end_date}."
+        f"\nprzekazany do warsztatu: {selected_workshop.first_name} {selected_workshop.last_name} do dnia {planned_return_date}."
     )
     return True

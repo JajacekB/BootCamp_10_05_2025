@@ -14,11 +14,7 @@ from utils.iput_helpers import choice_menu, yes_or_not_menu, get_date_from_user
 
 
 def register_user(session, role="client", auto=False):
-    """
-    Rejestracja nowego użytkownika.
-    :param role: 'client' lub 'seller'
-    :param auto: jeśli True, login i hasło są generowane automatycznie (dla sprzedawcy).
-    """
+
     print(f"\n=== REJESTRACJA NOWEGO {'SPRZEDAWCY' if role == 'seller' else 'KLIENTA'} ===")
 
     print("\nPodaj dane potrzebne do rejestracji")
@@ -213,12 +209,14 @@ def remove_user(session, role="client"):
 
 def get_clients(session):
     print(">>> Przeglądanie klientów <<<")
-    question = {
-        "W": "Wszyscy",
-        "T": "Tylko z wypożyczeniem",
-        "B": "Bez wypożyczenia"
-    }
-    client_status = choice_menu("\nW jaki sposób chcesz przeglądać klientów?", question)
+
+    client_status = choice_menu("\nW jaki sposób chcesz przeglądać klientów?",
+                                {
+                                    "w": "Wszyscy",
+                                    "t": "Tylko z wypożyczeniem",
+                                    "b": "Bez wypożyczenia"
+                                }
+                            )
 
     if client_status == "w":
         clients = (
@@ -256,10 +254,10 @@ def get_clients(session):
             print(client, "\n")
 
         question = {
-            "W": "Wyświetl szczegóły użytkownika",
-            "P": "Powrót do menu główneg"
+            "w": "Wyświetl szczegóły użytkownika",
+            "p": "Powrót do menu główneg"
         }
-        choice = choice_menu(f"\nCo chcesz teraz zrobić?")
+        choice = choice_menu(f"\nCo chcesz teraz zrobić?", question)
 
         if choice == "p":
             return
@@ -301,7 +299,7 @@ def get_clients(session):
 
 
 def get_users_by_role(session, role_name: str) -> List[User]:
-    """Zwraca listę użytkowników o podanej roli."""
+
     return session.query(User).filter_by(role=role_name).all()
 
 

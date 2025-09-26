@@ -4,6 +4,7 @@
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from database.base import Base
+from models.invoice import Invoice
 
 
 class RentalHistory(Base):
@@ -28,4 +29,6 @@ class RentalHistory(Base):
     invoice = relationship("Invoice", back_populates="rental", uselist=False)
 
     def __repr__(self):
-        return f"<RentalHistory ID:{self.id} Nr rezerwacji:{self.reservation_id} User:{self.user_id} Vehicle:{self.vehicle_id}>"
+        return (f" ID:[{self.id}] Nr rezerwacji:{self.reservation_id} "
+                f"Pojazd:{self.vehicle_id}  klient:{self.user_id} "
+                f"w termine od {self.start_date} do {self.planned_return_date}.")

@@ -16,7 +16,7 @@ class RepairHistory(Base):
     mechanic_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
     start_date = Column(Date, nullable=False)
-    planned_end_date = Column(Date, nullable=False)  # dawniej end_date
+    planned_return_date = Column(Date, nullable=False)
     actual_return_date = Column(Date, nullable=True)  # nowa kolumna
 
     cost = Column(Float, nullable=True)
