@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Logowanie</title>
+<style>
+body { background:#2e2e2e; color:#eee; font-family:Arial; text-align:center; padding:50px; }
+input { font-size:16px; padding:8px; margin:5px; border-radius:5px; border:none; background:#444; color:white; }
+button { font-size:18px; padding:10px 30px; margin:10px; border-radius:8px; cursor:pointer; background:#555; color:white; }
+#error { color:red; }
+</style>
+</head>
+<body>
+<h1>Logowanie</h1>
+<div>
+<input type="text" id="login" placeholder="Login lub Email"><br>
+<input type="password" id="password" placeholder="Hasło"><br>
+<button onclick="performLogin()">Zaloguj się</button>
+<button onclick="location.href='/'">Anuluj</button>
+<p id="error"></p>
+</div>
+<script>
+async function performLogin() {
+    const login = document.getElementById("login").value;
+    const password = document.getElementById("password").value;
+
+    const resp = await fetch('/api/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({login, password})
+    });
+    const data = await resp.json();
+    if(data.success){
+        window.location.href='/admin'; // lub dashboard
+    } else {
+        document.getElementById("error").innerText = data.message;
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Rejestracja – MOTO VIBE 3000</title>
+<style>
+    body {
+        background-color: #2e2e2e;
+        color: #eee;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+    }
+    h1 {
+        font-size: 32px;
+        margin-bottom: 30px;
+        color: #fff;
+    }
+    form {
+        display: flex;
+        flex-direction: column;
+        background-color: #3a3a3a;
+        padding: 30px;
+        border-radius: 10px;
+        min-width: 350px;
+        box-shadow: 0 0 10px #000;
+    }
+    label {
+        font-size: 14px;
+        margin-bottom: 5px;
+        color: #eee;
+    }
+    input, select {
+        font-size: 14px;
+        padding: 8px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        border: none;
+        background-color: #444;
+        color: white;
+    }
+    button {
+        font-size: 16px;
+        padding: 10px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .register-btn {
+        background-color: darkgreen;
+        color: white;
+    }
+    .cancel-btn {
+        background-color: brown;
+        color: white;
+    }
+    #error-message {
+        color: #F44336;
+        font-size: 14px;
+        margin-top: 5px;
+        min-height: 20px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Rejestracja nowego użytkownika</h1>
+
+<form id="registerForm">
+    <label for="first_name">Imię:</label>
+    <input type="text" id="first_name" required>
+
+    <label for="last_name">Nazwisko:</label>
+    <input type="text" id="last_name" required>
+
+    <label for="phone">Telefon:</label>
+    <input type="text" id="phone" placeholder="Numer telefonu" required>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" required>
+
+    <label for="street">Ulica i numer:</label>
+    <input type="text" id="street" required>
+
+    <label for="post_code">Kod pocztowy:</label>
+    <input type="text" id="post_code" required>
+
+    <label for="city">Miasto:</label>
+    <input type="text" id="city" required>
+
+    <label for="country">Państwo:</label>
+    <select id="country" required>
+        <option value="Poland">Polska</option>
+        <option value="Germany">Niemcy</option>
+        <option value="France">Francja</option>
+        <!-- Dodaj inne państwa w razie potrzeby -->
+    </select>
+
+    <label for="login">Login:</label>
+    <input type="text" id="login" required>
+
+    <label for="password">Hasło:</label>
+    <input type="password" id="password" placeholder="Min 6 znaków, 1 wielka litera, 1 cyfra" required>
+
+    <label for="confirm_password">Potwierdź hasło:</label>
+    <input type="password" id="confirm_password" required>
+
+    <button type="button" class="register-btn" onclick="performRegister()">Zarejestruj się</button>
+    <button type="button" class="cancel-btn" onclick="cancelRegister()">Anuluj</button>
+
+    <div id="error-message"></div>
+</form>
+
+<script>
+function validatePassword(pwd) {
+    return pwd.length >= 6 && /[A-Z]/.test(pwd) && /\d/.test(pwd);
+}
+
+async function performRegister() {
+    const errorMessage = document.getElementById("error-message");
+
+    const data = {
+        first_name: document.getElementById("first_name").value.trim(),
+        last_name: document.getElementById("last_name").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        street: document.getElementById("street").value.trim(),
+        post_code: document.getElementById("post_code").value.trim(),
+        city: document.getElementById("city").value.trim(),
+        country: document.getElementById("country").value,
+        login: document.getElementById("login").value.trim(),
+        password: document.getElementById("password").value,
+        confirm_password: document.getElementById("confirm_password").value,
+    };
+
+    // Walidacje klienta
+    if(data.password !== data.confirm_password) {
+        errorMessage.innerText = "Hasła nie są zgodne.";
+        return;
+    }
+    if(!validatePassword(data.password)) {
+        errorMessage.innerText = "Hasło musi mieć min 6 znaków, 1 wielką literę i 1 cyfrę.";
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/register", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if(result.success){
+            alert("Użytkownik zarejestrowany pomyślnie!");
+            window.location.href = "/login";
+        } else {
+            errorMessage.innerText = result.message;
+        }
+    } catch(err) {
+        console.error(err);
+        errorMessage.innerText = "Błąd serwera. Spróbuj ponownie.";
+    }
+}
+
+function cancelRegister() {
+    window.location.href = "/";
+}
+</script>
+
+</body>
+</html>
