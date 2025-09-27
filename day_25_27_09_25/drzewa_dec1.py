@@ -11,13 +11,14 @@ def drzewo_2(wiek, zarobki):
         else:
             return "NO"
 
-    if wiek > 30:
-        if zarobki > 40_000:
-            return "OK"
+    else:
+        if wiek > 30:
+            if zarobki > 40_000:
+                return "OK"
+            else:
+                return "NO"
         else:
             return "NO"
-    else:
-        return "NO"
 
 print(drzewo_2(30, 4_000))
 print(drzewo_2(55, 7_000))
