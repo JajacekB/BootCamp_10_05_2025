@@ -2,38 +2,111 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Logowanie</title>
+<title>Logowanie – MOTO VIBE 3000</title>
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
-body { background:#2e2e2e; color:#eee; font-family:Arial; text-align:center; padding:50px; }
-input { font-size:16px; padding:8px; margin:5px; border-radius:5px; border:none; background:#444; color:white; }
-button { font-size:18px; padding:10px 30px; margin:10px; border-radius:8px; cursor:pointer; background:#555; color:white; }
-#error { color:red; }
+body {
+    background:#2e2e2e;
+    color:#eee;
+    font-family:Arial, sans-serif;
+    text-align:center;
+    padding:50px;
+}
+h1 {
+    font-size:32px;
+    margin-bottom:40px;
+}
+form {
+    display: inline-block;
+    text-align: center;
+    background:#3a3a3a;
+    padding:30px;
+    border-radius:10px;
+}
+input {
+    font-size:16px;
+    padding:10px;
+    margin:10px 0;
+    border-radius:5px;
+    border:none;
+    background:#444;
+    color:white;
+    width: 250px;
+}
+input:focus {
+    outline: none;
+    box-shadow: 0 0 5px #28a745;
+}
+#error {
+    color:red;
+    margin-top: 10px;
+}
+
+/* Przyciski */
+.btn-custom {
+    width: 200px;
+    font-size:18px;
+}
+
+/* Kolory Bootstrap wymuszone */
+.btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: white !important;
+}
+.btn-success:hover, .btn-success:focus {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+    color: white !important;
+}
+
+.btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+}
+.btn-danger:hover, .btn-danger:focus {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+    color: white !important;
+}
 </style>
 </head>
 <body>
-<h1>Logowanie</h1>
-<div>
-<input type="text" id="login" placeholder="Login lub Email"><br>
-<input type="password" id="password" placeholder="Hasło"><br>
-<button onclick="performLogin()">Zaloguj się</button>
-<button onclick="location.href='/'">Anuluj</button>
-<p id="error"></p>
-</div>
+<h1>Logowanie – MOTO VIBE 3000</h1>
+
+<form onsubmit="performLogin(); return false;">
+    <input type="text" id="login" placeholder="Login lub Email"><br>
+    <input type="password" id="password" placeholder="Hasło"><br>
+    <button type="submit" class="btn btn-success btn-lg m-2 btn-custom">Zaloguj się</button>
+    <button type="button" class="btn btn-danger btn-lg m-2 btn-custom" onclick="location.href='/'">Anuluj</button>
+    <p id="error"></p>
+</form>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
 async function performLogin() {
     const login = document.getElementById("login").value;
     const password = document.getElementById("password").value;
 
-    const resp = await fetch('/api/login', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({login, password})
-    });
-    const data = await resp.json();
-    if(data.success){
-        window.location.href='/admin'; // lub dashboard
-    } else {
-        document.getElementById("error").innerText = data.message;
+    try {
+        const resp = await fetch('/api/login', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({login, password})
+        });
+        const data = await resp.json();
+        if(data.success){
+            window.location.href='/admin'; // lub dashboard
+        } else {
+            document.getElementById("error").innerText = data.message || "Błąd logowania";
+        }
+    } catch(err) {
+        document.getElementById("error").innerText = "Błąd połączenia z serwerem";
+        console.error(err);
     }
 }
 </script>
