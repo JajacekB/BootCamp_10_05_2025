@@ -1,0 +1,55 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <list>
+          <option value="bokeh" />
+          <option value="choreographer" />
+          <option value="contourpy" />
+          <option value="cycler" />
+          <option value="et_xmlfile" />
+          <option value="fonttools" />
+          <option value="future" />
+          <option value="Jinja2" />
+          <option value="kaleido" />
+          <option value="kiwisolver" />
+          <option value="logistro" />
+          <option value="lxml" />
+          <option value="MarkupSafe" />
+          <option value="matplotlib" />
+          <option value="narwhals" />
+          <option value="numpy" />
+          <option value="openpyxl" />
+          <option value="orjson" />
+          <option value="packaging" />
+          <option value="pandas" />
+          <option value="pandas-stubs" />
+          <option value="pillow" />
+          <option value="plotly" />
+          <option value="pyparsing" />
+          <option value="python-dateutil" />
+          <option value="pytz" />
+          <option value="PyYAML" />
+          <option value="simplejson" />
+          <option value="six" />
+          <option value="tornado" />
+          <option value="tzdata" />
+          <option value="xlrd" />
+          <option value="xlsxwriter" />
+          <option value="xlutils" />
+          <option value="xlwt" />
+          <option value="xlwt-future" />
+          <option value="xyzservices" />
+        </list>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyPep8Inspection" enabled="true" level="INFORMATION" enabled_by_default="true">
+      <option name="ignoredErrors">
+        <list>
+          <option value="W292" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
