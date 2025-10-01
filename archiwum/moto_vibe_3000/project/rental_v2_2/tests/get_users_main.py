@@ -1,7 +1,7 @@
 # main_consol_version.py
 from PySide6.QtWidgets import QApplication
-from database.base import SessionLocal
-from gui.widgets.get_users_view import GetUsersWidget
+from database import SessionLocal
+from gui import GetUsersWidget
 from repositories.get_users_service import GetUsersService
 from controllers.get_users_controller import GetUsersController
 

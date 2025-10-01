@@ -1,10 +1,10 @@
 # directory: ui
 # file: menu_client.py
 
-from ui.menu_base import handle_choice, logoff_user
+from ui import handle_choice, logoff_user
 from services.vehicle_management import get_vehicle
 from services.user_service import update_profile
-from ui.promotions_baner import show_dynamic_promo_banner
+from ui import show_dynamic_promo_banner
 from services.rental_process import rent_vehicle, return_vehicle
 
 

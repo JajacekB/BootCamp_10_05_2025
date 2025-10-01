@@ -1,9 +1,9 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-from database.base import SessionLocal
+from database import SessionLocal
 from controllers.register_user_controller import RegisterUserController
-from gui.widgets.register_user_view import RegisterUserView
+from gui import RegisterUserView
 
 
 def main():

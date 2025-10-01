@@ -2,9 +2,9 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-from database.base import SessionLocal
+from database import SessionLocal
 from repositories.delete_users_service import DeleteUsersService
-from gui.widgets.delete_users_view import DeleteUsersWidget
+from gui import DeleteUsersWidget
 from controllers.delete_users_controller import DeleteUsersController
 
 

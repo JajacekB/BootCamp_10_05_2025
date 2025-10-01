@@ -1,8 +1,8 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-from database.base import SessionLocal
-from gui.widgets.overdue_rental_view import OverdueRentalView
+from database import SessionLocal
+from gui import OverdueRentalView
 from controllers.overdue_rental_controller import OverdueRentalController
 
 

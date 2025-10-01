@@ -3,8 +3,8 @@ import random
 from PySide6.QtWidgets import QApplication
 
 from models.user import User
-from database.base import SessionLocal
-from gui.widgets.rent_vehicle_view import RentVehicleView
+from database import SessionLocal
+from gui import RentVehicleView
 from controllers.rent_vehicle_controller import RentVehicleController
 
 def main():

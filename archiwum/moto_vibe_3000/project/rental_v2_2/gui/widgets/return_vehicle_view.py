@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (QWidget, QVBoxLayout, QFormLayout, QPushButton, Q
     )
 from PySide6.QtCore import Qt, Signal
 
-from gui.windows.calendar_combo_widget import CalendarCombo
+from gui import CalendarCombo
 
 
 class ReturnVehicleView(QWidget):

@@ -1,8 +1,8 @@
 # directory: ui
 # file: manu_base.py
 
-from ui.promotions_baner import show_dynamic_promo_banner
-from database.base import SessionLocal
+from ui import show_dynamic_promo_banner
+from database import SessionLocal
 from services.user_service import register_user
 from services.auth_service import login_user
 

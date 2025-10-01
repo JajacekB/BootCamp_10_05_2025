@@ -2,7 +2,7 @@
 # file:  rental_cost.py
 
 from datetime import date
-from database.base import Session
+from database import Session
 from models.rental_history import RentalHistory
 from models.promotions import Promotion
 from models.user import User

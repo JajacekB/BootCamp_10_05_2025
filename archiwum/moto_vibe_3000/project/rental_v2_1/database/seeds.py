@@ -2,7 +2,7 @@
 # file: seeds.py
 
 import bcrypt
-from database.base import SessionLocal
+from database import SessionLocal
 from models.user import User
 
 

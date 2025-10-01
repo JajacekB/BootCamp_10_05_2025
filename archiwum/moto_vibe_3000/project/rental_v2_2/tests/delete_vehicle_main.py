@@ -1,8 +1,8 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-from database.base import SessionLocal
-from gui.widgets.delete_vehicle_view import DeleteVehicleView
+from database import SessionLocal
+from gui import DeleteVehicleView
 
 from controllers.delete_vehicle_controller import DeleteVehicleController
 

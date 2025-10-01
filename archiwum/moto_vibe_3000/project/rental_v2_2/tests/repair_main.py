@@ -1,8 +1,8 @@
 # repair_main.py
 import sys
 from PySide6.QtWidgets import QApplication
-from database.base import SessionLocal  # Twój sessionmaker z SQLAlchemy
-from gui.widgets.repair_view import RepairVehicleView
+from database import SessionLocal  # Twój sessionmaker z SQLAlchemy
+from gui import RepairVehicleView
 from controllers.repair_controller import RepairController
 
 def main():

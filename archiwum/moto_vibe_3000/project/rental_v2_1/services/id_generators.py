@@ -3,7 +3,7 @@
 
 import re
 from sqlalchemy import extract, func, cast, Integer
-from database.base import Session
+from database import Session
 from models.rental_history import RentalHistory
 from models.repair_history import RepairHistory
 from models.invoice import Invoice

@@ -1,7 +1,7 @@
 # delete_users_controller.py
 from PySide6.QtWidgets import QMessageBox
 
-from gui.widgets.delete_users_view import DeleteUsersWidget
+from gui import DeleteUsersWidget
 from repositories.delete_users_service import DeleteUsersService
 
 class DeleteUsersController:

@@ -2,7 +2,7 @@
 # file: promotions.py
 
 from sqlalchemy import Column, Integer, String, Float
-from database.base import Base
+from database import Base
 
 
 class Promotion(Base):

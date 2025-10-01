@@ -1,4 +1,3 @@
-import datetime
 import platform
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout,
@@ -6,7 +5,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, Signal, QTimer, QDate
 
-from gui.windows.calendar_combo_widget import CalendarCombo
+from gui import CalendarCombo
 
 
 class OverdueRentalView(QWidget):

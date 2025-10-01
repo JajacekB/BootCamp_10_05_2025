@@ -3,12 +3,8 @@
 
 from sqlalchemy.exc import IntegrityError
 from models.user import User
-from models.vehicle import Vehicle, Car, Bike, Scooter
-from models.rental_history import RentalHistory
-from models.repair_history import RepairHistory
 from models.promotions import Promotion
-from models.invoice import Invoice
-from database.base import Base, engine, Session, SessionLocal
+from database import Base, engine, Session, SessionLocal
 import bcrypt
 
 

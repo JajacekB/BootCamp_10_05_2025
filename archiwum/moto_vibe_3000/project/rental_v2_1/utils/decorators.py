@@ -1,5 +1,5 @@
 from functools import wraps
-from database.base import Session
+from database import Session
 
 
 def with_session_if_needed(func):

@@ -2,8 +2,8 @@ import sys
 import random
 from PySide6.QtWidgets import QApplication
 
-from database.base import SessionLocal
-from gui.widgets.return_vehicle_view import ReturnVehicleView
+from database import SessionLocal
+from gui import ReturnVehicleView
 from repositories.return_vehicle_service import ReturnVehicleService
 from controllers.return_vehicle_controller import ReturnVehicleController
 from models.user import User

@@ -1,46 +1,46 @@
 from PySide6.QtCore import QObject
 
-from gui.windows.admin_dialog import AdminDialog
+from gui import AdminDialog
 
-from gui.widgets.register_user_view import RegisterUserView
+from gui import RegisterUserView
 from controllers.register_user_controller import RegisterUserController
 
-from gui.widgets.delete_users_view import DeleteUsersWidget
+from gui import DeleteUsersWidget
 from repositories.delete_users_service import DeleteUsersService
 from controllers.delete_users_controller import DeleteUsersController
 
-from gui.widgets.get_users_view import GetUsersWidget
+from gui import GetUsersWidget
 from repositories.get_users_service import GetUsersService
 from controllers.get_users_controller import GetUsersController
 
-from gui.widgets.get_vehicle_view import GetVehicleView
+from gui import GetVehicleView
 from repositories.get_vehicle_service import GetVehicleService
 from controllers.get_vehicle_controller import GetVehicleController
 
 from repositories.repair_service import RepairService
-from gui.widgets.repair_view import RepairVehicleView
+from gui import RepairVehicleView
 from controllers.repair_controller import RepairController
 
-from gui.widgets.return_vehicle_view import ReturnVehicleView
+from gui import ReturnVehicleView
 from repositories.return_vehicle_service import ReturnVehicleService
 from controllers.return_vehicle_controller import ReturnVehicleController
 
-from gui.widgets.delete_vehicle_view import DeleteVehicleView
+from gui import DeleteVehicleView
 from controllers.delete_vehicle_controller import DeleteVehicleController
 
-from gui.widgets.promo_banner_view import PromoBannerView
+from gui import PromoBannerView
 from controllers.promo_banner_controller import PromoBannerController
 
-from gui.widgets.update_user_view import UpdateUserView
+from gui import UpdateUserView
 from controllers.update_user_controller import UpdateUserController
 
-from gui.widgets.add_vehicle_view import AddVehicleView
+from gui import AddVehicleView
 from controllers.add_vehicle_controller import AddVehicleController
 
-from gui.widgets.overdue_rental_view import OverdueRentalView
+from gui import OverdueRentalView
 from controllers.overdue_rental_controller import OverdueRentalController
 
-from gui.widgets.rent_vehicle_view import RentVehicleView
+from gui import RentVehicleView
 from controllers.rent_vehicle_controller import RentVehicleController
 
 

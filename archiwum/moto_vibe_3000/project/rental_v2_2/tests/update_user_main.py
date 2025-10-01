@@ -3,8 +3,8 @@ import random
 from PySide6.QtWidgets import QApplication
 
 from models.user import User
-from database.base import SessionLocal
-from gui.widgets.update_user_view import UpdateUserView
+from database import SessionLocal
+from gui import UpdateUserView
 from controllers.update_user_controller import UpdateUserController
 
 def main():

@@ -3,11 +3,11 @@
 import pycountry
 from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import (
-    QWidget, QGridLayout, QLabel, QLineEdit, QFormLayout, QComboBox, QPushButton, QDialog, QMessageBox
+    QGridLayout, QLabel, QLineEdit, QFormLayout, QComboBox, QPushButton, QDialog, QMessageBox
 )
 
 from validation.validation import is_valid_phone, is_valid_email
-from gui.windows.admin_dialog import AdminDialog
+from gui import AdminDialog
 
 
 class RegisterUserView(QDialog):

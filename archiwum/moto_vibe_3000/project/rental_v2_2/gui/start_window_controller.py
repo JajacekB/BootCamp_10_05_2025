@@ -1,12 +1,12 @@
 import sys
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject
 from PySide6.QtWidgets import QApplication
-from database.base import SessionLocal
-from gui.windows.start_window import StartWindow
-from gui.windows.login_window import LoginDialog
-from gui.windows.admin_dialog import AdminDialog
+from database import SessionLocal
+from gui import StartWindow
+from gui import LoginDialog
+from gui import AdminDialog
 from controllers.admin_dialog_controller import AdminDialogController
-from gui.widgets.register_user_view import RegisterUserView
+from gui import RegisterUserView
 from controllers.register_user_controller import RegisterUserController
 
 

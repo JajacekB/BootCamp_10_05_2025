@@ -1,8 +1,8 @@
 import sys
 from PySide6.QtWidgets import QApplication
 
-from database.base import SessionLocal
-from gui.widgets.add_vehicle_view import AddVehicleView
+from database import SessionLocal
+from gui import AddVehicleView
 from controllers.add_vehicle_controller import AddVehicleController
 
 

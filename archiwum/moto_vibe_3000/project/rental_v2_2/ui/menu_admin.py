@@ -1,7 +1,7 @@
 # directory: ui
 # file: menu_admin.p
 
-from ui.menu_base import handle_choice, logoff_user
+from ui import handle_choice, logoff_user
 from services.user_service import add_seller, add_client,remove_user, get_clients, update_profile
 from services.vehicle_management import add_vehicles_batch, remove_vehicle, get_vehicle
 from services.rental_process import rent_vehicle_for_client, return_vehicle
